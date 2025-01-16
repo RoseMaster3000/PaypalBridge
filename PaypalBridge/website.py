@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, session
 from flask_bcrypt import Bcrypt
-from PaypalBridge.database.tinydb import create_user, fetch_user, fetch_users, update_user, delete_user
+from PaypalBridge.database.tinydb import initialize_db, create_user, fetch_user, fetch_users, update_user, delete_user
 from PaypalBridge.decorators import login_required, anon_required, temp_required
 from uuid import uuid4
 import os
@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 app.config['SECRET_KEY'] =  b'\xb4\xb5\xd0\xc5m\x10p\xdbB\xa2\xd4\x14'
 bcrypt = Bcrypt(app)
-
+initialize_db(app.root_path)
 
 @app.before_request 
 def verify_auth():

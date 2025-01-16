@@ -2,7 +2,13 @@
 
 # initialize database
 from tinydb import TinyDB, Query
-users = TinyDB('DatabaseStorage/users.tinydb.json')
+import os
+
+# initialize database
+def initialize_db(path):
+    dbPath = os.path.join(path, '..', 'DatabaseStorage', 'users.tinydb.json')
+    global users
+    users = TinyDB(dbPath)
 
 # get one user
 def fetch_user(username):
