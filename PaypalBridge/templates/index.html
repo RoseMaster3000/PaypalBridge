@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Users</title>
+  </head>
+  <body>
+
+    <form action="/Logout" method="post">
+        <button type="submit">Logout</button>
+    </form>
+    <form action="/TempUser" method="post">
+        <button type="submit">Generate Temporary User</button>
+    </form>
+    <p>current user: [{{session["username"]}}]</p>
+    <p>gems: [{{session["gems"]}}] <a href="/get_gem">[get gem]</a></p>
+    
+    <h1>Users</h1>
+    <!--added checkbox to delete many users at once-->
+    <form method="POST" action="/DeleteUsers">
+      <ul>
+        {% for user in users %}
+        <li>
+          <input
+            type="checkbox"
+            name="usernames"
+            value="{{ user['username'] }}"
+          />
+          {{ user['username'] }} - {{ user['email'] }} [{{user['gems']}}]
+        </li>
+        {% endfor %}
+      </ul>
+      <button type="submit">Delete Selected Users</button>
+    </form>
+
+    <hr />
+
+    <h2>Create User</h2>
+    <form method="POST" action="/CreateUser">
+      <input
+        type="text"
+        name="username"
+        placeholder="Username"
+        required
+      /><br />
+      <input type="email" name="email" placeholder="Email" required /><br />
+      <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        required
+      /><br />
+      <button type="submit">Add User</button>
+    </form>
+
+    <br />
+    <hr />
+
+
+    <h2>Login</h2>
+    <form method="POST" action="/Login">
+      <input
+        type="text"
+        name="username"
+        placeholder="Username"
+        required
+      /><br />
+      <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        required
+      /><br />
+      <button type="submit">Login</button>
+    </form>
+
+    <br />
+    <hr />
+
+    <h2>Delete User</h2>
+    <form method="POST" action="/DeleteUser">
+      <input
+        type="text"
+        name="username"
+        placeholder="Username to Delete"
+        required
+      />
+      <br />
+      <button type="submit">Delete User</button>
+    </form>
+
+    <br />
+    <hr />
+  </body>
+</html>

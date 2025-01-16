@@ -1,0 +1,12 @@
+
+Setting Up Firebase:
+(replace <PROJECT> with your project ID, mine was bridge-fdc2a)\
+
+[1] GENERATE FirebaseKey.json
+https://console.firebase.google.com/u/0/project/<PROJECT>/settings/serviceaccounts/adminsdk
+
+[2] ENABLE API
+https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=<PROJECT>
+
+[3] CREATE DATASTORE (NATIVE)
+https://console.cloud.google.com/datastore/setup?project=<PROJECT>

@@ -1,0 +1,42 @@
+Flask Server
+
+    - make accounts (store account info in tinyDB)
+    - endpoints
+        /TempUser
+            -> generate a temporary user
+                name       str(uuid4())
+                email      ""
+                password   str(uuid4())
+        /Logout (flask_session)
+        
+        /CreateUser
+            inherit GEMS from temp user that came before
+            name
+            email (associated with paypal)
+            password
+
+        /Login (flask_session)
+            inherit GEMS from temp user that came before
+
+        
+        
+
+        /WatchAd
+            record gems in firebase
+            validate with Unity API (?)
+        
+        /GemCount
+            get gem count for current logged in user
+
+        /Cashout
+            deduct gems in firebase
+            send money with Paypal Email on file
+
+Unity Game
+    Add Create User -> 
+    Add Login/Logout system  -> /Login /Logout
+    Add hook to end of add -> /WatchAd
+    Add hook to cashout -> /Cashout
+    Add hook to main menu -> /GemCount
+
+    https://stackoverflow.com/questions/46003824/sending-http-requests-in-c-sharp-with-unity

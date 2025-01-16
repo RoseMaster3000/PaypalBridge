@@ -1,0 +1,21 @@
+paypal-credential
+    clientSecret
+    clientId
+
+
+- Google Cloud Secret Manager
+    google.cloud.secretmanager.v1
+    GCP project ID
+        ornate-unity-445400-c0
+    secrets names
+        unity-credential
+        paypal-credential
+
+- Unity dashbaord API
+    see how much ad-sense the user has earned
+
+- Paypal payout API
+    payout money
+
+
+
