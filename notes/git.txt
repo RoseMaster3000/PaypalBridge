@@ -1,0 +1,5 @@
+Commit (write a note for all the changes)
+Push (have all commits go to github)
+Pull (get the neweset version of code from github)
+
+Sync With Remote (get the newest version from github so that the Pull button works)
