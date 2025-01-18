@@ -1,3 +1,6 @@
+# Ignore Database files (dont push these to git)
+DatabaseStorage/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
