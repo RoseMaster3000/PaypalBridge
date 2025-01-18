@@ -13,6 +13,7 @@ initialize_db(app.root_path)
 
 @app.before_request 
 def verify_auth():
+    session["replit"] = (os.environ["platform"] == "replit")
     if "username" not in session:
         generate_temp_user()
 
