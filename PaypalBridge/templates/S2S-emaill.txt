@@ -1,0 +1,10 @@
+https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks
+
+
+Hello,
+
+I am developing Unity game that will require S2S callbacks to validate users are actually watching ads/not cheating. My details are as follows:
+
+ProjectID: 
+CallbackURL: https://dcherevatsky.pythonanywhere.com/S2S
+
