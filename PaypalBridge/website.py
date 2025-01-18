@@ -141,7 +141,7 @@ def login(user):
         return f"Password is Incorrect<br><a href='/'>Go Back<a>"
 
     # inherit gems from previous (temp) account
-    if user["email"] == None:
+    if "email" in user and user["email"] == None:
         newUser["gems"] += user["gems"]
         update_user(newUser["username"], **newUser) # real account
         delete_user(user["username"])       # (old) temp account

@@ -1,22 +1,19 @@
 <!DOCTYPE html>
 <html>
-  <p>current user: [{{session["username"]}}]</p>
-  <p>gems: [{{session["gems"]}}] <a href="/get_gem">[get gem]</a></p>
+<body>
+  <head>
+    <form action="/Logout" method="post">
+      <button type="submit">Logout</button>
+    </form>
+    <form action="/TempUser" method="post">
+      <button type="submit">Generate Temporary User</button>
+    </form>
+    <p>current user: [{{session["username"]}}]</p>
+    <p>gems: [{{session["gems"]}}] <a href="/get_gem">[get gem]</a></p>
+  </head>
   
-  {% if session['username'] == 'admin' or session["replit"] %}
-    <head>
-      <title>Users</title>
-    </head>
-    <body>
-      <form action="/Logout" method="post">
-          <button type="submit">Logout</button>
-      </form>
-      <form action="/TempUser" method="post">
-          <button type="submit">Generate Temporary User</button>
-      </form>
-
-      <h1>Users</h1>
-      <!--added checkbox to delete many users at once-->
+  {% if session['username'] == 'admin' or session["replit"] %}  
+    <h2>Users</h2>
       <form method="POST" action="/DeleteUsers">
         <ul>
           {% for user in users %}
