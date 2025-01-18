@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
-
+  <p>current user: [{{session["username"]}}]</p>
+  <p>gems: [{{session["gems"]}}] <a href="/get_gem">[get gem]</a></p>
+  
   {% if session['username'] == 'admin' or session["replit"] %}
     <head>
       <title>Users</title>
@@ -12,9 +14,7 @@
       <form action="/TempUser" method="post">
           <button type="submit">Generate Temporary User</button>
       </form>
-      <p>current user: [{{session["username"]}}]</p>
-      <p>gems: [{{session["gems"]}}] <a href="/get_gem">[get gem]</a></p>
-      
+
       <h1>Users</h1>
       <!--added checkbox to delete many users at once-->
       <form method="POST" action="/DeleteUsers">
