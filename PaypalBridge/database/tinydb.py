@@ -6,9 +6,12 @@ import os
 
 # initialize database
 def initialize_db(path):
-    dbPath = os.path.join(path, '..', 'DatabaseStorage', 'users.tinydb.json')
-    global users
-    users = TinyDB(dbPath)
+    dbPath = os.path.join(path, '..', 'DatabaseStorage', 'tinydb.json')
+    global users, ads
+    db = TinyDB(dbPath)
+    users = db.table('users')
+    ads = db.table('ads')
+
 
 # get one user
 def fetch_user(username):
@@ -19,9 +22,11 @@ def fetch_user(username):
     else:
         return result[0]
 
+
 # get all users
 def fetch_users():
     return users.all()
+
 
 # create new user
 def create_user(**kwargs):
@@ -31,6 +36,7 @@ def create_user(**kwargs):
         return None
     doc_id = users.insert(kwargs)
     return users.get(doc_id=doc_id)
+
 
 # Update the user record
 def update_user(old_username, **kwargs):
@@ -42,6 +48,7 @@ def update_user(old_username, **kwargs):
     except Exception as e:
         return False
 
+
 # **delete a user record**
 def delete_user(username):
     User = Query()
@@ -50,3 +57,20 @@ def delete_user(username):
         return True
     except Exception as e:
         return False
+
+
+# log ad in database 
+def log_ad(**kwargs):
+    # validate user
+    if "userID" not in kwargs:
+        raise Exception("Ad must have a userID for the viewer")
+    # log ad
+    ads.insert(kwargs)
+
+
+
+# get all ads (for specific user)
+def fetch_ads(userID):
+    # fetch ads
+    Ad = Query()
+    return ads.search(Ad.userID == userID)

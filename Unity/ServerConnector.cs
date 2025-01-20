@@ -8,10 +8,33 @@ using UnityEngine.Networking;
 
 public class ServerConnector : MonoBehaviour
 {
-    public string ServerAddress;
+    // Server Address
+    public enum ServerOption
+    {
+        Replit,
+        Local,
+        PythonAnywhere,
+    }
+    [SerializeField] private ServerOption TargetServer;
+    public string ServerAddress 
+    {
+        get { switch (TargetServer) {
+            case ServerOption.Replit:
+                return "https://a793bff8-567d-48ec-8cb5-8559e412c1fd-00-38j54p3698xo4.janeway.replit.dev";
+            case ServerOption.PythonAnywhere:
+                return "https://dcherevatsky.pythonanywhere.com";
+            case ServerOption.Local:
+                return "http://localhost:5000";
+            default:
+                return "http://localhost:5000";
+        }}
+    }
+
+    // session previews
     public TextMeshProUGUI[] usernamePreviews;
     public TextMeshProUGUI[] gemPreviews;
-
+    public string sid;
+    
     // register fields
     public TMP_InputField registerEmailField;
     public TMP_InputField registerUsernameField;
@@ -132,9 +155,31 @@ public class ServerConnector : MonoBehaviour
             }
         }
         uwr.Dispose();
+        SID();
     }
 
+    public void SID()
+    {
+        StartCoroutine(SIDRequest());
+    }
 
+    private IEnumerator SIDRequest()
+    {
+        UnityWebRequest uwr = UnityWebRequest.Get($"{ServerAddress}/SID");
+        yield return uwr.SendWebRequest();
+        if (uwr.result == UnityWebRequest.Result.ConnectionError)
+        {
+            Debug.Log("Error While Sending: " + uwr.error);
+        }
+        else
+        {
+            Debug.Log("Received SID: " + uwr.downloadHandler.text);
+            sid = uwr.downloadHandler.text;
+        }
+        uwr.Dispose();
+    }
+
+    
     public void Logout()
     {
         StartCoroutine(LogoutRequest());
@@ -244,4 +289,32 @@ public class ServerConnector : MonoBehaviour
         Identity();
     }
 
+
+    public void WatchAd(string adUnitId)
+    {
+        StartCoroutine(WatchAdRequest(adUnitId));
+    }
+
+    private IEnumerator WatchAdRequest(string adUnitId)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("adUnitId", adUnitId);
+
+        UnityWebRequest uwr = UnityWebRequest.Post($"{ServerAddress}/WatchAd", form);
+        yield return uwr.SendWebRequest();
+
+        if (uwr.result == UnityWebRequest.Result.ConnectionError)
+        {
+            Debug.Log("Error While Sending: " + uwr.error);
+        }
+        else
+        {
+            Debug.Log("Received: " + uwr.downloadHandler.text);
+            GemCount();
+        }
+        uwr.Dispose();
+        Identity();
+    }
+
+    
 }

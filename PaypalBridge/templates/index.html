@@ -8,8 +8,14 @@
     <form action="/TempUser" method="post">
       <button type="submit">Generate Temporary User</button>
     </form>
+    <form action="/WatchAd" method="post">
+      <input type="hidden" name="adUnitId" value="3421789045713589017385901">
+      <button type="submit">Watch Fake Ad</button>
+    </form>
+    
     <p>current user: [{{session["username"]}}]</p>
     <p>gems: [{{session["gems"]}}] <a href="/get_gem">[get gem]</a></p>
+    <p><a href="/SeeAds">[See Ad Log]</a></p>
   </head>
   
   {% if session['username'] == 'admin' or session["replit"] %}  

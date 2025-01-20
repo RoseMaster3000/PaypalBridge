@@ -4,5 +4,13 @@ Pull (get the neweset version of code from github)
 
 Sync With Remote (get the newest version from github so that the Pull button works)
 
-
+(HTTP)
 > git clone https://github.com/RoseMaster3000/PaypalBridge.git
+
+(SSH)
+(mandatory if your repo is private)
+(reqiures ssh key in ./ssh folder)
+> git clone git@github.com:GITHUBUSERNAME/PaypalBridge.git
+
+
+

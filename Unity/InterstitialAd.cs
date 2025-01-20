@@ -1,11 +1,15 @@
+// https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks
+// [CALLBACK_URL][SEPARATOR1]sid=[SID][SEPARATOR]oid=[OID][SEPARATOR]hmac=[SIGNATURE]
 using UnityEngine;
 using UnityEngine.Advertisements;
+
 
 public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsShowListener
 {
     [SerializeField] string _androidAdUnitId = "Interstitial_Android";
     [SerializeField] string _iOsAdUnitId = "Interstitial_iOS";
     string _adUnitId;
+    public ServerConnector serverConnector; 
 
     void Awake()
     {
@@ -26,9 +30,10 @@ public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSho
     // Show the loaded content in the Ad Unit:
     public void ShowAd()
     {
-        // Note that if the ad content wasn't previously loaded, this method will fail
+        ShowOptions options = new ShowOptions();
+        options.gamerSid = serverConnector.sid;
         Debug.Log("Showing Ad: " + _adUnitId);
-        Advertisement.Show(_adUnitId, this);
+        Advertisement.Show(_adUnitId, options, this);
     }
 
     // Implement Load Listener and Show Listener interface methods: 
@@ -53,9 +58,9 @@ public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSho
     public void OnUnityAdsShowStart(string _adUnitId) { }
     public void OnUnityAdsShowClick(string _adUnitId) { }
 
-    
     public void OnUnityAdsShowComplete(string _adUnitId, UnityAdsShowCompletionState showCompletionState) 
     {
+        // Resume game, load next ad
         GameManager.instance.GameResume();
         LoadAd();
     }

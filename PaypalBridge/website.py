@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, session
+
+from flask import Flask, render_template, request, redirect, session, jsonify
 from flask_bcrypt import Bcrypt
-from PaypalBridge.database.tinydb import initialize_db, create_user, fetch_user, fetch_users, update_user, delete_user
+from PaypalBridge.database.tinydb import *
 from PaypalBridge.decorators import login_required, anon_required, temp_required
 from uuid import uuid4
 import os
@@ -38,6 +39,13 @@ def temp_user():
 @app.route("/Identity", methods=['POST'])
 def identity():
     return session.get("username", "[None]")
+
+
+# ask server for SID (document ID)
+@app.route("/SID")
+@login_required
+def SID(user):
+    return str(user.doc_id)
 
 
 # debugger view (veiw/create users)
@@ -113,7 +121,7 @@ def GemCount(user):
 @app.route('/get_gem')
 @login_required
 def get_gem(user):
-    if os.environ["platform"] == "replit":
+    if session["replit"]:
         user["gems"] += 1
         update_user(user["username"], **user)
         session["gems"] = user["gems"]
@@ -122,16 +130,32 @@ def get_gem(user):
         return "This route only workes on REPLIT server."
 
 
+
+@app.route('/WatchAd', methods=['POST'])
+@login_required
+def WatchAd(user):
+    log_ad(
+        userID = user.doc_id,
+        adUnitId = request.form['adUnitId'],
+        verified = False
+    )
+    return "Ad has been logged<br><a href='/'>Go Back<a>"
+
+@app.route('/SeeAds')
+@login_required
+def SeeAds(user):
+    if session["replit"]:
+        return jsonify(fetch_ads(user.doc_id))
+    else:
+        return 403, "Permission Denied"
+
+
 # take over temp_user account (fake "registration")
 @app.route('/Login', methods=['POST'])
 @login_required
-def login(user):
-    
+def login(user):    
     newUser = fetch_user(request.form['username'])
-    print(newUser)
-    print(request.form['password'])
-    print( bcrypt.check_password_hash(newUser['password'], request.form['password']))
-    
+
     # verify user
     if newUser==None:
         return f"User Does not Exist<br><a href='/'>Go Back<a>"
