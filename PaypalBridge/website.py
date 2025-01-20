@@ -1,6 +1,6 @@
-
 from flask import Flask, render_template, request, redirect, session, jsonify
 from flask_bcrypt import Bcrypt
+from PaypalBridge.paypal import send_money
 from PaypalBridge.database.tinydb import *
 from PaypalBridge.decorators import login_required, anon_required, temp_required
 from uuid import uuid4
@@ -50,11 +50,12 @@ def SID(user):
 
 # debugger view (veiw/create users)
 @app.route('/')
-def index():
+@login_required
+def index(user):
     # get all users
     users = fetch_users()
     # display page
-    return render_template('index.html', users=users)
+    return render_template('index.html', users=users, user=user)
 
 
 # 5 gems / 1 ad (5/1000)
@@ -107,6 +108,60 @@ def GetGem(user):
         return f"{user['gems']} Gems"
 
 
+def CalculatePayout(gemCount):
+    SingleAdRevenue = 5 / 1000
+    SingleGemRevenue = SingleAdRevenue / 5
+    RevShare = 0.20
+    TotalCut = gemCount * (SingleGemRevenue * RevShare)
+    PaypalProcessingFee = (TotalCut * 0.029) + 0.30
+    EntitledCut = TotalCut - PaypalProcessingFee
+    TotalCut = int(TotalCut*100)/100
+    EntitledCut = int(EntitledCut*100)/100
+    return TotalCut, EntitledCut
+
+
+def CalculateMinimumGems():
+    EntitledPayout = 0
+    gems = 0
+    while EntitledPayout < 0.01:
+        gems += 1
+        TotalPayout, EntitledPayout = CalculatePayout(gems)
+    return gems
+GEM_MINIMUM = CalculateMinimumGems()
+
+
+# Cashout Gems
+@app.route('/Cashout', methods=['POST'])
+@login_required
+def Cashout(user):
+    # validate inputs
+    try:
+        email = user["email"]
+        gemCount = int(request.form["gems"])
+    except:
+        return "Invalid Gem Count"
+    
+    # make sure NOT temp user
+    if user["email"] == None:
+        return "You are using a temporary account! Please register with your PayPal email address and then try to cashout again."
+        
+    # verify gem count
+    if (user["gems"] < gemCount):
+        return "You requested more gems than you have!"
+    if gemCount < GEM_MINIMUM:
+        return f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
+        
+    # verify (unredeemed) ads have been watched (5 gems: 1 ad)
+
+    # mark ads as redeemed / decrement gems
+    
+
+    # generate paypal cashout
+    TotalPayout, EntitledPayout = CalculatePayout(gemCount)
+    send_paypal_money(user["email"], TotalPayout)
+
+    return f"Cashout of ${EntitledPayout:0.2f} sucessfully send to {email}"
+
 # Increment Gems
 @app.route('/GemCount')
 @login_required
@@ -130,14 +185,15 @@ def get_gem(user):
         return "This route only workes on REPLIT server."
 
 
-
-@app.route('/WatchAd', methods=['POST'])
+# UNITY will tell us when ads have been watched by users
+# https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks
+@app.route('/S2S', methods=['POST'])
 @login_required
 def WatchAd(user):
     log_ad(
         userID = user.doc_id,
         adUnitId = request.form['adUnitId'],
-        verified = False
+        redeemed = False
     )
     return "Ad has been logged<br><a href='/'>Go Back<a>"
 

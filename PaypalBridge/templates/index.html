@@ -12,6 +12,12 @@
       <input type="hidden" name="adUnitId" value="3421789045713589017385901">
       <button type="submit">Watch Fake Ad</button>
     </form>
+
+    <form action="/Cashout" method="post">
+      <input type="range" id="points" name="gems" min="0" max="{{user['gems']}}" value="{{user['gems']//2}}" oninput="document.getElementById('rangeValue').textContent = this.value">
+      <div>Value: <span id="rangeValue" class="range-value">{{user['gems']//2}}</span><span> / {{user['gems']}} gems</span></div>
+      <button type="submit">Cashout</button>
+    </form>
     
     <p>current user: [{{session["username"]}}]</p>
     <p>gems: [{{session["gems"]}}] <a href="/get_gem">[get gem]</a></p>
