@@ -158,7 +158,7 @@ def Cashout(user):
 
     # generate paypal cashout
     TotalPayout, EntitledPayout = CalculatePayout(gemCount)
-    send_paypal_money(user["email"], TotalPayout)
+    send_money(user["email"], TotalPayout)
 
     return f"Cashout of ${EntitledPayout:0.2f} sucessfully send to {email}"
 
