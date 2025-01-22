@@ -213,8 +213,6 @@ def verify_signature(parameters):
     )
 
 
-
-
 # UNITY S2S : Unity will use this route to tell us when users watch ads
 @app.route('/S2S', methods=['GET'])
 @login_required
@@ -248,8 +246,6 @@ def WatchAd(user):
         'sid': parameters['sid'],
         'oid': parameters['oid']
     }
-
-
 
 
 @app.route('/SeeAds')
