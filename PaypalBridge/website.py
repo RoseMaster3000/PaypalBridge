@@ -1,10 +1,16 @@
-from flask import Flask, render_template, request, redirect, session, jsonify
+from flask import Flask, render_template, request, redirect, session, jsonify, abort
+from urllib.parse import unquote, urlparse
+import hmac
+import hashlib
 from flask_bcrypt import Bcrypt
 from PaypalBridge.paypal import send_money
+from PaypalBridge import SECRET
 from PaypalBridge.database.tinydb import *
 from PaypalBridge.decorators import login_required, anon_required, temp_required
 from uuid import uuid4
+from datetime import datetime
 import os
+
 
 # initialize modules
 app = Flask(__name__)
@@ -173,11 +179,11 @@ def GemCount(user):
 
 
 # TESTING PURPOSES ONLY
-@app.route('/get_gem')
+@app.route('/get_gem/<int:amount>')
 @login_required
-def get_gem(user):
+def get_gem(amount, user):
     if session["replit"]:
-        user["gems"] += 1
+        user["gems"] += amount
         update_user(user["username"], **user)
         session["gems"] = user["gems"]
         return redirect("/")
@@ -185,17 +191,66 @@ def get_gem(user):
         return "This route only workes on REPLIT server."
 
 
-# UNITY will tell us when ads have been watched by users
-# https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks
-@app.route('/S2S', methods=['POST'])
+
+
+#https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#Signing_the_Callback_URL
+def verify_signature(parameters):
+    # URL parameters (except the HMAC), alphabetical order, with commas.
+    receivedSignature = parameters.pop("hmac", None)
+    unhashed = ",".join([f"{key}={value}" for key,value in sorted(parameters.items())])
+    
+    # Generate Expected Hash
+    expectedSignature = hmac.new(
+        SECRET.UNITY_ANDRIOD_S2S.encode(),
+        unhashed.encode(),
+        hashlib.md5
+    ).hexdigest()
+
+    # Verify Hash
+    return hmac.compare_digest(
+        receivedSignature, 
+        expectedSignature
+    )
+
+
+
+
+# UNITY S2S : Unity will use this route to tell us when users watch ads
+@app.route('/S2S', methods=['GET'])
 @login_required
-def WatchAd(user):
+def WatchAd(user):    
+    # Extract Parameters 
+    parameters = request.args.to_dict()
+
+    # Debugger (log incoming requests)
+    log(
+        "s2s",
+        url = unquote(request.url),
+        time = str(datetime.now()),
+        **parameters
+    )
+    
+    # Verify Parameters
+    required_params = ['productid', 'sid', 'oid', 'hmac']
+    if not all(param in params for param in required_params):
+        abort(400, "Missing required parameters")
+    if verify_signature(parameters) == False:
+        abort(401, "Invalid Signature")
+
+    # Store Ad in database (as unredeemed)
     log_ad(
-        userID = user.doc_id,
-        adUnitId = request.form['adUnitId'],
+        **parameters,
         redeemed = False
     )
-    return "Ad has been logged<br><a href='/'>Go Back<a>"
+    return {
+        'status': 'success',
+        'productid': parameters['productid'],
+        'sid': parameters['sid'],
+        'oid': parameters['oid']
+    }
+
+
+
 
 @app.route('/SeeAds')
 @login_required
@@ -203,7 +258,7 @@ def SeeAds(user):
     if session["replit"]:
         return jsonify(fetch_ads(user.doc_id))
     else:
-        return 403, "Permission Denied"
+        abort(403, "Permission Denied")
 
 
 # take over temp_user account (fake "registration")

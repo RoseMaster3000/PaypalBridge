@@ -8,10 +8,6 @@
     <form action="/TempUser" method="post">
       <button type="submit">Generate Temporary User</button>
     </form>
-    <form action="/WatchAd" method="post">
-      <input type="hidden" name="adUnitId" value="3421789045713589017385901">
-      <button type="submit">Watch Fake Ad</button>
-    </form>
 
     <form action="/Cashout" method="post">
       <input type="range" id="points" name="gems" min="0" max="{{user['gems']}}" value="{{user['gems']//2}}" oninput="document.getElementById('rangeValue').textContent = this.value">
@@ -20,7 +16,7 @@
     </form>
     
     <p>current user: [{{session["username"]}}]</p>
-    <p>gems: [{{session["gems"]}}] <a href="/get_gem">[get gem]</a></p>
+    <p>gems: [{{session["gems"]}}] <a href="/get_gem/1">[get 1 gem]</a><a href="/get_gem/1000">[get 1000 gem]</a></p>
     <p><a href="/SeeAds">[See Ad Log]</a></p>
   </head>
   
@@ -35,7 +31,7 @@
               name="usernames"
               value="{{ user['username'] }}"
             />
-            {{ user['username'] }} - {{ user['email'] }} [{{user['gems']}}]
+            ({{user.doc_id}}) {{ user['username'] }} - {{ user['email'] }} [{{user['gems']}}]
           </li>
           {% endfor %}
         </ul>

@@ -12,7 +12,6 @@ def initialize_db(path):
     users = db.table('users')
     ads = db.table('ads')
 
-
 # get one user
 def fetch_user(username):
     User = Query()
@@ -74,3 +73,11 @@ def fetch_ads(userID):
     # fetch ads
     Ad = Query()
     return ads.search(Ad.userID == userID)
+
+
+
+# insert data into specified table
+def log(tableName, **kwargs):
+    table = db.table(table)
+    table.insert(kwargs)
+
