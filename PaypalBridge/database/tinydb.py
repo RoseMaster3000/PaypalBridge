@@ -7,7 +7,7 @@ import os
 # initialize database
 def initialize_db(path):
     dbPath = os.path.join(path, '..', 'DatabaseStorage', 'tinydb.json')
-    global users, ads
+    global db, users, ads
     db = TinyDB(dbPath)
     users = db.table('users')
     ads = db.table('ads')
@@ -74,10 +74,13 @@ def fetch_ads(userID):
     Ad = Query()
     return ads.search(Ad.userID == userID)
 
+def fetch_all(tableName):
+    table = db.table(tableName)
+    return table.all()
 
 
 # insert data into specified table
 def log(tableName, **kwargs):
-    table = db.table(table)
+    table = db.table(tableName)
     table.insert(kwargs)
 

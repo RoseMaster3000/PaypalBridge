@@ -10,7 +10,15 @@ from PaypalBridge.decorators import *
 from uuid import uuid4
 from datetime import datetime
 import os
-
+UNITY_IPS = [
+    "185.33.96.0",
+    "185.98.36.0",
+    "35.235.16.8",
+    "35.227.129.136",
+    "35.234.176.136",
+    "35.192.193.0",
+    "35.205.0.8"
+]
 
 # initialize modules
 app = Flask(__name__)
@@ -22,6 +30,7 @@ initialize_db(app.root_path)
 # (if not, log them into a generated temp account)
 @app.before_request 
 def verify_auth():
+    UnityNet(request)
     if "username" not in session:
         generate_temp_user()
 
@@ -54,10 +63,13 @@ def SID(user):
 @app.route('/')
 @login_required
 def index(user):
-    # get all users
-    users = fetch_users()
-    # display page
-    return render_template('index.html', users=users, user=user)
+    if user['username'] =='admin' or (os.environ.get("platform",None)=="replit"):
+        # get all users
+        users = fetch_users()
+        # display page
+        return render_template('dashboard.html', users=users, user=user)
+    elif user['username'] !='admin':
+        return render_template('login.html')
 
 
 # Create a new account
@@ -214,9 +226,9 @@ def WatchAd(user):
     # Extract Parameters 
     parameters = request.args.to_dict()
 
-    # Debugger (log incoming requests)
+    # # Debugger (log incoming requests)
     log(
-        "s2s",
+        "S2S",
         url = unquote(request.url),
         time = str(datetime.now()),
         **parameters
@@ -242,11 +254,29 @@ def WatchAd(user):
     }
 
 
+# see the ads that the current user 
 @app.route('/SeeAds')
-@login_required
 @admin_required
 def SeeAds(user):
     return jsonify(fetch_ads(user.doc_id))
+
+
+# see the ALL ads (S2S logs)
+@app.route('/SeeS2S')
+@admin_required
+def SeeS2S(user):
+    return jsonify(fetch_all('S2S'))
+
+
+# Unity Net (try to log all traffic that comes from Unity)
+def UnityNet(request):
+    if request.remote_addr in UNITY_IPS:
+        log(
+            "S2S",
+            url = request.url,
+            path = request.path,
+            time = str(datetime.now()),
+        )
 
 
 # take over temp_user account (fake "registration")

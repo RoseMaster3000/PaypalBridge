@@ -14,13 +14,15 @@
       <div>Value: <span id="rangeValue" class="range-value">{{user['gems']//2}}</span><span> / {{user['gems']}} gems</span></div>
       <button type="submit">Cashout</button>
     </form>
+
     
     <p>current user: [{{session["username"]}}]</p>
     <p>gems: [{{session["gems"]}}] <a href="/get_gem/1">[get 1 gem]</a><a href="/get_gem/1000">[get 1000 gem]</a></p>
-    <p><a href="/SeeAds">[See Ad Log]</a></p>
+    <p><a href="/SeeAds">[Current User Ad Log]</a></p>
+    <p><a href="/SeeS2S">[Unity S2S Ad Log]</a></p>
   </head>
   
-  {% if session['username'] == 'admin' or session["replit"] %}  
+
     <h2>Users</h2>
       <form method="POST" action="/DeleteUsers">
         <ul>
@@ -56,7 +58,7 @@
       <br />
       <hr />
       
-  {% endif %}
+
     
     <h2>Create User</h2>
     <form method="POST" action="/CreateUser">
