@@ -6,7 +6,7 @@ from flask_bcrypt import Bcrypt
 from PaypalBridge.paypal import send_money
 from PaypalBridge import SECRET
 from PaypalBridge.database.tinydb import *
-from PaypalBridge.decorators import login_required, anon_required, temp_required
+from PaypalBridge.decorators import *
 from uuid import uuid4
 from datetime import datetime
 import os
@@ -18,9 +18,10 @@ app.config['SECRET_KEY'] =  b'\xb4\xb5\xd0\xc5m\x10p\xdbB\xa2\xd4\x14'
 bcrypt = Bcrypt(app)
 initialize_db(app.root_path)
 
+# always make sure the user is loggeed in
+# (if not, log them into a generated temp account)
 @app.before_request 
 def verify_auth():
-    session["replit"] = (os.environ.get("platform",None) == "replit")
     if "username" not in session:
         generate_temp_user()
 
@@ -34,11 +35,6 @@ def generate_temp_user():
     )
     session["username"] = user["username"]
     session["gems"] = user["gems"]
-    
-@app.route("/TempUser", methods=['POST'])
-def temp_user():
-    generate_temp_user()
-    return "Temp User Generated<a href='/'>Go Back<a>"
 
 
 # ask server for username
@@ -63,8 +59,6 @@ def index(user):
     # display page
     return render_template('index.html', users=users, user=user)
 
-
-# 5 gems / 1 ad (5/1000)
 
 # Create a new account
 @app.route('/CreateUser', methods=['POST'])
@@ -92,7 +86,7 @@ def CreateUser(user):
         password = bcrypt.generate_password_hash(request.form['password']).decode('utf-8'),
         gems = inheritedGems
     )
-    if user==None:
+    if newUser==None:
         return "Could not create user"
 
     # log user in  
@@ -113,11 +107,15 @@ def GetGem(user):
     else:
         return f"{user['gems']} Gems"
 
-
+# Calculate USD payed from in game Gems
 def CalculatePayout(gemCount):
+    '''
+    TotalCut : amount of money Paypal is sending
+    EntitledCut: amount of money player gets (after Paypal Takes Cut)
+    '''
     SingleAdRevenue = 5 / 1000
     SingleGemRevenue = SingleAdRevenue / 5
-    RevShare = 0.20
+    RevShare = 0.40
     TotalCut = gemCount * (SingleGemRevenue * RevShare)
     PaypalProcessingFee = (TotalCut * 0.029) + 0.30
     EntitledCut = TotalCut - PaypalProcessingFee
@@ -125,7 +123,7 @@ def CalculatePayout(gemCount):
     EntitledCut = int(EntitledCut*100)/100
     return TotalCut, EntitledCut
 
-
+# Calculate minimum gems needed to cover paypal processing and profit 1 cent
 def CalculateMinimumGems():
     EntitledPayout = 0
     gems = 0
@@ -180,16 +178,12 @@ def GemCount(user):
 
 # TESTING PURPOSES ONLY
 @app.route('/get_gem/<int:amount>')
-@login_required
+@admin_required
 def get_gem(amount, user):
-    if session["replit"]:
-        user["gems"] += amount
-        update_user(user["username"], **user)
-        session["gems"] = user["gems"]
-        return redirect("/")
-    else:
-        return "This route only workes on REPLIT server."
-
+    user["gems"] += amount
+    update_user(user["username"], **user)
+    session["gems"] = user["gems"]
+    return redirect("/")
 
 
 
@@ -250,11 +244,9 @@ def WatchAd(user):
 
 @app.route('/SeeAds')
 @login_required
+@admin_required
 def SeeAds(user):
-    if session["replit"]:
-        return jsonify(fetch_ads(user.doc_id))
-    else:
-        abort(403, "Permission Denied")
+    return jsonify(fetch_ads(user.doc_id))
 
 
 # take over temp_user account (fake "registration")

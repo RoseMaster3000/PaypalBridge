@@ -18,7 +18,10 @@ public class ServerConnector : MonoBehaviour
     [SerializeField] private ServerOption TargetServer;
     public string ServerAddress 
     {
-        get { switch (TargetServer) {
+        
+        get {
+            #if !UNITY_EDITOR
+            switch (TargetServer) {
             case ServerOption.Replit:
                 return "https://a793bff8-567d-48ec-8cb5-8559e412c1fd-00-38j54p3698xo4.janeway.replit.dev";
             case ServerOption.PythonAnywhere:
@@ -27,7 +30,11 @@ public class ServerConnector : MonoBehaviour
                 return "http://localhost:5000";
             default:
                 return "http://localhost:5000";
-        }}
+            }
+            #else // if not Unity Editor -> Auto select PythonAnywhere server
+            return "https://dcherevatsky.pythonanywhere.com";
+            #endif
+        }
     }
 
     // session previews
@@ -231,7 +238,6 @@ public class ServerConnector : MonoBehaviour
             }
         }
         uwr.Dispose();
-        Identity();
     }
 
 
@@ -261,32 +267,6 @@ public class ServerConnector : MonoBehaviour
             }
         }
         uwr.Dispose();
-        Identity();
-    }
-
-
-
-    public void TempUser()
-    {
-        StartCoroutine(TempUserRequest());
-    }
-
-    private IEnumerator TempUserRequest()
-    {
-        WWWForm form = new WWWForm();
-        UnityWebRequest uwr = UnityWebRequest.Post($"{ServerAddress}/TempUser", form);
-        yield return uwr.SendWebRequest();
-
-        if (uwr.result == UnityWebRequest.Result.ConnectionError)
-        {
-            Debug.Log("Error While Sending: " + uwr.error);
-        }
-        else
-        {
-            Debug.Log("Received: " + uwr.downloadHandler.text);
-        }
-        uwr.Dispose();
-        Identity();
     }
 
 
@@ -313,7 +293,6 @@ public class ServerConnector : MonoBehaviour
             GemCount();
         }
         uwr.Dispose();
-        Identity();
     }
 
     
