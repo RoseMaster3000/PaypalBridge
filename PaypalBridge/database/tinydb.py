@@ -1,8 +1,13 @@
 # https://tinydb.readthedocs.io/en/latest/
-
-# initialize database
 from tinydb import TinyDB, Query
+from random import randint
 import os
+import time
+
+# generate current time INT (seconds since January 1, 1970)
+def now():
+    return int(time.time())
+
 
 # initialize database
 def initialize_db(path):
@@ -11,6 +16,8 @@ def initialize_db(path):
     db = TinyDB(dbPath)
     users = db.table('users')
     ads = db.table('ads')
+    datify_users()
+
 
 # get one user
 def fetch_user(username):
@@ -33,8 +40,20 @@ def create_user(**kwargs):
         raise Exception("USER must have a username")
     if fetch_user(kwargs["username"]) != None:
         return None
+    kwargs["created_ad "] = now()
     doc_id = users.insert(kwargs)
     return users.get(doc_id=doc_id)
+
+
+# delete temp uses (eg 5: accounts older than [5] days old)
+def purge_users(dayRange=0):
+    cutoffDate = now() - (dayRange*886400)
+    User = Query()
+    removed_users = users.remove(
+        (User.email == None) & 
+        (User.created_at < cutoffDate)
+    )
+    return len(removed_users)
 
 
 # Update the user record
@@ -84,3 +103,14 @@ def log(tableName, **kwargs):
     table = db.table(tableName)
     table.insert(kwargs)
 
+
+# add random dates to old users (random time within last [dayRange] days)
+def datify_users(dayRange=10):
+    for user in users.all():
+        if 'created_at' not in user:
+            random_time = now() - randint(0, dayRange*886400)
+            users.update(
+                {'created_at': random_time},
+                doc_ids=[user.doc_id]
+            )
+            print("updated", user.doc_id)

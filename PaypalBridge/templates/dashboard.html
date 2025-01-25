@@ -2,24 +2,28 @@
 <html>
 <body>
   <head>
+    <h2>Welcome, {{session["username"]}}!</h2>
+    
     <form action="/Logout" method="post">
       <button type="submit">Logout</button>
     </form>
     <form action="/TempUser" method="post">
       <button type="submit">Generate Temporary User</button>
     </form>
-
+    <form action="/PurgeTempUsers" method="post">
+      <button type="submit">Purge Temporary Users</button>
+      <input type="number" id="days" name="days" min="0" max="999" value="5">
+      <label for="days">days and older</label>
+    </form>
+    
     <form action="/Cashout" method="post">
+      <button type="submit">Cashout <span id="rangeValue" class="range-value">{{user['gems']//2}}</span><span>/{{user['gems']}} gems</span></button>
       <input type="range" id="points" name="gems" min="0" max="{{user['gems']}}" value="{{user['gems']//2}}" oninput="document.getElementById('rangeValue').textContent = this.value">
-      <div>Value: <span id="rangeValue" class="range-value">{{user['gems']//2}}</span><span> / {{user['gems']}} gems</span></div>
-      <button type="submit">Cashout</button>
     </form>
 
-    
-    <p>current user: [{{session["username"]}}]</p>
-    <p>gems: [{{session["gems"]}}] <a href="/get_gem/1">[get 1 gem]</a><a href="/get_gem/1000">[get 1000 gem]</a></p>
-    <p><a href="/SeeAds">[Current User Ad Log]</a></p>
-    <p><a href="/SeeS2S">[Unity S2S Ad Log]</a></p>
+    <p><a href="/get_gem/1">[get 1 gem]</a><a href="/get_gem/1000">[get 1000 gem]</a></p>
+    <p><a href="/SeeAds">[Current User Ads]</a></p>
+    <p><a href="/SeeS2S">[Unity S2S Log]</a></p>
   </head>
   
 

@@ -7,9 +7,11 @@ from PaypalBridge.paypal import send_money
 from PaypalBridge import SECRET
 from PaypalBridge.database.tinydb import *
 from PaypalBridge.decorators import *
-from uuid import uuid4
 from datetime import datetime
+from uuid import uuid4
 import os
+
+# IP addresses fro Unity S2S servers
 UNITY_IPS = [
     "185.33.96.0",
     "185.98.36.0",
@@ -20,21 +22,36 @@ UNITY_IPS = [
     "35.205.0.8"
 ]
 
+
 # initialize modules
 app = Flask(__name__)
 app.config['SECRET_KEY'] =  b'\xb4\xb5\xd0\xc5m\x10p\xdbB\xa2\xd4\x14'
 bcrypt = Bcrypt(app)
 initialize_db(app.root_path)
 
-# always make sure the user is loggeed in
-# (if not, log them into a generated temp account)
+
+# [PRE-REQUEST] always have user "logged in" (generate temp accounts)
 @app.before_request 
 def verify_auth():
-    UnityNet(request)
-    if "username" not in session:
+    username = session.get("username", None)
+    user = fetch_user(username)
+    if not username or not user:
         generate_temp_user()
 
 
+# [PRE-REQUEST] log all requests (see if Unity is actaully doing their job)
+@app.before_request 
+def RequestLogger():
+    log(
+        "S2S",
+        url = request.url,
+        path = request.path,
+        time = str(datetime.now()),
+        unity = (request.remote_addr in UNITY_IPS)
+    )
+
+
+# generated/login temp account
 def generate_temp_user():
     user = create_user(
         username = str(uuid4()),
@@ -54,14 +71,14 @@ def identity():
 
 # ask server for SID (document ID)
 @app.route("/SID")
-@login_required
+@none_required
 def SID(user):
     return str(user.doc_id)
 
 
 # debugger view (veiw/create users)
 @app.route('/')
-@login_required
+@none_required
 def index(user):
     if user['username'] =='admin' or (os.environ.get("platform",None)=="replit"):
         # get all users
@@ -74,7 +91,7 @@ def index(user):
 
 # Create a new account
 @app.route('/CreateUser', methods=['POST'])
-@login_required
+@none_required
 def CreateUser(user):
     # validate form
     if "" in request.form.values():
@@ -84,7 +101,7 @@ def CreateUser(user):
     if len(request.form['username']) >= 36:
         return "Error: Username too long"
 
-    # inherit gems from previous (temp) account
+    # inherit gems from previous account (IF its a temp account)
     if user["email"] == None:
         inheritedGems = user["gems"]
         delete_user(user["username"])       # (old) temp account
@@ -107,9 +124,18 @@ def CreateUser(user):
     return f"User has been created!<br><a href='/'>Go Back<a>"
 
 
+# Purge Old Temp Users
+@app.route('/PurgeTempUsers', methods=['POST'])
+@admin_required
+def PurgeTempUsers(user):
+    days = int(request.form['days'])
+    purgeCount = purge_users(dayRange=days)
+    return f"{purgeCount} temp users have been purged!<br><a href='/'>Go Back<a>"
+
+
 # Increment Gems
 @app.route('/GetGem', methods=['POST'])
-@login_required
+@none_required
 def GetGem(user):
     user["gems"] += 1
     update_user(user["username"], **user)
@@ -118,6 +144,7 @@ def GetGem(user):
         return f"{user['gems']} Gem"
     else:
         return f"{user['gems']} Gems"
+
 
 # Calculate USD payed from in game Gems
 def CalculatePayout(gemCount):
@@ -148,7 +175,7 @@ GEM_MINIMUM = CalculateMinimumGems()
 
 # Cashout Gems
 @app.route('/Cashout', methods=['POST'])
-@login_required
+@email_required
 def Cashout(user):
     # validate inputs
     try:
@@ -157,10 +184,6 @@ def Cashout(user):
     except:
         return "Invalid Gem Count"
     
-    # make sure NOT temp user
-    if user["email"] == None:
-        return "You are using a temporary account! Please register with your PayPal email address and then try to cashout again."
-        
     # verify gem count
     if (user["gems"] < gemCount):
         return "You requested more gems than you have!"
@@ -180,7 +203,7 @@ def Cashout(user):
 
 # Increment Gems
 @app.route('/GemCount')
-@login_required
+@none_required
 def GemCount(user):
     if user['gems'] == 1:
         return f"{user['gems']} Gem"
@@ -221,7 +244,6 @@ def verify_signature(parameters):
 
 # UNITY S2S : Unity will use this route to tell us when users watch ads
 @app.route('/S2S', methods=['GET'])
-@login_required
 def WatchAd(user):    
     # Extract Parameters 
     parameters = request.args.to_dict()
@@ -261,27 +283,17 @@ def SeeAds(user):
     return jsonify(fetch_ads(user.doc_id))
 
 
-# see the ALL ads (S2S logs)
+# see the ALL request logs (S2S logs)
 @app.route('/SeeS2S')
 @admin_required
 def SeeS2S(user):
     return jsonify(fetch_all('S2S'))
 
 
-# Unity Net (try to log all traffic that comes from Unity)
-def UnityNet(request):
-    if request.remote_addr in UNITY_IPS:
-        log(
-            "S2S",
-            url = request.url,
-            path = request.path,
-            time = str(datetime.now()),
-        )
-
 
 # take over temp_user account (fake "registration")
 @app.route('/Login', methods=['POST'])
-@login_required
+@temp_required
 def login(user):    
     newUser = fetch_user(request.form['username'])
 
@@ -310,7 +322,6 @@ def login(user):
 def delete_users():
     usernames = request.form.getlist('usernames') 
     for username in usernames: 
-        session_check(username)
         delete_user(username) 
     return redirect('/')
 
@@ -320,16 +331,8 @@ def delete_users():
 def delete_user_route():
     username = request.form['username']
     delete_user(username)
-    session_check(username)
     return f"User [{username}] has been deleted<br><a href='/'>Go Back<a>"
 
-
-# if you delete yourself, revoke the session 
-def session_check(username):
-    if "username" in session:
-        if session["username"] == username:
-            del session["username"]
-            return
 
 @app.route('/Logout', methods=['POST'])
 def logout():
