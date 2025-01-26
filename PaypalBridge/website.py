@@ -31,7 +31,7 @@ initialize_db(app.root_path)
 
 
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)
-@app.before_request 
+@app.before_request
 def verify_auth():
     username = session.get("username", None)
     user = fetch_user(username)
