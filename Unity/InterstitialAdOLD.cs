@@ -60,19 +60,12 @@ public class InterstitialAd : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSho
 
     public void OnUnityAdsShowComplete(string _adUnitId, UnityAdsShowCompletionState showCompletionState) 
     {
-        // verify ad loaded successfully
+        // show ad state
         Debug.Log($"Ad Show Completed: {_adUnitId}, Completion State: {showCompletionState}");
-        if (showCompletionState == UnityAdsShowCompletionState.COMPLETED)
-        {
-            ValidateAdReward(_gamerSid);
-        }
-        
+
         // Resume game, load next ad
         GameManager.instance.GameResume();
         LoadAd();
     }
 
-
-
-    
 }

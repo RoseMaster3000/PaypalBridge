@@ -16,19 +16,23 @@ def initialize_db(path):
     db = TinyDB(dbPath)
     users = db.table('users')
     ads = db.table('ads')
-    datify_users()
+    db.drop_table('s2s')
 
 
 # get one user
 def fetch_user(username):
-    User = Query()
-    result = users.search(User.username == username)
-    if len(result) == 0:
-        return None
+    if type(username) == int:
+        return users.get(doc_id=username)
+    elif type(username) == str:
+        User = Query()
+        result = users.search(User.username == username)
+        if len(result) == 0:
+            return None
+        else:
+            return result[0]
     else:
-        return result[0]
-
-
+        raise Exception("User can only be fetched in int or str")
+ 
 # get all users
 def fetch_users():
     return users.all()
@@ -78,20 +82,25 @@ def delete_user(username):
 
 
 # log ad in database 
-def log_ad(**kwargs):
-    # validate user
-    if "userID" not in kwargs:
-        raise Exception("Ad must have a userID for the viewer")
-    # log ad
+def record_ad(**kwargs):
+    if "sid" not in kwargs:
+        raise Exception("Ad logs must have [sid]")
+    if not kwargs["sid"].isdigit():
+        raise Exception("Ad log [sid] must be integer")
+    else:
+        kwargs["sid"] = int(kwargs["sid"])
     ads.insert(kwargs)
 
 
-
 # get all ads (for specific user)
-def fetch_ads(userID):
-    # fetch ads
-    Ad = Query()
-    return ads.search(Ad.userID == userID)
+def fetch_ads(userID=None):
+    if userID:
+        Ad = Query()
+        return ads.search(Ad.sid == userID)
+    else:
+        return ads.all()
+
+
 
 def fetch_all(tableName):
     table = db.table(tableName)

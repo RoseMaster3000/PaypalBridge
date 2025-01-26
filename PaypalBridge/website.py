@@ -43,11 +43,12 @@ def verify_auth():
 @app.before_request 
 def RequestLogger():
     log(
-        "S2S",
+        "Requests",
         url = request.url,
         path = request.path,
         time = str(datetime.now()),
-        unity = (request.remote_addr in UNITY_IPS)
+        unity = (request.remote_addr in UNITY_IPS),
+        ip = request.remote_addr
     )
 
 
@@ -61,6 +62,14 @@ def generate_temp_user():
     )
     session["username"] = user["username"]
     session["gems"] = user["gems"]
+
+# ask server for username
+@app.route("/TempUser", methods=['POST'])
+def TempUser():
+    count = int(request.form["count"])
+    for i in range(count):
+        generate_temp_user()
+    return redirect("/")
 
 
 # ask server for username
@@ -244,50 +253,51 @@ def verify_signature(parameters):
 
 # UNITY S2S : Unity will use this route to tell us when users watch ads
 @app.route('/S2S', methods=['GET'])
-def WatchAd(user):    
+def WatchAd():    
     # Extract Parameters 
     parameters = request.args.to_dict()
 
-    # # Debugger (log incoming requests)
-    log(
-        "S2S",
-        url = unquote(request.url),
-        time = str(datetime.now()),
-        **parameters
-    )
-    
     # Verify Parameters
-    required_params = ['productid', 'sid', 'oid', 'hmac']
-    if not all(param in params for param in required_params):
-        abort(400, "Missing required parameters")
-    if verify_signature(parameters) == False:
+    required_params = ['sid', 'oid', 'hmac']
+    if not all(param in parameters for param in required_params):
+        abort(422, "Missing required parameters")
+    if not verify_signature(parameters):
         abort(401, "Invalid Signature")
 
+
+    print(parameters)
+    user = fetch_user(int(parameters["sid"]))
+    print(user)
+    if user==None:
+        abort(400, "Invalid user SID")
+    
     # Store Ad in database (as unredeemed)
-    log_ad(
+    record_ad(
         **parameters,
         redeemed = False
     )
-    return {
-        'status': 'success',
-        'productid': parameters['productid'],
-        'sid': parameters['sid'],
-        'oid': parameters['oid']
-    }
+    return {'status': 'success'}
 
 
 # see the ads that the current user 
-@app.route('/SeeAds')
+@app.route('/SeeMyAds')
 @admin_required
-def SeeAds(user):
+def SeeMyAds(user):
     return jsonify(fetch_ads(user.doc_id))
+
+# see the ads that the current user 
+@app.route('/SeeAllAds')
+@admin_required
+def SeeAllAds(user):
+    return jsonify(fetch_ads())
+
 
 
 # see the ALL request logs (S2S logs)
-@app.route('/SeeS2S')
+@app.route('/RequestLog')
 @admin_required
-def SeeS2S(user):
-    return jsonify(fetch_all('S2S'))
+def RequestLog(user):
+    return jsonify(fetch_all('Requests'))
 
 
 
