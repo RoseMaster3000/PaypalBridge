@@ -31,7 +31,7 @@ def fetch_user(username):
         else:
             return result[0]
     else:
-        raise Exception("User can only be fetched in int or str")
+        return None
  
 # get all users
 def fetch_users():
