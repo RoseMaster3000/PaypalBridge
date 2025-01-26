@@ -44,7 +44,7 @@ def create_user(**kwargs):
         raise Exception("USER must have a username")
     if fetch_user(kwargs["username"]) != None:
         return None
-    kwargs["created_ad "] = now()
+    kwargs["created_at"] = now()
     doc_id = users.insert(kwargs)
     return users.get(doc_id=doc_id)
 
