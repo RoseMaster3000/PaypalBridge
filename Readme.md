@@ -15,6 +15,9 @@ Unity game & Flask server that work togetehr to allow players to earn real money
 
 
 ### Dependencies
+* [Paypal API](https://developer.paypal.com/braintree/docs/guides/paypal/server-side/python/)
+* [Flask](https://flask.palletsprojects.com/en/stable/)
+* [Unity S2S](https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks)
 
 
 ## Secrets
