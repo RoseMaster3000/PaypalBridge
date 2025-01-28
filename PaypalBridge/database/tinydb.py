@@ -12,11 +12,13 @@ def now():
 # initialize database
 def initialize_db(path):
     dbPath = os.path.join(path, '..', 'DatabaseStorage', 'tinydb.json')
+    os.makedirs(os.path.dirname(dbPath), exist_ok=True)
     global db, users, ads
     db = TinyDB(dbPath)
     users = db.table('users')
     ads = db.table('ads')
     db.drop_table('s2s')
+
 
 
 # get one user
