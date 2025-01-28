@@ -161,8 +161,11 @@ def CalculatePayout(gemCount):
     TotalCut : amount of money Paypal is sending
     EntitledCut: amount of money player gets (after Paypal Takes Cut)
     '''
-    SingleAdRevenue = 5 / 1000
-    SingleGemRevenue = SingleAdRevenue / 5
+    # intersitial ad value
+    SingleInterstitial = 5/10000
+    SingleRewarded = 5/1000
+
+    SingleGemRevenue = SingleInterstitial / 5
     RevShare = 0.40
     TotalCut = gemCount * (SingleGemRevenue * RevShare)
     PaypalProcessingFee = (TotalCut * 0.029) + 0.30
@@ -180,6 +183,7 @@ def CalculateMinimumGems():
         TotalPayout, EntitledPayout = CalculatePayout(gems)
     return gems
 GEM_MINIMUM = CalculateMinimumGems()
+print("GEM MINIMUM:", GEM_MINIMUM)
 
 
 # Cashout Gems
@@ -200,6 +204,8 @@ def Cashout(user):
         return f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
         
     # verify (unredeemed) ads have been watched (5 gems: 1 ad)
+    # 1 intersitial == 1 gem
+    # 1 rewarded == 10 gems
 
     # mark ads as redeemed / decrement gems
     
