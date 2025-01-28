@@ -1,1 +1,1 @@
-"virt/Scripts/activate.bat" & python run.py
+"virt/Scripts/activate.bat" & python main.py
