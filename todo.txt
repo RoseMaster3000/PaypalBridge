@@ -1,0 +1,8 @@
+- make html dashboard a table
+    - gems, intersitical ads, rewarded ads
+
+- purge 0 days not working?
+
+
+- paypal payout
+- redeem_ad() 
