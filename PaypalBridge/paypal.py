@@ -1,68 +1,77 @@
-# https://developer.paypal.com/api/rest/
-# https://github.com/paypal/PayPal-Python-Server-SDK
-# https://github.com/Traktormaster/paypal2
+# https://github.com/paypal/paypal-rest-api-specifications
+# https://developer.paypal.com/docs/api/payments.payouts-batch/v1/
+from PaypalBridge.SECRET import PAYPAL_CLIENT_ID, PAYPAL_SECRET 
+from PaypalBridge.database.tinydb import log
+from uuid import uuid4
+import requests
+import base64
+
+sandbox = True
+PAYPAL_URL = "https://api-m.sandbox.paypal.com" if sandbox else "https://api-m.paypal.com"
 
 
-def send_money(recipient_email, amount):
-    print("Sending paypal money... (todo)")
-    return True
+# Convert ClientID/Secret -> OAUTH token
+def get_access_token():
+    auth_string = f"{PAYPAL_CLIENT_ID}:{PAYPAL_SECRET}"
+    encoded_auth = base64.b64encode(auth_string.encode('utf-8')).decode('utf-8')
+    headers = {
+        'Authorization': f'Basic {encoded_auth}',
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }    
+    data = {'grant_type': 'client_credentials'}
+    response = requests.post(
+        f'{PAYPAL_URL}/v1/oauth2/token', 
+        headers=headers, 
+        data=data
+    )
+    return response.json()['access_token']
 
 
-# import paypalrestsdk
-# from datetime import datetime
-# def send_money_paypal(sender_client_id, sender_secret, recipient_email, amount):
-#     """
-#     Send money via PayPal using the REST API.
+# Send money to PayPal email
+def create_payout(recipient_email, amount):
+    access_token = get_access_token()
+    payment_id = str(uuid4())
 
-#     Args:
-#         sender_client_id (str): Your PayPal client ID
-#         sender_secret (str): Your PayPal secret
-#         recipient_email (str): Recipient's PayPal email address
-#         amount (float): Amount to send in USD
-#     """
-#     # Configure the PayPal SDK
-#     paypalrestsdk.configure({
-#         "mode": "sandbox",  # Switch to "live" for production
-#         "client_id": sender_client_id,
-#         "client_secret": sender_secret
-#     })
+    # generate payout
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {access_token}'
+    }
+    payload = {
+        "sender_batch_header": {
+            "sender_batch_id": payment_id,
+            "email_subject": "Tap Racer3D Payout"
+        },
+        "items": [
+            {
+                "recipient_type": "EMAIL",
+                "amount": {
+                    "value": f"{amount:0.2f}",
+                    "currency": "USD"
+                },
+                "receiver": recipient_email
+            }
+        ]
+    }
+    
+    # log payout in database
+    log("payouts",
+        id = payment_id,
+        receiver = recipient_email,
+        value = f"{amount:0.2f}",
+        currency = "USD"
+    )
 
-#     # Create a payout object
-#     payout = paypalrestsdk.Payout({
-#         "sender_batch_header": {
-#             "sender_batch_id": f"Batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-#             "email_subject": "You have a payment"
-#         },
-#         "items": [{
-#             "recipient_type": "EMAIL",
-#             "amount": {
-#                 "value": str(amount),
-#                 "currency": "USD"
-#             },
-#             "receiver": recipient_email,
-#             "note": "Payment transfer",
-#             "sender_item_id": f"Transfer_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-#         }]
-#     })
+    # submit payout to PayPal
+    response = requests.post(
+        f'{PAYPAL_URL}/v1/payments/payouts',
+        headers = headers,
+        json = payload
+    )
+    return response.json()
 
-#     try:
-#         if payout.create():
-#             print(f"Successfully sent ${amount} to {recipient_email}")
-#             print(f"Payout ID: {payout.batch_header.payout_batch_id}")
-#             return True
-#         else:
-#             print(f"Failed to send payment: {payout.error}")
-#             return False
-#     except Exception as e:
-#         print(f"Error occurred: {str(e)}")
-#         return False
 
-# # Example usage:
-# if __name__ == "__main__":
-#     # Replace these with your actual credentials and recipient details
-#     PAYPAL_CLIENT_ID = "your_client_id_here"
-#     PAYPAL_SECRET = "your_secret_here"
-#     RECIPIENT_EMAIL = "recipient@example.com"
-#     AMOUNT = 1.00
-
-#     send_money(PAYPAL_CLIENT_ID, PAYPAL_SECRET, RECIPIENT_EMAIL, AMOUNT)
+def test_payout():
+    confirmation = create_payout("sb-sbjc037505269@personal.example.com", 5.50)
+    from pprint import pprint
+    pprint(confirmation)
