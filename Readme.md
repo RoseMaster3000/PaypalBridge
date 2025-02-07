@@ -3,7 +3,7 @@ Unity game & Flask server that work togetehr to allow players to earn real money
 
 
 ## Authorizations
-For paypal to send out Payouts, your business account needs to be approved [here](https://www.paypal.com/payoutsweb/landing). Also, to verify ad consumption, your Unity account will need approved for S2S callbacks [here](https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#Implementation).
+For paypal to send out Payouts, your business account needs to be approved [here](https://www.paypal.com/payoutsweb/landing) (Payouts [API cost](https://www.paypal.com/us/business/paypal-business-fees#statement-10) 2% internationally and $0.25 domestically.) Also, to verify ad consumption, your Unity account will need approved for S2S callbacks [here](https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#Implementation).
 
 ## Links
 * [Server Code Repo](https://github.com/RoseMaster3000/PaypalBridge)
