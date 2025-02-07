@@ -2,6 +2,9 @@
 Unity game & Flask server that work togetehr to allow players to earn real money. Its uses Unity S2S Callbacks to record validated ads to a private database. The server can then allow users to cash out their ad revenue using Paypal API.
 
 
+## Authorizations
+For paypal to send out Payouts, your business account needs to be approved [here](https://www.paypal.com/payoutsweb/landing). Also, to verify ad consumption, your Unity account will need approved for S2S callbacks [here](https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#Implementation).
+
 ## Links
 * [Server Code Repo](https://github.com/RoseMaster3000/PaypalBridge)
 * [Unity Game Repo](https://github.com/dima02021988/ZigZag-racing-3D)
