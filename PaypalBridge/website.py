@@ -217,7 +217,7 @@ def redeem_ads(ads, gemCount):
     # see our total gem value
     intersitialCount = len(intersitial)
     rewardedCount = len(rewarded)
-    total_value = intersitialCount*1 + *10
+    total_value = intersitialCount*1 + rewardedCount*10
 
     # NOT ENOUGH ADS for gem value (return --> FAIL)
     if gemCount > total_value:
