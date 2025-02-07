@@ -95,10 +95,13 @@ def record_ad(**kwargs):
 
 
 # get all ads (for specific user)
-def fetch_ads(userID=None):
+def fetch_ads(userID=None, redeemed=None):
     if userID:
         Ad = Query()
-        return ads.search(Ad.sid == userID)
+        if redeemed == None:
+            return ads.search(Ad.sid == userID)
+        else:
+            return ads.search((Ad.sid == userID) & (Ad.redeemed==redeemed))
     else:
         return ads.all()
 
@@ -111,8 +114,11 @@ def fetch_all(tableName):
 
 # insert data into specified table
 def log(tableName, **kwargs):
+    kwargs['created_at'] = now()
     table = db.table(tableName)
     table.insert(kwargs)
+
+
 
 
 # add random dates to old users (random time within last [dayRange] days)

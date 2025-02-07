@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, session, jsonify, abort
+from flask import Flask, render_template, request, redirect, session, jsonify, abort, make_response
 from urllib.parse import unquote, urlparse
 import hmac
 import hashlib
 from flask_bcrypt import Bcrypt
-from PaypalBridge.paypal import send_money
+from PaypalBridge.paypal import create_payout
 from PaypalBridge import SECRET
 from PaypalBridge.database.tinydb import *
 from PaypalBridge.decorators import *
@@ -166,13 +166,17 @@ def CalculatePayout(gemCount):
     SingleRewarded = 5/1000
 
     SingleGemRevenue = SingleInterstitial / 5
-    RevShare = 0.40
+    RevShare = 0.40 # percent the user gets
     TotalCut = gemCount * (SingleGemRevenue * RevShare)
-    PaypalProcessingFee = (TotalCut * 0.029) + 0.30
+    if (TotalCut * 0.02 > 0.25):
+        PaypalProcessingFee = TotalCut * 0.02
+    else:
+        PaypalProcessingFee = 0.25
     EntitledCut = TotalCut - PaypalProcessingFee
     TotalCut = int(TotalCut*100)/100
     EntitledCut = int(EntitledCut*100)/100
     return TotalCut, EntitledCut
+
 
 # Calculate minimum gems needed to cover paypal processing and profit 1 cent
 def CalculateMinimumGems():
@@ -185,6 +189,65 @@ def CalculateMinimumGems():
 GEM_MINIMUM = CalculateMinimumGems()
 print("GEM MINIMUM:", GEM_MINIMUM)
 
+
+# mark ad as redeemed = True in TinyDB
+def redeem(ad):
+    pass
+
+
+# find minial number of intersitial / rewarded ads == gemCount
+# 1 intersitial == 1 gem (red)
+# 1 rewarded == 10 gems  (green)
+def minimal_ad_count(intersitialCount,rewardedCount,gemCount)
+    pass
+
+
+# find subset of ads == the gems you want
+# return False if not enough ads for gemCount 
+def redeem_ads(ads, gemCount):
+    # collate our ads   
+    intersitial = []
+    rewarded = []
+    for ad in ads:
+        if "Interstitial" in ad["adUnitID"]:
+            intersitial.append(ad)
+        else:
+            rewarded.append(ad)
+
+    # see our total gem value
+    intersitialCount = len(intersitial)
+    rewardedCount = len(rewarded)
+    total_value = intersitialCount*1 + *10
+
+    # NOT ENOUGH ADS for gem value (return --> FAIL)
+    if gemCount > total_value:
+        return False
+
+    # Calculate minimal ad count needed to redeem gems
+    rewarded_used, intersitial_used = minimal_ad_count(
+        intersitialCount,
+        rewardedCount,
+        gemCount
+    )
+
+    # Mark ads as redeemed
+    for i in range(rewarded_used):
+        redeem(rewarded[i])
+    for i in range(intersitial_used):
+        redeem(intersitial[i])
+
+    # return --> SUCCESS
+    return True
+
+
+
+
+@app.route("/Cashout/<gemCount>")
+def PreviewCashout(gemCount:int):
+    if gemCount < GEM_MINIMUM:
+        return f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
+    else:
+        return CalculatePayout(gemCount)
 
 # Cashout Gems
 @app.route('/Cashout', methods=['POST'])
@@ -203,16 +266,19 @@ def Cashout(user):
     if gemCount < GEM_MINIMUM:
         return f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
         
-    # verify (unredeemed) ads have been watched (5 gems: 1 ad)
-    # 1 intersitial == 1 gem
-    # 1 rewarded == 10 gems
+    # verify (unredeemed) ads have been watched
+    ads = fetch_ads(user.doc_id, redeemed=False)
 
     # mark ads as redeemed / decrement gems
-    
+    redeem_sucess = redeem_ads(ads, gemCount)
 
+    # S2S callback hasnt come (OR player has hacked illegal gems)
+    if not redeem_sucess:
+        return "Ad revenue is still processing, please try again in a few hours."
+    
     # generate paypal cashout
-    TotalPayout, EntitledPayout = CalculatePayout(gemCount)
-    send_money(user["email"], TotalPayout)
+    _, EntitledPayout = CalculatePayout(gemCount)
+    create_payout(email, EntitledPayout)
 
     return f"Cashout of ${EntitledPayout:0.2f} sucessfully send to {email}"
 
@@ -266,23 +332,28 @@ def WatchAd():
     # Verify Parameters
     required_params = ['sid', 'oid', 'hmac']
     if not all(param in parameters for param in required_params):
-        abort(422, "Missing required parameters")
+        abort(400, "Missing required parameters")
     if not verify_signature(parameters):
-        abort(401, "Invalid Signature")
+        abort(403, "Invalid Signature")
 
+    # Extract UserID / AdUnitID
+    userID = int(parameters["sid"].split()[0])
+    adUnitID = parameters["sid"].split()[1]
 
-    print(parameters)
-    user = fetch_user(int(parameters["sid"]))
-    print(user)
+    user = fetch_user(UserID)
+
     if user==None:
         abort(400, "Invalid user SID")
     
     # Store Ad in database (as unredeemed)
     record_ad(
-        **parameters,
+        oid = parameters["oid"],
+        userID = userID,
+        adUnitID = adUnitID,
         redeemed = False
     )
-    return {'status': 'success'}
+    # Report Success (https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#CallbackResponse)
+    return "1", 200
 
 
 # see the ads that the current user 
@@ -291,12 +362,12 @@ def WatchAd():
 def SeeMyAds(user):
     return jsonify(fetch_ads(user.doc_id))
 
+
 # see the ads that the current user 
 @app.route('/SeeAllAds')
 @admin_required
 def SeeAllAds(user):
     return jsonify(fetch_ads())
-
 
 
 # see the ALL request logs (S2S logs)
