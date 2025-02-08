@@ -162,11 +162,15 @@ def CalculatePayout(gemCount):
     EntitledCut: amount of money player gets (after Paypal Takes Cut)
     '''
     # intersitial ad value
-    SingleInterstitial = 5/10000
-    SingleRewarded = 5/1000
+    SingleRewarded = 0.04 / 35   # sample from ad dashboard
+    SingleInterstitial = SingleRewarded / 10
+    if SingleInterstitial >= (5 / 10000):
+        print(SingleInterstitial)
+        print(5/10000)
+        raise Exception("Interstitial Value too low")
 
     SingleGemRevenue = SingleInterstitial / 5
-    RevShare = 0.40 # percent the user gets
+    RevShare = 0.70 # percent the user gets
     TotalCut = gemCount * (SingleGemRevenue * RevShare)
     if (TotalCut * 0.02 > 0.25):
         PaypalProcessingFee = TotalCut * 0.02
@@ -185,6 +189,7 @@ def CalculateMinimumGems():
     while EntitledPayout < 0.01:
         gems += 1
         TotalPayout, EntitledPayout = CalculatePayout(gems)
+        # print(gems,EntitledPayout)
     return gems
 GEM_MINIMUM = CalculateMinimumGems()
 print("GEM MINIMUM:", GEM_MINIMUM)
@@ -198,8 +203,31 @@ def redeem(ad):
 # find minial number of intersitial / rewarded ads == gemCount
 # 1 intersitial == 1 gem (red)
 # 1 rewarded == 10 gems  (green)
-def minimal_ad_count(intersitialCount,rewardedCount,gemCount)
-    pass
+def minimal_ad_count(intersitial, rewarded, gemCount):
+    usedRewarded = 0
+    usedInterstitial = 0
+
+    while gemCount > 0:
+        # use interstial ads to get it round 10s
+        if (gemCount // 10 != 0 and intersitial > 0):
+            usedInterstitial += 1
+            intersitial -= 1
+            gemCount -= 1
+        # use rewarded ads (if possible)
+        elif (rewarded > 0):
+            usedRewarded += 1
+            rewarded -= 1
+            gemCount -= 10
+        # use interstial if we run out of rewarded
+        elif (intersitial > 0):
+            usedRewarded += 1
+            rewarded -= 1
+            gemCount -= 10
+        # we dont have enough money
+        else:
+            return None, None
+
+    return usedInterstitial, usedRewarded
 
 
 # find subset of ads == the gems you want

@@ -5,6 +5,10 @@ Unity game & Flask server that work togetehr to allow players to earn real money
 ## Authorizations
 For paypal to send out Payouts, your business account needs to be approved [here](https://www.paypal.com/payoutsweb/landing) (Payouts API [cost](https://www.paypal.com/us/business/paypal-business-fees#statement-10) 2% internationally and $0.25 domestically.) Also, to verify ad consumption, your Unity account will need approved for S2S callbacks [here](https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#Implementation).
 
+## Cashout Idea
+When a user watchs an ad, Unity has a webhook (S2S) which will verifies us the ad as has been consumed. When this happens we could also use Unity Advertising Statistics API to record the eCPM at the time. This allows us to effefectly record how much revenue that single ad generated. Then, when a user goes to cashout, we can calculate the totla revenue they have generated, and give them a cut of that (~70%). We can then calculate how many gems they could've collected (~5-10x ads they have watched) and they have a proportionate claim to their ad rev based on how many gems they submit.
+
+
 ## Links
 * [Server Code Repo](https://github.com/RoseMaster3000/PaypalBridge)
 * [Unity Game Repo](https://github.com/dima02021988/ZigZag-racing-3D)
@@ -12,16 +16,11 @@ For paypal to send out Payouts, your business account needs to be approved [here
 * [Production Server (PythonAnywhere)](https://dcherevatsky.pythonanywhere.com)
 
 
-### Replit (expired)
-* [Development Server: Replit](https://a793bff8-567d-48ec-8cb5-8559e412c1fd-00-38j54p3698xo4.janeway.replit.dev/)
-* [Replit Editor](https://a793bff8-567d-48ec-8cb5-8559e412c1fd-00-38j54p3698xo4.janeway.replit.dev/)
-
-
 ### Dependencies
 * [Paypal API](https://developer.paypal.com/braintree/docs/guides/paypal/server-side/python/)
-* [Flask](https://flask.palletsprojects.com/en/stable/)
+* [Flask Docs](https://flask.palletsprojects.com/en/stable/)
 * [Unity S2S](https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks)
-
+* [Unity Ad Statistics (for CPM)][https://docs.unity3d.com/Packages/com.unity.ads@3.2/manual/AdvertisingResourcesStats.html]
 
 ## Secrets
 API keys/sensitive data are included in a file called `SECRET.py`. This file must be manually transferred, as it is ignored from the git repository.

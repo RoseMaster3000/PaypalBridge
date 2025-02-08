@@ -5,4 +5,12 @@
 
 
 - paypal payout
+
 - redeem_ad() 
+
+- 3 month warning if app shuts down
+
+
+----------------------------
+
+- Cashout idea? (record eCPM)
