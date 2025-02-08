@@ -198,7 +198,7 @@ def redeem(ad):
 # find minial number of intersitial / rewarded ads == gemCount
 # 1 intersitial == 1 gem (red)
 # 1 rewarded == 10 gems  (green)
-def minimal_ad_count(intersitialCount,rewardedCount,gemCount)
+def minimal_ad_count(intersitialCount,rewardedCount,gemCount):
     pass
 
 
