@@ -1,20 +1,13 @@
 # from PaypalBridge.paypal import test_payout
 # test_payout()
 
-
 from PaypalBridge.website import minimal_ad_count
 
-# 1 intersitial == 1 gem (red)
-# 1 rewarded == 10 gems  (green)
-# assert 0, 10 == minimal_ad_count(10,10,101)
-# assert 10, 1 == minimal_ad_count(10,1,20)
-# assert None, None == minimal_ad_count(10,1,21)
-# assert None, None == minimal_ad_count(9,1,20)
-# assert 0, 2 = minimal_ad_count(0,2,15)
+assert minimal_ad_count(r=10,i=10, gems=101)  == (10, 1)
+assert minimal_ad_count(r=1, i=10, gems=20)   == (1, 10)
+assert minimal_ad_count(r=1, i=10, gems=21)   == (None, None)
+assert minimal_ad_count(r=1, i=9, gems=20)    == (None, None)
+assert minimal_ad_count(r=2, i=0, gems=15)    == (2, 0)
+assert minimal_ad_count(r=3, i=1, gems=10000) == (None, None)
 
-
-print(minimal_ad_count(10,10,101))
-print(minimal_ad_count(10,1,20))
-print(minimal_ad_count(10,1,21))
-print(minimal_ad_count(9,1,20))
-print(minimal_ad_count(0,2,15))
+print("All tests passed ✅")
