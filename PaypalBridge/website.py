@@ -203,31 +203,36 @@ def redeem(ad):
 # find minial number of intersitial / rewarded ads == gemCount
 # 1 intersitial == 1 gem (red)
 # 1 rewarded == 10 gems  (green)
-def minimal_ad_count(intersitial, rewarded, gemCount):
+def minimal_ad_count(r,i,gems, debug=False):
     usedRewarded = 0
     usedInterstitial = 0
 
-    while gemCount > 0:
+    while gems > 0:
+
         # use interstial ads to get it round 10s
-        if (gemCount // 10 != 0 and intersitial > 0):
+        if (gems % 10 != 0 and i > 0):
             usedInterstitial += 1
-            intersitial -= 1
-            gemCount -= 1
+            i -= 1
+            gems -= 1
         # use rewarded ads (if possible)
-        elif (rewarded > 0):
+        elif (r > 0):
             usedRewarded += 1
-            rewarded -= 1
-            gemCount -= 10
+            r -= 1
+            gems -= 10
         # use interstial if we run out of rewarded
-        elif (intersitial > 0):
-            usedRewarded += 1
-            rewarded -= 1
-            gemCount -= 10
+        elif (i > 0):
+            usedInterstitial += 1
+            i -= 1
+            gems -= 1
         # we dont have enough money
         else:
             return None, None
+        # debugger
+        if (debug):
+            print(gems, usedRewarded,usedInterstitial, (gems%10))
+            input()
 
-    return usedInterstitial, usedRewarded
+    return usedRewarded, usedInterstitial
 
 
 # find subset of ads == the gems you want
