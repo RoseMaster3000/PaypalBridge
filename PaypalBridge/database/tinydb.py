@@ -90,12 +90,15 @@ def delete_user(username):
 
 # log ad in database 
 def record_ad(**kwargs):
-    if "sid" not in kwargs:
-        raise Exception("Ad logs must have [sid]")
-    if not kwargs["sid"].isdigit():
-        raise Exception("Ad log [sid] must be integer")
-    else:
-        kwargs["sid"] = int(kwargs["sid"])
+    # verify userID
+    if "userID" not in kwargs:
+        raise Exception("Ad logs must have [userID]")
+    # sanitize userID  
+    if type(kwargs["userID"]) == str and kwargs["userID"].isdigit():
+        kwargs["userID"] = int(kwargs["userID"])
+    # validate userID
+    if type(kwargs["userID"]) != int:
+        raise Exception("Ad log [userID] must be integer")
     ads.insert(kwargs)
 
 
