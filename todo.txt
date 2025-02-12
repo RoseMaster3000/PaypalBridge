@@ -1,16 +1,7 @@
 - make html dashboard a table
     - gems, intersitical ads, rewarded ads
 
-- purge 0 days not working?
+- buttonm that checkmarks all temp users
 
-
-- paypal payout
-
-- redeem_ad() 
 
 - 3 month warning if app shuts down
-
-
-----------------------------
-
-- Cashout idea? (record eCPM)
