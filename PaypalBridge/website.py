@@ -245,7 +245,7 @@ def redeem_ads(ads, gemCount):
     for ad in ads:
         if "Interstitial" in ad["adUnitID"]:
             intersitial.append(ad)
-        else:
+        elif "Rewarded" in ad["adUnitID"]:
             rewarded.append(ad)
 
 
@@ -352,6 +352,18 @@ def verify_signature(parameters):
         expectedSignature
     )
 
+
+# https://dcherevatsky.pythonanywhere.com/S2S?oid=1737946872029&sid=101&hmac=fcd620d061910db14784f00f5d7af63c
+@app.route('/Fake/S2S', methods=['GET'])
+@admin_required
+def WatchFakeAd(user):
+    record_ad(
+        oid = str(uuid4()),
+        userID = user.doc_id,
+        adUnitID = "Fake_Rewarded_Ad",
+        redeemed = False
+    )
+    return redirect("/")
 
 # UNITY S2S : Unity will use this route to tell us when users watch ads
 @app.route('/S2S', methods=['GET'])
