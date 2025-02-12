@@ -310,9 +310,9 @@ def Cashout(user):
     TotalPayout, EntitledPayout = CalculatePayout(gemCount)
     create_payout(email, EntitledPayout)
 
-    return f"Cashout of ${EntitledPayout:0.2f} sucessfully send to {email}"
+    return f"Cashout of ${EntitledPayout:0.2f} successfully send to {email}"
 
-# Increment Gems
+# Get current balance (gem count)
 @app.route('/GemCount')
 @none_required
 def GemCount(user):
@@ -322,7 +322,7 @@ def GemCount(user):
         return f"{user['gems']} Gems"
 
 
-# TESTING PURPOSES ONLY
+# TESTING PURPOSES ONLY, Increment Gems
 @app.route('/get_gem/<int:amount>')
 @admin_required
 def get_gem(amount, user):
