@@ -378,19 +378,20 @@ def WatchAd():
     if not verify_signature(parameters):
         abort(403, "Invalid Signature")
 
-    # Extract UserID / AdUnitID
-    userID = int(parameters["sid"].split()[0])
+    # Extract Parameters
+    oid = parameters["oid"]
     adUnitID = parameters["sid"].split()[1]
-
+    userID = int(parameters["sid"].split()[0])
     user = fetch_user(UserID)
 
+    # Verify User
     if user==None:
         abort(400, "Invalid user SID")
     
     # Store Ad in database (as unredeemed)
     record_ad(
         userID = userID,
-        oid = parameters["oid"],
+        oid = oid,
         adUnitID = adUnitID,
         redeemed = False
     )
