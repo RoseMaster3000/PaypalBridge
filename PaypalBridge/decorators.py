@@ -1,6 +1,7 @@
 from functools import wraps
 from flask import session
 from PaypalBridge.database.tinydb import fetch_user
+from PaypalBridge.website import app
 import os
 
 # any temp account
@@ -37,7 +38,7 @@ def email_required(f):
     return wrapper
 
 
-# must be admin user OR running on development server (replit)
+# must be admin user OR running on development server
 def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -46,7 +47,7 @@ def admin_required(f):
         
         if kwargs["user"]["username"] == "admin":
             return f(*args, **kwargs)
-        elif platform == "replit":
+        elif app.debug == True: # development mode
             return f(*args, **kwargs)
         else:
             return  {"status":403, "message":'admin required'}

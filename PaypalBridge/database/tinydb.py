@@ -72,6 +72,11 @@ def update_user(old_username, **kwargs):
     except Exception as e:
         return False
 
+def update_ad(ad, **kwargs):
+    ads.update(
+        kwargs,
+        doc_ids=[ad.doc_id]
+    )
 
 # **delete a user record**
 def delete_user(username):

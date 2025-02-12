@@ -6,7 +6,6 @@ from flask_bcrypt import Bcrypt
 from PaypalBridge.paypal import create_payout
 from PaypalBridge import SECRET
 from PaypalBridge.database.tinydb import *
-from PaypalBridge.decorators import *
 from datetime import datetime
 from uuid import uuid4
 import os
@@ -28,6 +27,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] =  b'\xb4\xb5\xd0\xc5m\x10p\xdbB\xa2\xd4\x14'
 bcrypt = Bcrypt(app)
 initialize_db(app.root_path)
+from PaypalBridge.decorators import *
+
 
 
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)
@@ -89,7 +90,7 @@ def SID(user):
 @app.route('/')
 @none_required
 def index(user):
-    if user['username'] =='admin' or (os.environ.get("platform",None)=="replit"):
+    if user['username'] =='admin' or app.debug:
         # get all users
         users = fetch_users()
         # display page
@@ -197,13 +198,13 @@ print("GEM MINIMUM:", GEM_MINIMUM)
 
 # mark ad as redeemed = True in TinyDB
 def redeem(ad):
-    pass
+    update_ad(ad, redeemed=True)
 
 
-# find minial number of intersitial / rewarded ads == gemCount
+# minimal number of intersitial / rewarded ads to cover gemCount
 # 1 intersitial == 1 gem (red)
 # 1 rewarded == 10 gems  (green)
-def minimal_ad_count(r,i,gems, debug=False):
+def minimal_ad_count(r, i, gems, debug=False):
     usedRewarded = 0
     usedInterstitial = 0
 
@@ -224,7 +225,7 @@ def minimal_ad_count(r,i,gems, debug=False):
             usedInterstitial += 1
             i -= 1
             gems -= 1
-        # we dont have enough money
+        # we dont have enough ads to cover the gems
         else:
             return None, None
         # debugger
@@ -247,21 +248,17 @@ def redeem_ads(ads, gemCount):
         else:
             rewarded.append(ad)
 
-    # see our total gem value
-    intersitialCount = len(intersitial)
-    rewardedCount = len(rewarded)
-    total_value = intersitialCount*1 + rewardedCount*10
-
-    # NOT ENOUGH ADS for gem value (return --> FAIL)
-    if gemCount > total_value:
-        return False
 
     # Calculate minimal ad count needed to redeem gems
     rewarded_used, intersitial_used = minimal_ad_count(
-        intersitialCount,
-        rewardedCount,
-        gemCount
+        i = len(intersitial),
+        r = len(rewarded),
+        gems = gemCount
     )
+
+    # EJECT if not enough ads to cover gem cashout
+    if rewarded_used == None:
+        return False
 
     # Mark ads as redeemed
     for i in range(rewarded_used):
@@ -282,7 +279,7 @@ def PreviewCashout(gemCount:int):
     else:
         return CalculatePayout(gemCount)
 
-# Cashout Gems
+# Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
 @email_required
 def Cashout(user):
@@ -310,7 +307,7 @@ def Cashout(user):
         return "Ad revenue is still processing, please try again in a few hours."
     
     # generate paypal cashout
-    _, EntitledPayout = CalculatePayout(gemCount)
+    TotalPayout, EntitledPayout = CalculatePayout(gemCount)
     create_payout(email, EntitledPayout)
 
     return f"Cashout of ${EntitledPayout:0.2f} sucessfully send to {email}"
@@ -413,7 +410,7 @@ def RequestLog(user):
 
 # take over temp_user account (fake "registration")
 @app.route('/Login', methods=['POST'])
-@temp_required
+@none_required
 def login(user):    
     newUser = fetch_user(request.form['username'])
 

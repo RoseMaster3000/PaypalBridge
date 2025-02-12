@@ -16,7 +16,11 @@
       <input type="number" id="days" name="days" min="0" max="999" value="5">
       <label for="days">days and older</label>
     </form>
-    
+    <form action="/PurgeTempUsers" method="post">
+      <input type="hidden" name="days" value="0">
+      <button type="submit">Purge All Temporary Users</button>
+    </form>
+
     <form action="/Cashout" method="post">
       <button type="submit">Cashout <span id="rangeValue" class="range-value">{{user['gems']//2}}</span><span>/{{user['gems']}} gems</span></button>
       <input type="range" id="points" name="gems" min="0" max="{{user['gems']}}" value="{{user['gems']//2}}" oninput="document.getElementById('rangeValue').textContent = this.value">
