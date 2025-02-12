@@ -358,8 +358,8 @@ def verify_signature(parameters):
 @admin_required
 def WatchFakeAd(user):
     record_ad(
-        oid = str(uuid4()),
         userID = user.doc_id,
+        oid = str(uuid4()),
         adUnitID = "Fake_Rewarded_Ad",
         redeemed = False
     )
@@ -389,8 +389,8 @@ def WatchAd():
     
     # Store Ad in database (as unredeemed)
     record_ad(
-        oid = parameters["oid"],
         userID = userID,
+        oid = parameters["oid"],
         adUnitID = adUnitID,
         redeemed = False
     )
