@@ -1,14 +1,15 @@
 from flask import Flask, render_template, request, redirect, session, jsonify, abort, make_response
+from flask_bcrypt import Bcrypt
+from datetime import datetime
+from uuid import uuid4
 from urllib.parse import unquote, urlparse
 import hmac
 import hashlib
-from flask_bcrypt import Bcrypt
+import os
+
 from PaypalBridge.paypal import create_payout
 from PaypalBridge import SECRET
 from PaypalBridge.database.tinydb import *
-from datetime import datetime
-from uuid import uuid4
-import os
 
 # IP addresses fro Unity S2S servers
 UNITY_IPS = [
@@ -99,11 +100,20 @@ def index(user):
         return render_template('login.html')
 
 
+
+def convert_epoch(epoch_time):
+    datetime_object = datetime.fromtimestamp(epoch_time)
+    return datetime_object.strftime("%Y-%m-%d %H:%M:%S")  # Customize the format as needed
+
+
 # route to fetch a list of all users
 @app.route('/api/users', methods=['GET'])
 @admin_required
 def GetAllUsers(user):
-    return jsonify(fetch_users())
+    users = fetch_users()
+    for u in users:
+        u["created_at"] = convert_epoch(u["created_at"])
+    return jsonify(users)
 
 
 # Create a new account
