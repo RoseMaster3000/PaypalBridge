@@ -126,19 +126,19 @@ def log(tableName, **kwargs):
     table.insert(kwargs)
 
 
-# record ad types on previous ads
+# populate ad type to legacy ads
 def typify_ads():
     for ad in ads.all():
         if 'type' not in ad:
-            type = "Rewarded" if "Rewarded" in ad.adUnitID else "Interstitial",
-            users.update(
+            type = "Rewarded" if "Rewarded" in ad["adUnitID"] else "Interstitial"
+            ads.update(
                 {'type': type},
-                doc_ids=[user.doc_id]
+                doc_ids=[ad.doc_id]
             )
-            print("updated", user.doc_id)  
+            print("updated", ad.doc_id)  
 
 
-# add random dates to old users (random time within last [dayRange] days)
+# populate random dates to legacy users (random time within last [dayRange] days)
 def datify_users(dayRange=10):
     for user in users.all():
         if 'created_at' not in user:
