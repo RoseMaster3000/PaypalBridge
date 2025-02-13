@@ -42,12 +42,8 @@ def email_required(f):
 def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        platform = os.environ.get("platform",None)
         kwargs["user"] = fetch_user(session["username"])
-        
-        if kwargs["user"]["username"] == "admin":
-            return f(*args, **kwargs)
-        elif app.debug == True: # development mode
+        if kwargs["user"]["username"] == "admin" or app.debug:
             return f(*args, **kwargs)
         else:
             return  {"status":403, "message":'admin required'}

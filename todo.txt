@@ -1,5 +1,9 @@
 - make html dashboard a table
     - gems, intersitical ads, rewarded ads
+    - delete user button?
+
+- migrate to statically hosted CDN 
+
 
 - buttonm that checkmarks all temp users
 

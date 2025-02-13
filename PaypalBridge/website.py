@@ -99,6 +99,13 @@ def index(user):
         return render_template('login.html')
 
 
+# route to fetch a list of all users
+@app.route('/api/users', methods=['GET'])
+@admin_required
+def GetAllUsers(user):
+    return jsonify(fetch_users())
+
+
 # Create a new account
 @app.route('/CreateUser', methods=['POST'])
 @none_required
@@ -361,6 +368,7 @@ def WatchFakeAd(user):
         userID = user.doc_id,
         oid = str(uuid4()),
         adUnitID = "Fake_Rewarded_Ad",
+        type = "Rewarded",
         redeemed = False
     )
     return redirect("/")
@@ -393,6 +401,7 @@ def WatchAd():
         userID = userID,
         oid = oid,
         adUnitID = adUnitID,
+        type = "Rewarded" if "Rewarded" in adUnitID else "Interstitial",
         redeemed = False
     )
     # Report Success (https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#CallbackResponse)

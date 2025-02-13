@@ -18,7 +18,7 @@ def initialize_db(path):
     users = db.table('users')
     ads = db.table('ads')
     db.drop_table('s2s')
-
+    typify_ads()
 
 
 # get one user
@@ -38,7 +38,6 @@ def fetch_user(username):
 # get all users
 def fetch_users():
     return users.all()
-
 
 # create new user
 def create_user(**kwargs):
@@ -127,6 +126,16 @@ def log(tableName, **kwargs):
     table.insert(kwargs)
 
 
+# record ad types on previous ads
+def typify_ads():
+    for ad in ads.all():
+        if 'type' not in ad:
+            type = "Rewarded" if "Rewarded" in ad.adUnitID else "Interstitial",
+            users.update(
+                {'type': type},
+                doc_ids=[user.doc_id]
+            )
+            print("updated", user.doc_id)  
 
 
 # add random dates to old users (random time within last [dayRange] days)

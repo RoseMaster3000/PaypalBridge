@@ -1,115 +1,43 @@
 <!DOCTYPE html>
 <html>
 <body>
-  <head>
-    <h2>Welcome, {{session["username"]}}!</h2>
-    
-    <form action="/Logout" method="post">
-      <button type="submit">Logout</button>
-    </form>
-    <form action="/TempUser" method="post">
-      <button type="submit">Generate Temporary User</button>
-      <input type="number" id="count" name="count" min="0" max="999" value="1">
-    </form>
-    <form action="/PurgeTempUsers" method="post">
-      <button type="submit">Purge Temporary Users</button>
-      <input type="number" id="days" name="days" min="0" max="999" value="5">
-      <label for="days">days and older</label>
-    </form>
-    <form action="/PurgeTempUsers" method="post">
-      <input type="hidden" name="days" value="0">
-      <button type="submit">Purge All Temporary Users</button>
-    </form>
 
-    <form action="/Cashout" method="post">
-      <button type="submit">Cashout <span id="rangeValue" class="range-value">{{user['gems']//2}}</span><span>/{{user['gems']}} gems</span></button>
-      <input type="range" id="points" name="gems" min="0" max="{{user['gems']}}" value="{{user['gems']//2}}" oninput="document.getElementById('rangeValue').textContent = this.value">
-    </form>
+<!-- Metadata (CSS files, tab title) -->
+<head>
+  <title>Paypal Bridge Dashboard</title>
+  <!-- DataTable -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+</head>
 
-    <p><a href="/get_gem/1">[get 1 gem]</a><a href="/get_gem/1000">[get 1000 gem]</a></p>
-    <p><a href="/SeeMyAds">[{{session["username"].title()}}'s Ad Log]</a></p>
-    <p><a href="/SeeAllAds">[Global Ad Log]</a></p>
-    <p><a href="/RequestLog">[Request Log]</a></p>
-    <p><a href="/Fake/S2S">[Watch Fake Rewarded Ad]</a></p>
+<!-- Header : Admin Buttons -->
+{% include "dash-buttons.html" %}
 
-  </head>
-  
+<!-- User Table -->
+{% include "dash-users.html" %}
 
-    <h2>Users</h2>
-      <form method="POST" action="/DeleteUsers">   
-        <ul>
-          {% for user in users %}
-          <li>
-            <input
-              type="checkbox"
-              name="usernames"
-              value="{{ user['username'] }}"
-            />
-            ({{user.doc_id}}) {{ user['username'] }} - {{ user['email'] }} [{{user['gems']}}]
-          </li>
-          {% endfor %}
-        </ul>
-        <button type="submit">Delete Selected Users</button>
-      </form>
+<!-- Account Management -->
+{% include "dash-accounts.html" %}
 
-      <br />
-      <hr />
-
-      <h2>Delete User</h2>
-      <form method="POST" action="/DeleteUser">
-        <input
-          type="text"
-          name="username"
-          placeholder="Username to Delete"
-          required
-        />
-        <br />
-        <button type="submit">Delete User</button>
-      </form>
-
-      <br />
-      <hr />
-      
-
-    
-    <h2>Create User</h2>
-    <form method="POST" action="/CreateUser">
-      <input
-        type="text"
-        name="username"
-        placeholder="Username"
-        required
-      /><br />
-      <input type="email" name="email" placeholder="Email" required /><br />
-      <input
-        type="password"
-        name="password"
-        placeholder="Password"
-        required
-      /><br />
-      <button type="submit">Add User</button>
-    </form>
-
-    <br />
-    <hr />
+<!-- Javacript  -->
+<script>
+$(document).ready(function() {
+  $('#userTable').DataTable({
+    "ajax": {
+      "url": "/api/users", // API endpoint
+      "dataSrc": ""        // root of JSON
+    },
+    // The 'data' field should match the keys in JSON
+    "columns": [
+      {"data": "username"}, 
+      {"data": "email"},
+      {"data": "gems"},
+    ]
+  });
+});
+</script>
 
 
-    <h2>Login</h2>
-    <form method="POST" action="/Login">
-      <input
-        type="text"
-        name="username"
-        placeholder="Username"
-        required
-      /><br />
-      <input
-        type="password"
-        name="password"
-        placeholder="Password"
-        required
-      /><br />
-      <button type="submit">Login</button>
-    </form>
-
-  </body>
+</body>
 </html>
