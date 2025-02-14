@@ -33,10 +33,7 @@ $(document).ready(function() {
       {"data": "email"},
       {"data": "gems"},
       {"data": "created_at"},
-      {
-        "data": null,
-        "render": generateDeleteBox
-      },
+      {"data": null, "render": generateDeleteBox}
     ]
   });
 });
@@ -44,10 +41,10 @@ $(document).ready(function() {
 function generateDeleteBox(data, type, row) {
   return `
     <input
-          type="checkbox"
-          name="usernames"
-          value="${data.username}"
-        />
+        type="checkbox"
+        name="usernames"
+        value="${data.username}"
+    />
   `
 }
 </script>
