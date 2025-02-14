@@ -144,6 +144,7 @@ def backfix_ads():
             updates['type'] = "Rewarded" if "Rewarded" in ad["adUnitID"] else "Interstitial"
         if "redeemed" not in ad:
             updates["redeemed"] = False;
+            
         if updates != {}:
             ads.update(
                 updates,

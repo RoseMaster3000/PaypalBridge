@@ -40,20 +40,6 @@ def verify_auth():
     if not username or not user:
         generate_temp_user()
 
-
-# [PRE-REQUEST] log all requests (see if Unity is actaully doing their job)
-@app.before_request 
-def RequestLogger():
-    log(
-        "Requests",
-        url = request.url,
-        path = request.path,
-        time = str(datetime.now()),
-        unity = (request.remote_addr in UNITY_IPS),
-        ip = request.remote_addr
-    )
-
-
 # generated/login temp account
 def generate_temp_user():
     user = create_user(
@@ -372,8 +358,10 @@ def verify_signature(parameters):
 
 # https://dcherevatsky.pythonanywhere.com/S2S?oid=1737946872029&sid=101&hmac=fcd620d061910db14784f00f5d7af63c
 @app.route('/Fake/S2S', methods=['GET'])
+@log_request
 @admin_required
 def WatchFakeAd(user):
+    RequestLogger()
     record_ad(
         userID = user.doc_id,
         oid = str(uuid4()),
@@ -383,9 +371,11 @@ def WatchFakeAd(user):
     )
     return redirect("/")
 
+
 # UNITY S2S : Unity will use this route to tell us when users watch ads
 @app.route('/S2S', methods=['GET'])
-def WatchAd():    
+@log_request
+def WatchAd():
     # Extract Parameters 
     parameters = request.args.to_dict()
 

@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import session
-from PaypalBridge.database.tinydb import fetch_user
+from PaypalBridge.database.tinydb import fetch_user, log
 from PaypalBridge.website import app
 import os
 
@@ -47,4 +47,20 @@ def admin_required(f):
             return f(*args, **kwargs)
         else:
             return  {"status":403, "message":'admin required'}
+    return wrapper
+
+
+# record this request in the database
+def log_request(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        log(
+            "Requests",
+            url = request.url,
+            path = request.path,
+            time = str(datetime.now()),
+            unity = (request.remote_addr in UNITY_IPS),
+            ip = request.remote_addr
+        )
+        return f(*args, **kwargs)
     return wrapper
