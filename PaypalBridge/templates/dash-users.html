@@ -1,5 +1,8 @@
 <h1>Users</h1>
 
+<form method="POST" action="/DeleteUsers">  
+<button type="submit">Delete Selected Users</button>
+
 <table id="userTable" class="display">
   <thead>
     <tr>
@@ -7,25 +10,44 @@
       <th>Email</th>
       <th>Gems</th>
       <th>Creation Time<th>
-      <th>Interstitial<th>
-      <th>Rewarded<th>
+
     </tr>
   </thead>
   <tbody></tbody>
 </table>
 
-<!-- <form method="POST" action="/DeleteUsers">   
-  <ul>
-    {% for user in users %}
-    <li>
-      <input
-        type="checkbox"
-        name="usernames"
-        value="{{ user['username'] }}"
-      />
-      ({{user.doc_id}}) {{ user['username'] }} - {{ user['email'] }} [{{user['gems']}}]
-    </li>
-    {% endfor %}
-  </ul>
-  <button type="submit">Delete Selected Users</button>
-</form> -->
+</form>
+
+
+<!-- Javacript  -->
+<script>
+$(document).ready(function() {
+  $('#userTable').DataTable({
+    "ajax": {
+      "url": "/api/users", // API
+      "dataSrc": ""// JSON root
+    },
+    // The 'data' field should match the keys in JSON
+    "columns": [
+      {"data": "username"}, 
+      {"data": "email"},
+      {"data": "gems"},
+      {"data": "created_at"},
+      {
+        "data": null,
+        "render": generateDeleteBox
+      },
+    ]
+  });
+});
+
+function generateDeleteBox(data, type, row) {
+  return `
+    <input
+          type="checkbox"
+          name="usernames"
+          value="${data.username}"
+        />
+  `
+}
+</script>

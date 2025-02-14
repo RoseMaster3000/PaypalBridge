@@ -25,25 +25,6 @@
 <!-- Account Management -->
 {% include "dash-accounts.html" %}
 
-<!-- Javacript  -->
-<script>
-$(document).ready(function() {
-  $('#userTable').DataTable({
-    "ajax": {
-      "url": "/api/users", // API endpoint
-      "dataSrc": ""        // root of JSON
-    },
-    // The 'data' field should match the keys in JSON
-    "columns": [
-      {"data": "username"}, 
-      {"data": "email"},
-      {"data": "gems"},
-      {"data": "created_at"}
-    ]
-  });
-});
-</script>
-
 
 </body>
 </html>
