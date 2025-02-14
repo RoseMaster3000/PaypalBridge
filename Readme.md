@@ -1,5 +1,5 @@
 ## About
-Unity game & Flask server that work togetehr to allow players to earn real money. Its uses Unity S2S Callbacks to record validated ads to a private database. The server can then allow users to cash out their ad revenue using Paypal API.
+Unity Game & Flask Server that work together to allow players to earn real money. Its uses Unity S2S Callbacks to record validated ads to a private database. The server can then allow users to cash out their ad revenue using Paypal API.
 
 
 ## Authorizations
