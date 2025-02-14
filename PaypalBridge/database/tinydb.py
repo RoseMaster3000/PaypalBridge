@@ -18,8 +18,8 @@ def initialize_db(path):
     users = db.table('users')
     ads = db.table('ads')
     db.drop_table('s2s')
-    typify_ads()
-
+    backfix_ads()
+    # backfix_users()
 
 # get one user
 def fetch_user(username):
@@ -127,19 +127,33 @@ def log(tableName, **kwargs):
 
 
 # populate ad type to legacy ads
-def typify_ads():
+# "oid": "f88b...",
+# "userID": 6,
+# "adUnitID": "Fake_Rewarded_Ad",
+# "redeemed": false
+def backfix_ads():
     for ad in ads.all():
-        if 'type' not in ad:
-            type = "Rewarded" if "Rewarded" in ad["adUnitID"] else "Interstitial"
+        updates = {}
+        if "userID" not in ad:
+            continue
+        if "adUnitID" not in ad:
+            updates["adUnitID"] = "Old_Rewarded_Ad"
+        if type(ad["type"]) == list:
+            updates['type'] = ad['type'][0]
+        if "type" not in ad:
+            updates['type'] = "Rewarded" if "Rewarded" in ad["adUnitID"] else "Interstitial"
+        if "redeemed" not in ad:
+            updates["redeemed"] = False;
+        if updates != {}:
             ads.update(
-                {'type': type},
+                updates,
                 doc_ids=[ad.doc_id]
             )
             print("updated", ad.doc_id)  
 
 
 # populate random dates to legacy users (random time within last [dayRange] days)
-def datify_users(dayRange=10):
+def backfix_users(dayRange=10):
     for user in users.all():
         if 'created_at' not in user:
             random_time = now() - randint(0, dayRange*886400)
