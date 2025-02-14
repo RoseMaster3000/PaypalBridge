@@ -137,11 +137,12 @@ def backfix_ads():
         if "userID" not in ad:
             continue
         if "adUnitID" not in ad:
-            updates["adUnitID"] = "Old_Rewarded_Ad"
-        if type(ad["type"]) == list:
-            updates['type'] = ad['type'][0]
-        if "type" not in ad:
+            updates['adUnitID'] = "Old_Rewarded_Ad"
+            updates['type'] = "Rewarded"
+        elif "type" not in ad:
             updates['type'] = "Rewarded" if "Rewarded" in ad["adUnitID"] else "Interstitial"
+        if type(ad["type"]) == list:
+            updates['type'] = ad['type'][0]            
         if "redeemed" not in ad:
             updates["redeemed"] = False;
             
