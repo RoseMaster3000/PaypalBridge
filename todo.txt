@@ -1,6 +1,5 @@
-- make html dashboard a table
-    - gems, intersitical ads, rewarded ads
-    - delete user button?
+
+- eCPM method for Rewarded / Interstitial ad value
 
 - migrate to statically hosted CDN 
 
@@ -9,3 +8,15 @@
 
 
 - 3 month warning if app shuts down
+
+
+=====================
+
+Instead of convert button (convert.cs), Have UI of button and text in wallet scene
+Button will say
+“Press to register”
+Text will
+If user is not registered
+ Text will say "please register to see how much money you can cash out"
+If user is registered
+  Text will say "based on your gem_collected you have total_amount, you can cash out in increments of 20 dollars per month"
