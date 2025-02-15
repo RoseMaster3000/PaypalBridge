@@ -91,6 +91,24 @@ def convert_epoch(epoch_time):
     datetime_object = datetime.fromtimestamp(epoch_time)
     return datetime_object.strftime("%Y-%m-%d %H:%M:%S")  # Customize the format as needed
 
+def ad_preview(user):
+    all_ads = fetch_ads(user.doc_id, redeemed=None)
+    all_i = 0
+    all_r = 0
+    redeemed_i = 0
+    redeemed_r = 0
+
+    for ad in all_ads:
+        if ad.get("type") == "Rewarded":
+            all_r += 1
+            if ad.get("redeemed"):
+                redeemed_r += 1
+        if ad.get("type") == "Interstitial":
+            all_i += 1
+            if ad.get("redeemed"):
+                redeemed_i += 1
+
+    return f"{redeemed_r}/{all_r}" , f"{redeemed_i}/{all_i}"
 
 # route to fetch a list of all users
 @app.route('/api/users', methods=['GET'])
@@ -98,7 +116,10 @@ def convert_epoch(epoch_time):
 def GetAllUsers(user):
     users = fetch_users()
     for u in users:
+        rewarded, intersitial = ad_preview(user)
         u["created_at"] = convert_epoch(u["created_at"])
+        u["intersitial"] = intersitial
+        u["rewarded"] = rewarded
     return jsonify(users)
 
 
@@ -312,6 +333,9 @@ def Cashout(user):
     # generate paypal cashout
     TotalPayout, EntitledPayout = CalculatePayout(gemCount)
     create_payout(email, EntitledPayout)
+
+    # increment cashout total (track cashout total in our database)
+    increment_cashout(user, EntitledPayout)
 
     return f"Cashout of ${EntitledPayout:0.2f} successfully send to {email}"
 

@@ -19,7 +19,7 @@ def initialize_db(path):
     ads = db.table('ads')
     db.drop_table('s2s')
     backfix_ads()
-    # backfix_users()
+    backfix_users()
 
 # get one user
 def fetch_user(username):
@@ -50,6 +50,16 @@ def create_user(**kwargs):
     return users.get(doc_id=doc_id)
 
 
+# increment total cashout of user
+def increment_cashout(user, increment):
+    user = users.get(doc_id=user.doc_id)
+    new_total = user.get('total_cashout', 0) + increment
+    users.update(
+        {'total_cashout': new_total},
+        doc_ids=[user.doc_id]
+    )
+
+
 # delete temp uses (eg 5: accounts older than [5] days old)
 def purge_users(dayRange=0):
     cutoffDate = now() - (dayRange*886400)
@@ -59,6 +69,8 @@ def purge_users(dayRange=0):
         (User.created_at < cutoffDate)
     )
     return len(removed_users)
+
+
 
 
 # Update the user record
@@ -162,6 +174,12 @@ def backfix_users(dayRange=10):
             random_time = now() - randint(0, dayRange*886400)
             users.update(
                 {'created_at': random_time},
+                doc_ids=[user.doc_id]
+            )
+            print("updated", user.doc_id)
+        if 'total_cashout'  not in user:
+            users.update(
+                {'total_cashout': 0.00},
                 doc_ids=[user.doc_id]
             )
             print("updated", user.doc_id)
