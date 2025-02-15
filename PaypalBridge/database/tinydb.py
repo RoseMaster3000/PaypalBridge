@@ -20,6 +20,7 @@ def initialize_db(path):
     db.drop_table('s2s')
     backfix_ads()
     backfix_users()
+    purge_request_log()
 
 # get one user
 def fetch_user(username):
@@ -71,6 +72,11 @@ def purge_users(dayRange=0):
     return len(removed_users)
 
 
+# Delete all records that are not S2S related
+def purge_request_log():
+    requests_table = db.table('Requests')
+    Record = Query()
+    requests_table.remove(~ (Record.path.one_of(["/S2S", "/S3S"])))
 
 
 # Update the user record

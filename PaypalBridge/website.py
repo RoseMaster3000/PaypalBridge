@@ -11,17 +11,6 @@ from PaypalBridge.paypal import create_payout
 from PaypalBridge import SECRET
 from PaypalBridge.database.tinydb import *
 
-# IP addresses fro Unity S2S servers
-UNITY_IPS = [
-    "185.33.96.0",
-    "185.98.36.0",
-    "35.235.16.8",
-    "35.227.129.136",
-    "35.234.176.136",
-    "35.192.193.0",
-    "35.205.0.8"
-]
-
 
 # initialize modules
 app = Flask(__name__)
@@ -132,7 +121,7 @@ def CreateUser(user):
     # validate form
     if "" in request.form.values():
         return "Error: Please Fill All Fields!"
-        
+    
     # validate username (length)
     if len(request.form['username']) >= 36:
         return "Error: Username too long"
@@ -388,7 +377,6 @@ def verify_signature(parameters):
 @log_request
 @admin_required
 def WatchFakeAd(user):
-    RequestLogger()
     record_ad(
         userID = user.doc_id,
         oid = str(uuid4()),
