@@ -13,7 +13,7 @@
       <th>Rewarded</th>
       <th>Interstitial</th>
       <th>Creation Time</th>
-      <th>Mark</th>
+      <th>Delete</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -51,7 +51,7 @@ $(document).ready(function() {
       {"data": "rewarded"},
       {"data": "intersitial"},
       {"data": "created_at"},
-      {"data": null, "render": generateDeleteBox}
+      {"data": null, "orderable": false, "render": generateDeleteBox}
     ],
     "footerCallback": grandTotalCashout
   });
