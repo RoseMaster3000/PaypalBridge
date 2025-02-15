@@ -1,5 +1,6 @@
 from functools import wraps
-from flask import session
+from flask import session, request
+from datetime import datetime
 from PaypalBridge.database.tinydb import fetch_user, log
 from PaypalBridge.website import app
 import os
@@ -49,6 +50,18 @@ def admin_required(f):
             return  {"status":403, "message":'admin required'}
     return wrapper
 
+
+
+# IP addresses for Unity S2S servers (are these real?...)
+UNITY_IPS = [
+    "185.33.96.0",
+    "185.98.36.0",
+    "35.235.16.8",
+    "35.227.129.136",
+    "35.234.176.136",
+    "35.192.193.0",
+    "35.205.0.8"
+]
 
 # record this request in the database
 def log_request(f):
