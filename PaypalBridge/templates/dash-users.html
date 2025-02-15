@@ -1,7 +1,7 @@
 <h1>Users</h1>
 
 <form method="POST" action="/DeleteUsers">  
-<button type="submit">Delete Selected Users</button>
+
 
 <table id="userTable" class="display">
   <thead>
@@ -9,6 +9,7 @@
       <th>Username</th>
       <th>Email</th>
       <th>Gems</th>
+      <th>Total Cashout</th>
       <th>Rewarded</th>
       <th>Interstitial</th>
       <th>Creation Time</th>
@@ -16,6 +17,18 @@
     </tr>
   </thead>
   <tbody></tbody>
+  <tfoot>
+  <tr>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th><button type="submit">Delete</button></th>
+  </tr>
+</tfoot>
 </table>
 
 </form>
@@ -34,13 +47,35 @@ $(document).ready(function() {
       {"data": "username"}, 
       {"data": "email"},
       {"data": "gems"},
+      {"data": "total_cashout"},
       {"data": "rewarded"},
       {"data": "intersitial"},
       {"data": "created_at"},
       {"data": null, "render": generateDeleteBox}
-    ]
+    ],
+    "footerCallback": grandTotalCashout
   });
 });
+
+
+function grandTotalCashout(row, data, start, end, display) {
+  // get DataTable API (so we can modify the table)
+  var api = this.api();
+
+  // Calculate total of total_cashout column (index 3)
+  var total = api
+    .column(3)
+    .data()
+    .reduce(function(acc, val) {
+      return acc + parseFloat(val || 0);
+    }, 0);
+
+  // Put Grand total in footer
+  $(api.column(3).footer()).html(
+    'Total: $' + total.toFixed(2)
+  );
+}
+
 
 function generateDeleteBox(data, type, row) {
   return `

@@ -46,7 +46,8 @@ def generate_temp_user():
         username = str(uuid4()),
         email = None,
         password = str(uuid4()),
-        gems = 0
+        gems = 0,
+        total_cashout = 0
     )
     session["username"] = user["username"]
     session["gems"] = user["gems"]
@@ -117,6 +118,7 @@ def GetAllUsers(user):
     users = fetch_users()
     for u in users:
         rewarded, intersitial = ad_preview(user)
+        u["total_cashout"] = f"{u['total_cashout']:0.2f}"
         u["created_at"] = convert_epoch(u["created_at"])
         u["intersitial"] = intersitial
         u["rewarded"] = rewarded
@@ -147,7 +149,8 @@ def CreateUser(user):
         username = request.form['username'],
         email = request.form['email'],
         password = bcrypt.generate_password_hash(request.form['password']).decode('utf-8'),
-        gems = inheritedGems
+        gems = inheritedGems,
+        total_cashout = 0
     )
     if newUser==None:
         return "Could not create user"
