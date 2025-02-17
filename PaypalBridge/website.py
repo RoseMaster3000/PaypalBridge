@@ -88,9 +88,6 @@ def ad_preview(user):
     redeemed_i = 0
     redeemed_r = 0
 
-
-    print(user.doc_id, len(all_ads))
-
     for ad in all_ads:
         if ad.get("type") == "Rewarded":
             all_r += 1
@@ -376,18 +373,34 @@ def verify_signature(parameters):
 
 
 # https://dcherevatsky.pythonanywhere.com/S2S?oid=1737946872029&sid=101&hmac=fcd620d061910db14784f00f5d7af63c
-@app.route('/Fake/S2S', methods=['GET'])
-@log_request
+@app.route('/Fake/S2S/Rewarded/<int:count>', methods=['GET'])
 @admin_required
-def WatchFakeAd(user):
-    record_ad(
-        userID = user.doc_id,
-        oid = str(uuid4()),
-        adUnitID = "Fake_Rewarded_Ad",
-        type = "Rewarded",
-        redeemed = False
-    )
+def WatchFakeRewarded(user, count):
+    for _ in range(count):
+        record_ad(
+            userID = user.doc_id,
+            oid = str(uuid4()),
+            adUnitID = "Fake_Rewarded_Ad",
+            type = "Rewarded",
+            redeemed = False
+        )
     return redirect("/")
+
+
+# https://dcherevatsky.pythonanywhere.com/S2S?oid=1737946872029&sid=101&hmac=fcd620d061910db14784f00f5d7af63c
+@app.route('/Fake/S2S/Interstitial/<int:count>', methods=['GET'])
+@admin_required
+def WatchFakeInterstitial(user, count):
+    for _ in range(count):
+        record_ad(
+            userID = user.doc_id,
+            oid = str(uuid4()),
+            adUnitID = "Fake_Interstitial_Ad",
+            type = "Interstitial",
+            redeemed = False
+        )
+    return redirect("/")
+
 
 
 # UNITY S2S : Unity will use this route to tell us when users watch ads

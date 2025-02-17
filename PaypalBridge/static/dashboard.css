@@ -1,0 +1,103 @@
+.admin-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Form and Link Container Styling */
+form {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 1.2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.20);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin: 0;
+}
+
+form:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.40);
+}
+
+/* Unified Button and Link Styling */
+button, a{
+    display: block;
+    margin: 5px;
+    padding: 7px;
+    box-sizing: border-box;
+/*        padding: 0.8rem 1.2rem;*/
+}
+
+button, a, #gem-cashout-span {
+    width: 100%;
+    border: none;
+    border-radius: 6px;
+    background: #4a90e2;
+    color: white;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    text-align: center;
+    text-decoration: none;
+
+}
+
+button:hover, a:hover {
+    background: #357abd;
+    transform: scale(1.02);
+}
+
+/* Input Styling */
+input[type="number"], input[type="range"] {
+    width: 100%;
+    padding: 0.6rem;
+    margin: 0.5rem 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+/* Label Styling */
+label {
+    display: block;
+    margin-top: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Range Slider Styling */
+input[type="range"] {
+    -webkit-appearance: none;
+    height: 8px;
+    background: #ddd;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #4a90e2;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    background: #357abd;
+}
+
+/* Gem Counter Styling */
+.range-value {
+    font-weight: bold;
+    color: #4a90e2;
+}
+
+/* Specific spacing for forms with inputs */
+form input + button {
+    margin-top: 0.8rem;
+}
