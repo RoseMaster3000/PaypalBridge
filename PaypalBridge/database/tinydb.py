@@ -124,9 +124,9 @@ def fetch_ads(userID=None, redeemed=None):
     if userID:
         Ad = Query()
         if redeemed == None:
-            return ads.search(Ad.sid == userID)
+            return ads.search(Ad.userID == userID)
         else:
-            return ads.search((Ad.sid == userID) & (Ad.redeemed==redeemed))
+            return ads.search((Ad.userID == userID) & (Ad.redeemed==redeemed))
     else:
         return ads.all()
 
