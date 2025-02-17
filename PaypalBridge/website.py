@@ -36,7 +36,8 @@ def generate_temp_user():
         email = None,
         password = str(uuid4()),
         gems = 0,
-        total_cashout = 0
+        total_cashout = 0,
+        children = []
     )
     session["username"] = user["username"]
     session["gems"] = user["gems"]
@@ -126,27 +127,18 @@ def CreateUser(user):
     if len(request.form['username']) >= 36:
         return "Error: Username too long"
 
-    # inherit gems from previous account (IF its a temp account)
-    if user["email"] == None:
-        inheritedGems = user["gems"]
-        delete_user(user["username"])       # (old) temp account
-    else:
-        inheritedGems = 0
-    
-    # store new user in database
-    newUser = create_user(
+    # claim temporary account (update new values)
+    success = update_user(
+        old_username = user["username"],
         username = request.form['username'],
         email = request.form['email'],
         password = bcrypt.generate_password_hash(request.form['password']).decode('utf-8'),
-        gems = inheritedGems,
-        total_cashout = 0
     )
-    if newUser==None:
+    if not success:
         return "Could not create user"
 
     # log user in  
     session["username"] = request.form['username']
-    session["gems"] = newUser["gems"]
     return f"User has been created!<br><a href='/'>Go Back<a>"
 
 
@@ -175,10 +167,10 @@ def GetGem(user):
 # Calculate USD payed from in game Gems
 def CalculatePayout(gemCount):
     '''
-    TotalCut : amount of money Paypal is sending
-    EntitledCut: amount of money player gets (after Paypal Takes Cut)
+    TotalCut : amount of money PayPal is sending
+    EntitledCut: amount of money player gets (after PayPal Takes Cut)
     '''
-    # intersitial ad value
+    # interstitial ad value
     SingleRewarded = 0.04 / 35   # sample from ad dashboard
     SingleInterstitial = SingleRewarded / 10
     if SingleInterstitial >= (5 / 10000):
@@ -464,7 +456,8 @@ def RequestLog(user):
 # take over temp_user account (fake "registration")
 @app.route('/Login', methods=['POST'])
 @none_required
-def login(user):    
+def login(user):
+    oldUser = user
     newUser = fetch_user(request.form['username'])
 
     # verify user
@@ -475,16 +468,18 @@ def login(user):
     if not bcrypt.check_password_hash(newUser['password'], request.form['password']):
         return f"Password is Incorrect<br><a href='/'>Go Back<a>"
 
-    # inherit gems from previous (temp) account
-    if "email" in user and user["email"] == None:
-        newUser["gems"] += user["gems"]
-        update_user(newUser["username"], **newUser) # real account
-        delete_user(user["username"])       # (old) temp account
-    
+    # if old user is TEMPORARTY ACCOUNT...
+    if "email" in oldUser and oldUser["email"] == None:
+        # new user takes old user's ads / gems
+        adopt_user(
+            parent = newUser,
+            child = oldUser
+        )
+
     # log user in  
     session["username"] = newUser["username"]
     session["gems"] = newUser["gems"]
-    return f"Logged in sucessful<br><a href='/'>Go Back<a>"
+    return f"Logged in Successfully<br><a href='/'>Go Back<a>"
 
 
 # delete multiple users 

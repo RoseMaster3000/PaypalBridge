@@ -104,6 +104,31 @@ def delete_user(username):
     except Exception as e:
         return False
 
+def adopt_user(parent, child):
+    # add child to parent's child list
+    User = Query()
+    users.update(lambda doc:
+        doc['children'].append(child.doc_id),
+        doc_ids = [parent.doc_id]
+    )
+
+    # parent takes all the child's gems 
+    update_user(
+        parent["username"],
+        gems = parent["gems"] + child["gems"]
+    )
+
+    # mark child ad owned by parent
+    # empty child's gems
+    update_user(
+        child["username"],
+        parent = parent.doc_id,
+        gems = 0
+    )
+
+
+
+
 
 # log ad in database 
 def record_ad(**kwargs):
@@ -119,8 +144,20 @@ def record_ad(**kwargs):
     ads.insert(kwargs)
 
 
-# get all ads (for specific user)
+# get all ads (including children)
 def fetch_ads(userID=None, redeemed=None):
+    # get your ads
+    ads = fetch_ads_single(userID, redeemed)
+
+    # also get your children's ads
+    user = fetch_user(userID)
+    for child in user["children"]:
+        ads += fetch_ads_single(child, redeemed)
+    return ads
+
+
+# get all ads (for specific user)
+def fetch_ads_single(userID=None, redeemed=None):
     if userID:
         Ad = Query()
         if redeemed == None:
@@ -129,7 +166,6 @@ def fetch_ads(userID=None, redeemed=None):
             return ads.search((Ad.userID == userID) & (Ad.redeemed==redeemed))
     else:
         return ads.all()
-
 
 
 def fetch_all(tableName):
@@ -189,3 +225,8 @@ def backfix_users(dayRange=10):
                 doc_ids=[user.doc_id]
             )
             print("updated", user.doc_id)
+        if 'children' not in user:
+            users.update(
+                {'children': []},
+                doc_ids=[user.doc_id]
+            )
