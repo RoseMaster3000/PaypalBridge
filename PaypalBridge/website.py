@@ -88,6 +88,9 @@ def ad_preview(user):
     redeemed_i = 0
     redeemed_r = 0
 
+
+    print(user.doc_id, len(all_ads))
+
     for ad in all_ads:
         if ad.get("type") == "Rewarded":
             all_r += 1
@@ -106,11 +109,11 @@ def ad_preview(user):
 def GetAllUsers(user):
     users = fetch_users()
     for u in users:
-        rewarded, intersitial = ad_preview(user)
+        rewarded, intersitial = ad_preview(u)
         u["total_cashout"] = f"{u['total_cashout']:0.2f}"
         u["created_at"] = convert_epoch(u["created_at"])
-        u["intersitial"] = intersitial
         u["rewarded"] = rewarded
+        u["intersitial"] = intersitial
     return jsonify(users)
 
 
