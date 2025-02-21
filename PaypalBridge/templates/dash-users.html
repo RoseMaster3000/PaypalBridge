@@ -6,6 +6,7 @@
 <table id="userTable" class="display">
   <thead>
     <tr>
+      <th>SID</th>
       <th>Username</th>
       <th>Email</th>
       <th>Gems</th>
@@ -20,6 +21,8 @@
   <tbody></tbody>
   <tfoot>
   <tr>
+    <th></th>
+    <th></th>
     <th></th>
     <th></th>
     <th></th>
@@ -45,6 +48,7 @@ $(document).ready(function() {
     },
     // The 'data' field should match the keys in JSON
     "columns": [
+      {"data": "sid"},
       {"data": "username"}, 
       {"data": "email"},
       {"data": "gems"},

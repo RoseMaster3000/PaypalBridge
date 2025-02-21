@@ -112,6 +112,7 @@ def GetAllUsers(user):
         u["created_at"] = convert_epoch(u["created_at"])
         u["rewarded"] = rewarded
         u["intersitial"] = intersitial
+        u["sid"] = u.doc_id
     return jsonify(users)
 
 
