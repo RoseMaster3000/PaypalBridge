@@ -70,14 +70,14 @@ function grandTotalCashout(row, data, start, end, display) {
 
   // Calculate total of total_cashout column (index 3)
   var total = api
-    .column(3)
+    .column(4)
     .data()
     .reduce(function(acc, val) {
       return acc + parseFloat(val || 0);
     }, 0);
 
   // Put Grand total in footer
-  $(api.column(3).footer()).html(
+  $(api.column(4).footer()).html(
     'Total: $' + total.toFixed(2)
   );
 }
