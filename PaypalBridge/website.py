@@ -125,8 +125,14 @@ def CreateUser(user):
         return "Error: Please Fill All Fields!"
     
     # validate username (length)
-    if len(request.form['username']) >= 36:
-        return "Error: Username too long"
+    print(request.form['username'])
+    print(len(request.form['username']))
+    if len(request.form['username']) >= 36 and len(request.form['username']) <= 0:
+        return "Error: Username must be 1-36 characters long"
+
+    # verify username
+    if not request.form['username'].isalnum():
+        return "Error: Username must be alphanumeric"
 
     # claim temporary account (update new values)
     success = update_user(
@@ -400,36 +406,44 @@ def WatchFakeInterstitial(user, count):
 @app.route('/S2S', methods=['GET'])
 @log_request
 def WatchAd():
-    # Extract Parameters 
-    parameters = request.args.to_dict()
+    try:
+        # Extract Parameters 
+        parameters = request.args.to_dict()
 
-    # Verify Parameters
-    required_params = ['sid', 'oid', 'hmac']
-    if not all(param in parameters for param in required_params):
-        abort(400, "Missing required parameters")
-    if not verify_signature(parameters):
-        abort(403, "Invalid Signature")
+        # Verify Parameters
+        required_params = ['sid', 'oid', 'hmac']
+        if not all(param in parameters for param in required_params):
+            abort(400, "Missing required parameters")
+        if not verify_signature(parameters):
+            abort(403, "Invalid Signature")
 
-    # Extract Parameters
-    oid = parameters["oid"]
-    userID = int(parameters["sid"].split("+")[0])
-    adUnitID = parameters["sid"].split("+")[1]
-    user = fetch_user(UserID)
+        # Extract Parameters
+        oid = parameters["oid"]
+        userID = int(parameters["sid"].split("+")[0])
+        adUnitID = parameters["sid"].split("+")[1]
+        user = fetch_user(UserID)
 
-    # Verify User
-    if user==None:
-        abort(400, "Invalid user SID")
-    
-    # Store Ad in database (as unredeemed)
-    record_ad(
-        userID = userID,
-        oid = oid,
-        adUnitID = adUnitID,
-        type = "Rewarded" if "Rewarded" in adUnitID else "Interstitial",
-        redeemed = False
-    )
-    # Report Success (https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#CallbackResponse)
-    return "1", 200
+        # Verify User
+        if user==None:
+            abort(400, "Invalid user SID")
+        
+        # Store Ad in database (as unredeemed)
+        record_ad(
+            userID = userID,
+            oid = oid,
+            adUnitID = adUnitID,
+            type = "Rewarded" if "Rewarded" in adUnitID else "Interstitial",
+            redeemed = False
+        )
+        # Report Success (https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#CallbackResponse)
+        return "1", 200
+    except Exception as e:
+        log(
+            "Requests",
+            url = request.url,
+            error = str(e)
+        )
+        return "1", 200
 
 
 # see the ads that the current user 
