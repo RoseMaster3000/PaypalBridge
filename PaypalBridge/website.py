@@ -432,11 +432,11 @@ def WatchAd():
 
 
 # see the ads that the current user 
-@app.route('/SeeMyAds')
+@app.route('/SeeAllAds/<username>')
 @admin_required
-def SeeMyAds(user):
-    return jsonify(fetch_ads(user.doc_id))
-
+def SeeMyAds(user, username):
+    targetUser = fetch_user(username)
+    return jsonify(fetch_ads(targetUser.doc_id))
 
 # see the ads that the current user 
 @app.route('/SeeAllAds')
