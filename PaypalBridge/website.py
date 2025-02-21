@@ -419,8 +419,9 @@ def WatchAd():
 
         # Extract Parameters
         oid = parameters["oid"]
-        userID = int(parameters["sid"].split("+")[0])
-        adUnitID = parameters["sid"].split("+")[1]
+        delimitter = " " if " " in parameters["sid"] else "+"
+        userID = int(parameters["sid"].split(delimitter)[0])
+        adUnitID = parameters["sid"].split(delimitter)[1]
         user = fetch_user(UserID)
 
         # Verify User
