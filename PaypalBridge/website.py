@@ -422,7 +422,7 @@ def WatchAd():
         delimitter = " " if " " in parameters["sid"] else "+"
         userID = int(parameters["sid"].split(delimitter)[0])
         adUnitID = parameters["sid"].split(delimitter)[1]
-        user = fetch_user(UserID)
+        user = fetch_user(userID)
 
         # Verify User
         if user==None:
