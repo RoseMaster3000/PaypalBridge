@@ -287,12 +287,49 @@ def redeem_ads(ads, gemCount):
 
 
 
-@app.route("/Cashout/<gemCount>")
+@app.route("/Cashout/<gemCount>", methods=['GET'])
 def PreviewCashout(gemCount:int):
     if gemCount < GEM_MINIMUM:
         return f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
     else:
         return CalculatePayout(gemCount)
+
+@app.route('/PreviewCashout', methods=['POST'])
+@none_required
+def PreviewCashoutPost(user):
+    data = {
+        "gemCount": None,
+        "baseGem": user.get("gems",0),
+        "bonusGem": user.get("bonus",0),
+        "totalGem": user.get("gems",0)+user.get("bonus",0),
+        "payout": "$0.00",
+        "message": None
+    }
+
+    # Error: Client provided strange gem count
+    try:
+        data["gemCount"] = int(request.form["gems"])
+    except:
+        data["message"] = "Error: Invalid gem count provided to server"
+        return jsonify(data)
+
+    # Error: Asking for more gems than you have
+    if gemCount > data['totalGem']:
+        data["message"] = "Error: Can not cashout {gemCount} gems, you only have {totalGem}".format(**data)
+        return jsonify(data)
+
+    # Error: Processing fees too high (invalid cashout)
+    elif gemCount < GEM_MINIMUM:
+        data["message"] = f"Error: Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
+        return jsonify(data)
+
+    # Standard Cashout
+    else:
+        data["payout"] = CalculatePayout(cashoutGemCount)
+        data["message"] = "A {gemCount} gem cashout would result in a ${payout:02f} payout to PayPal!".format(**data)
+        return jsonify(data)
+
+
 
 # Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
@@ -303,13 +340,13 @@ def Cashout(user):
         email = user["email"]
         gemCount = int(request.form["gems"])
     except:
-        return "Invalid Gem Count"
+        return jsonify({"success":False, "message": "Invalid Gem Count"})
     
     # verify gem count
     if (user["gems"] < gemCount):
         return "You requested more gems than you have!"
     if gemCount < GEM_MINIMUM:
-        return f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
+        return jsonify({"success":False, "message": f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"})
         
     # verify (unredeemed) ads have been watched
     ads = fetch_ads(user.doc_id, redeemed=False)
@@ -319,7 +356,7 @@ def Cashout(user):
 
     # S2S callback hasnt come (OR player has hacked illegal gems)
     if not redeem_sucess:
-        return "Ad revenue is still processing, please try again in a few hours."
+        return jsonify({"success":False, "message": "Ad revenue is still processing, please try again in a few hours."})
     
     # generate paypal cashout
     TotalPayout, EntitledPayout = CalculatePayout(gemCount)
@@ -327,8 +364,7 @@ def Cashout(user):
 
     # increment cashout total (track cashout total in our database)
     increment_cashout(user, EntitledPayout)
-
-    return f"Cashout of ${EntitledPayout:0.2f} successfully send to {email}"
+    return jsonify({"success":True, "message": f"Cashout of ${EntitledPayout:0.2f} successfully send to {email}"})
 
 # Get current balance (gem count)
 @app.route('/GemCount')
