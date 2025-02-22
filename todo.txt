@@ -1,3 +1,5 @@
+- bonus gems /Cashout use base gems first, then bonus gems / calculate total gems...etc
+
 
 - eCPM method for Rewarded / Interstitial ad value
 
