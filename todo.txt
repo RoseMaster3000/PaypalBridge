@@ -3,6 +3,8 @@
 
 - eCPM method for Rewarded / Interstitial ad value
 
+- Admin cashout button
+
 - migrate to statically hosted CDN 
 
 
