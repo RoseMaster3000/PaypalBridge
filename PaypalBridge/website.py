@@ -298,12 +298,12 @@ def PreviewCashout(gemCount:int):
 @none_required
 def PreviewCashoutPost(user):
     data = {
-        "gemCount": None,
+        "gemCount": 0,
         "baseGem": user.get("gems",0),
         "bonusGem": user.get("bonus",0),
-        "totalGem": user.get("gems",0)+user.get("bonus",0),
+        "totalGem": user.get("gems",0) + user.get("bonus",0),
         "payout": "$0.00",
-        "message": None
+        "message": "..."
     }
 
     # Error: Client provided strange gem count
@@ -314,20 +314,23 @@ def PreviewCashoutPost(user):
         return jsonify(data)
 
     # Error: Asking for more gems than you have
-    if gemCount > data['totalGem']:
+    if data["gemCount"] > data['totalGem']:
         data["message"] = "Error: Can not cashout {gemCount} gems, you only have {totalGem}".format(**data)
-        return jsonify(data)
-
+    
     # Error: Processing fees too high (invalid cashout)
-    elif gemCount < GEM_MINIMUM:
+    elif data["gemCount"] < GEM_MINIMUM:
         data["message"] = f"Error: Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
-        return jsonify(data)
 
     # Standard Cashout
     else:
-        data["payout"] = CalculatePayout(cashoutGemCount)
-        data["message"] = "A {gemCount} gem cashout would result in a ${payout:02f} payout to PayPal!".format(**data)
-        return jsonify(data)
+        data["payout"] = f"{CalculatePayout(data['gemCount']):.02f}"
+        data["message"] = "A {gemCount} gem cashout would result in a {payout} payout to PayPal!".format(**data)
+    
+    # Error: you must login
+    if user.get("email", None) == None:
+        data["message"] = "To cashout, login or register with an email associated with a PayPal account."
+
+    return jsonify(data)
 
 
 
