@@ -35,7 +35,17 @@ def fetch_user(username):
             return result[0]
     else:
         return None
- 
+
+# get one user
+def fetch_user_email(email):
+    User = Query()
+    result = users.search(User.email == email)
+    if len(result) == 0:
+        return None
+    else:
+        return result[0]
+
+
 # get all users
 def fetch_users():
     return users.all()

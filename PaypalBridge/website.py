@@ -117,6 +117,7 @@ def GetAllUsers(user):
 
 
 # Create a new account
+@app.route('/Register', methods=['POST'])
 @app.route('/CreateUser', methods=['POST'])
 @none_required
 def CreateUser(user):
@@ -124,15 +125,24 @@ def CreateUser(user):
     if "" in request.form.values():
         return "Error: Please Fill All Fields!"
     
-    # validate username (length)
+    # validate username
     print(request.form['username'])
     print(len(request.form['username']))
     if len(request.form['username']) >= 36 and len(request.form['username']) <= 0:
         return "Error: Username must be 1-36 characters long"
-
-    # verify username
+    if fetch_user(request.form['username']) != None:
+        return "Error: Username is taken"
     if not request.form['username'].isalnum():
         return "Error: Username must be alphanumeric"
+
+    # validate email
+    if fetch_user_email(request.form['email']) != None:
+        return "Error: Email already is registered to an account"
+
+    # valiate password
+    if len(request.form['password']) < 8:
+        return "Error: Password must be 8 characters long"
+
 
     # claim temporary account (update new values)
     success = update_user(
@@ -146,7 +156,7 @@ def CreateUser(user):
 
     # log user in  
     session["username"] = request.form['username']
-    return f"User has been created!<br><a href='/'>Go Back<a>"
+    return f"User has been created!"
 
 
 # Purge Old Temp Users
@@ -162,7 +172,7 @@ def PurgeTempUsers(user):
 @app.route('/GetGem', methods=['POST'])
 @none_required
 def GetGem(user):
-    user["gems"] += 1
+    user["gems"] += request.form["gems"]
     update_user(user["username"], **user)
     session["gems"] = user["gems"]
     if user['gems'] == 1:
@@ -517,14 +527,14 @@ def login(user):
 
     # verify user
     if newUser==None:
-        return f"User Does not Exist<br><a href='/'>Go Back<a>"
+        return f"User Does not Exist"
     
     # verify password
     if not bcrypt.check_password_hash(newUser['password'], request.form['password']):
-        return f"Password is Incorrect<br><a href='/'>Go Back<a>"
+        return f"Password is Incorrect"
 
     # if old user is TEMPORARTY ACCOUNT...
-    if "email" in oldUser and oldUser["email"] == None:
+    if oldUser.get("email","") == None:
         # new user takes old user's ads / gems
         adopt_user(
             parent = newUser,
@@ -534,7 +544,7 @@ def login(user):
     # log user in  
     session["username"] = newUser["username"]
     session["gems"] = newUser["gems"]
-    return f"Logged in Successfully<br><a href='/'>Go Back<a>"
+    return f"Logged in Successfully"
 
 
 # delete multiple users 
