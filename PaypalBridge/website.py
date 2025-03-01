@@ -26,7 +26,7 @@ from PaypalBridge.decorators import *
 def verify_auth():
     username = session.get("username", None)
     user = fetch_user(username)
-    if not username or not user:
+    if not user:
         generate_temp_user()
 
 # generated/login temp account
@@ -54,6 +54,8 @@ def TempUser():
 # ask server for username
 @app.route("/Identity", methods=['POST'])
 def identity():
+    cookies = request.cookies
+    print("Received cookies:", dict(cookies))
     return session.get("username", "[None]")
 
 
@@ -172,7 +174,7 @@ def PurgeTempUsers(user):
 @app.route('/GetGem', methods=['POST'])
 @none_required
 def GetGem(user):
-    user["gems"] += request.form["gems"]
+    user["gems"] += int(request.form["gems"])
     update_user(user["username"], **user)
     session["gems"] = user["gems"]
     if user['gems'] == 1:
@@ -383,10 +385,7 @@ def Cashout(user):
 @app.route('/GemCount')
 @none_required
 def GemCount(user):
-    if user['gems'] == 1:
-        return f"{user['gems']} Gem"
-    else:
-        return f"{user['gems']} Gems"
+    return f"{user['gems']}"
 
 
 # TESTING PURPOSES ONLY, Increment Gems
