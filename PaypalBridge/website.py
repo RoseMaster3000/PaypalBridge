@@ -532,8 +532,8 @@ def login(user):
     if not bcrypt.check_password_hash(newUser['password'], request.form['password']):
         return f"Password is Incorrect"
 
-    # if old user is TEMPORARTY ACCOUNT...
-    if oldUser.get("email","") == None:
+    # if old user is TEMPORARTY ACCOUNT with GEMS
+    if oldUser.get("email","") == None and oldUser.get("gems",0) != 0:
         # new user takes old user's ads / gems
         adopt_user(
             parent = newUser,
