@@ -1,6 +1,7 @@
 # https://tinydb.readthedocs.io/en/latest/
 from tinydb import TinyDB, Query
 from random import randint
+from uuid import uuid4
 import os
 import time
 
@@ -152,6 +153,34 @@ def record_ad(**kwargs):
     if type(kwargs["userID"]) != int:
         raise Exception("Ad log [userID] must be integer")
     ads.insert(kwargs)
+
+
+
+# log ad in database 
+def record_ad_round(user_id, count=1):
+    print(user_id, type(user_id), count)
+
+    # generate data
+    data = []
+    for i in range(count):
+        data.append({
+            "userID":  user_id,
+            "oid":  str(uuid4()),
+            "adUnitID": "Fake_Interstitial_Ad",
+            "type": "Interstitial",
+            "redeemed": False
+        })
+        data.append({
+            "userID":  user_id,
+            "oid":  str(uuid4()),
+            "adUnitID": "Fake_Rewarded_Ad",
+            "type": "Rewarded",
+            "redeemed": False
+        })
+    # populate database
+    ads.insert_multiple(data)
+
+
 
 
 # get all ads (including children)

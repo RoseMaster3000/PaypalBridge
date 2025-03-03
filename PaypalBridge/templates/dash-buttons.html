@@ -35,7 +35,7 @@
     <!-- Fake Gems -->
     <p>
         <a href="/get_gem/1">[get 1 gem]</a>
-        <a href="/get_gem/1000">[get 1000 gem]</a>
+        <a href="/get_gem/{{gem_minimum}}">[get {{gem_minimum}} gem]</a>
     </p>
 
     <!-- Log Previews -->
@@ -49,11 +49,8 @@
     <!-- Fake Ad Buttons -->
     <p>
         <a href="/Fake/S2S/Rewarded/1">[Watch 1 Rewarded]</a>
-        <a href="/Fake/S2S/Rewarded/1000">[Watch 1000 Rewarded]</a>
-    </p>
-    <p>
         <a href="/Fake/S2S/Interstitial/1">[Watch 1 Interstitial]</a>
-        <a href="/Fake/S2S/Interstitial/1000">[Watch 1000 Interstitial]</a>
+        <a href="/Fake/S2S/AdRound/{{(gem_minimum/55)|round(0)+1}}">[Watch {{(gem_minimum/55)|round(0)+1}} Ad Rounds]</a>
     </p>
 
 </div>

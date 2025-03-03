@@ -13,7 +13,7 @@ from PaypalBridge.database.tinydb import *
 
 
 # initialize modules
-app = Flask(__name__)
+app = Flask(__name__) 
 app.config['SECRET_KEY'] =  b'\xb4\xb5\xd0\xc5m\x10p\xdbB\xa2\xd4\x14'
 bcrypt = Bcrypt(app)
 initialize_db(app.root_path)
@@ -74,7 +74,12 @@ def index(user):
         # get all users
         users = fetch_users()
         # display page
-        return render_template('dashboard.html', users=users, user=user)
+        return render_template(
+            'dashboard.html',
+            users=users,
+            user=user,
+            gem_minimum=GEM_MINIMUM
+        )
     elif user['username'] !='admin':
         return render_template('login.html')
 
@@ -236,28 +241,22 @@ def minimal_ad_count(r, i, gems, debug=False):
     usedInterstitial = 0
 
     while gems > 0:
-
-        # use interstial ads to get it round 10s
-        if (gems % 10 != 0 and i > 0):
-            usedInterstitial += 1
-            i -= 1
-            gems -= 1
         # use rewarded ads (if possible)
-        elif (r > 0):
+        if (gems >= 50 and r > 0):
             usedRewarded += 1
             r -= 1
-            gems -= 10
-        # use interstial if we run out of rewarded
-        elif (i > 0):
+            gems -= 50
+        # use interstial ads (if possible)
+        elif (gems >= 5 and i > 0):
             usedInterstitial += 1
             i -= 1
-            gems -= 1
+            gems -= 5
         # we dont have enough ads to cover the gems
         else:
             return None, None
         # debugger
         if (debug):
-            print(gems, usedRewarded,usedInterstitial, (gems%10))
+            print(gems, usedRewarded,usedInterstitial)
             input()
 
     return usedRewarded, usedInterstitial
@@ -446,6 +445,14 @@ def WatchFakeInterstitial(user, count):
             type = "Interstitial",
             redeemed = False
         )
+    return redirect("/")
+
+
+# https://dcherevatsky.pythonanywhere.com/S2S?oid=1737946872029&sid=101&hmac=fcd620d061910db14784f00f5d7af63c
+@app.route('/Fake/S2S/AdRound/<int:count>', methods=['GET'])
+@admin_required
+def WatchFakeAdRound(user, count):
+    record_ad_round(user.doc_id, count)
     return redirect("/")
 
 
