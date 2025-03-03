@@ -21,6 +21,8 @@ When a user watches an ad, Unity has a webhook (S2S) which verifies the ad as ha
 * [Flask Docs](https://flask.palletsprojects.com/en/stable/)
 * [Unity S2S](https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks)
 * [Unity Ad Statistics (for CPM)](https://docs.unity3d.com/Packages/com.unity.ads@3.2/manual/AdvertisingResourcesStats.html)
+* [Unity Advertising Statistics API](https://docs.unity3d.com/Packages/com.unity.ads@3.2/manual/AdvertisingResourcesStats.html)
+* [Unity Monetization Stats API](https://docs.unity.com/ads/en-us/manual/MonetizationStatsAPI)
 
 ## Secrets
 API keys/sensitive data are included in a file called `SECRET.py`. This file must be manually transferred, as it is ignored from the git repository.
