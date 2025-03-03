@@ -251,6 +251,11 @@ def minimal_ad_count(r, i, gems, debug=False):
             usedInterstitial += 1
             i -= 1
             gems -= 5
+        # use rewarded ads (back up)
+        elif (r > 0):
+            usedRewarded += 1
+            r -= 1
+            gems -= 50
         # we dont have enough ads to cover the gems
         else:
             return None, None
