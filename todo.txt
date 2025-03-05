@@ -1,3 +1,7 @@
+redeem_ads() optimize (dont use for loop redeem)
+add gem consumption to def Cashout(user):
+
+=====================
 - bonus gems /Cashout use base gems first, then bonus gems / calculate total gems...etc
 
 

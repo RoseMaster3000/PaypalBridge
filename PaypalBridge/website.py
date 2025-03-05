@@ -331,16 +331,16 @@ def PreviewCashoutPost(user):
 
     # Error: Asking for more gems than you have
     if data["gemCount"] > data['totalGem']:
-        data["message"] = "Error: Can not cashout {gemCount} gems, you only have {totalGem}".format(**data)
+        data["message"] = "Error: Can not cashout {gemCount:,} gems, you only have {totalGem:,}".format(**data)
     
     # Error: Processing fees too high (invalid cashout)
     elif data["gemCount"] < GEM_MINIMUM:
-        data["message"] = f"Error: Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
+        data["message"] = f"Error: Processing fees outweigh your cashout ({GEM_MINIMUM:,} gems required)"
 
     # Standard Cashout
     else:
-        data["payout"] = f"{CalculatePayout(data['gemCount']):.02f}"
-        data["message"] = "A {gemCount} gem cashout would result in a {payout} payout to PayPal!".format(**data)
+        data["payout"] = f"{CalculatePayout(data['gemCount']):,.02f}"
+        data["message"] = "A {gemCount:,} gem cashout would result in a {payout} payout to PayPal!".format(**data)
     
     # Error: you must login
     if user.get("email", None) == None:
@@ -372,6 +372,8 @@ def Cashout(user):
 
     # mark ads as redeemed / decrement gems
     redeem_sucess = redeem_ads(ads, gemCount)
+    # consume gems
+    
 
     # S2S callback hasnt come (OR player has hacked illegal gems)
     if not redeem_sucess:
