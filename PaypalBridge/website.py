@@ -339,8 +339,9 @@ def PreviewCashoutPost(user):
 
     # Standard Cashout
     else:
-        data["payout"] = f"{CalculatePayout(data['gemCount']):,.02f}"
-        data["message"] = "A {gemCount:,} gem cashout would result in a {payout} payout to PayPal!".format(**data)
+        _, entitledPayout = CalculatePayout(data['gemCount'])
+        data["payout"] = f"{entitledPayout:,.02f}"
+        data["message"] = "A {gemCount:,} gem cashout would result in a ${payout} payout to PayPal!".format(**data)
     
     # Error: you must login
     if user.get("email", None) == None:
