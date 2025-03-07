@@ -1,22 +1,13 @@
-redeem_ads() optimize (dont use for loop redeem)
-add gem consumption to def Cashout(user):
+bonus gems on dashboard (button+table)
 
-=====================
-- bonus gems /Cashout use base gems first, then bonus gems / calculate total gems...etc
+/GetBonus (use route in GAME )
 
+
+===================
 
 - eCPM method for Rewarded / Interstitial ad value
 
-- Admin cashout button
-
-- migrate to statically hosted CDN 
-
-
-- buttonm that checkmarks all temp users
-
-
 - 3 month warning if app shuts down
-
 
 =====================
 
