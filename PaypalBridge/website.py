@@ -190,16 +190,16 @@ def GetGem(user):
 
 
 # watch bonus ad (rewarded ad) worth 50 gems
-@app.route('/GetBonus', methods=['GET'])
+@app.route('/GetBonus', methods=['POST'])
 @none_required
 def GetBonusGem(user):
-    user["bonus"] += 50
+    user["bonus"] += int(request.form["gems"])
     update_user(user["username"], **user)
     session["bonus"] = user["bonus"]
     if user['bonus'] == 1:
-        return f"{user['bonus']} Bonus Points"
+        return f"{user['bonus']} Bonus Gem"
     else:
-        return f"{user['bonus']} Bonus Points"
+        return f"{user['bonus']} Bonus Gems"
 
 
 # Calculate USD payed from in game Gems
@@ -443,6 +443,15 @@ def get_gem(amount, user):
     session["gems"] = user["gems"]
     return redirect("/")
 
+
+# TESTING PURPOSES ONLY, Increment Gems
+@app.route('/get_bonus_gem/<int:amount>')
+@admin_required
+def get_bonus_gem(amount, user):
+    user["bonus"] += amount
+    update_user(user["username"], **user)
+    session["bonus"] = user["bonus"]
+    return redirect("/")
 
 
 #https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#Signing_the_Callback_URL

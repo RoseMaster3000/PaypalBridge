@@ -10,6 +10,7 @@
       <th>Username</th>
       <th>Email</th>
       <th>Gems</th>
+      <th>Bonus</th>
       <th>Redeemed Cashouts</th>
       <th>Rewarded</th>
       <th>Interstitial</th>
@@ -21,6 +22,7 @@
   <tbody></tbody>
   <tfoot>
   <tr>
+    <th></th>
     <th></th>
     <th></th>
     <th></th>
@@ -52,6 +54,7 @@ $(document).ready(function() {
       {"data": "username"}, 
       {"data": "email"},
       {"data": "gems"},
+      {"data": "bonus"},
       {"data": "total_cashout"},
       {"data": "rewarded"},
       {"data": "intersitial"},
@@ -70,14 +73,14 @@ function grandTotalCashout(row, data, start, end, display) {
 
   // Calculate total of total_cashout column (index 3)
   var total = api
-    .column(4)
+    .column(5)
     .data()
     .reduce(function(acc, val) {
       return acc + parseFloat(val || 0);
     }, 0);
 
   // Put Grand total in footer
-  $(api.column(4).footer()).html(
+  $(api.column(5).footer()).html(
     'Total: $' + total.toFixed(2)
   );
 }
