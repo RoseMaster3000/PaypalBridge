@@ -36,6 +36,7 @@ def generate_temp_user():
         email = None,
         password = str(uuid4()),
         gems = 0,
+        bonus = 0,
         total_cashout = 0,
         children = []
     )
@@ -186,6 +187,19 @@ def GetGem(user):
         return f"{user['gems']} Gem"
     else:
         return f"{user['gems']} Gems"
+
+
+# watch bonus ad (rewarded ad) worth 50 gems
+@app.route('/GetBonus', methods=['GET'])
+@none_required
+def GetBonusGem(user):
+    user["bonus"] += 50
+    update_user(user["username"], **user)
+    session["bonus"] = user["bonus"]
+    if user['bonus'] == 1:
+        return f"{user['bonus']} Bonus Points"
+    else:
+        return f"{user['bonus']} Bonus Points"
 
 
 # Calculate USD payed from in game Gems
@@ -349,6 +363,33 @@ def PreviewCashoutPost(user):
 
     return jsonify(data)
 
+# decrment base gems (then bonus gems if necessary)
+# return T/F if not enough gems
+def redeem_gems(user, gemCount):
+    # use bonus gems first (if possible)
+    if user["bonus"] > 0 and gemCount > 0:
+        if user["bonus"] >= gemCount:
+            user["bonus"] = user["bonus"] - gemCount
+            gemCount = 0
+        else:
+            gemCount = gemCount - user["bonus"]
+            user["bonus"] = 0
+    
+    # use base gems second (if possible)
+    if user["gems"] > 0 and gemCount > 0:
+        if user["gems"] >= gemCount:
+            user["gems"] = user["gems"] - gemCount
+            gemCount = 0
+        else:
+            gemCount = gemCount - user["gems"]
+            user["gems"] = 0
+
+    # verify gems have been covered
+    if gemCount == 0:
+        update_user(user["username"], **user)
+        return True
+    else:
+        return False
 
 
 # Cashout Gems (form["gems"] + logged in)
@@ -363,30 +404,29 @@ def Cashout(user):
         return jsonify({"success":False, "message": "Invalid Gem Count"})
     
     # verify gem count
-    if (user["gems"] < gemCount):
+    if ((user["gems"]+user["bonus"]) < gemCount):
         return "You requested more gems than you have!"
     if gemCount < GEM_MINIMUM:
         return jsonify({"success":False, "message": f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"})
-        
-    # verify (unredeemed) ads have been watched
+    
+    # mark ads as redeemed ( verify S2S callbacks (detects illegal gems / too fast cashout?)
     ads = fetch_ads(user.doc_id, redeemed=False)
+    redeem_success = redeem_ads(ads, gemCount)
+    if not redeem_success:
+        return jsonify({"success": False, "message": "Ad revenue is still processing, please try again in a few hours."})
 
-    # mark ads as redeemed / decrement gems
-    redeem_sucess = redeem_ads(ads, gemCount)
-    # consume gems
-    
+    # decrement gems (consume bonus if necessary)
+    redeem_success = redeem_gems(user, gemCount)
+    if not redeem_success:
+        return jsonify({"success": False, "message": "Insufficient gems? Gem count has de-synced?"})
 
-    # S2S callback hasnt come (OR player has hacked illegal gems)
-    if not redeem_sucess:
-        return jsonify({"success":False, "message": "Ad revenue is still processing, please try again in a few hours."})
-    
     # generate paypal cashout
     TotalPayout, EntitledPayout = CalculatePayout(gemCount)
     create_payout(email, EntitledPayout)
 
     # increment cashout total (track cashout total in our database)
     increment_cashout(user, EntitledPayout)
-    return jsonify({"success":True, "message": f"Cashout of ${EntitledPayout:0.2f} successfully send to {email}"})
+    return jsonify({"success": True, "message": f"Cashout of ${EntitledPayout:0.2f} successfully send to {email}"})
 
 # Get current balance (gem count)
 @app.route('/GemCount')

@@ -269,3 +269,8 @@ def backfix_users(dayRange=10):
                 {'children': []},
                 doc_ids=[user.doc_id]
             )
+        if 'bonus' not in user:
+            users.update(
+                {'bonus': 0},
+                doc_ids=[user.doc_id]
+            )
