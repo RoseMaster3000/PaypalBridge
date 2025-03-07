@@ -305,11 +305,10 @@ def redeem_ads(ads, gemCount):
     if rewarded_used == None:
         return False
 
-    # Mark ads as redeemed
-    for i in range(rewarded_used):
-        redeem(rewarded[i])
-    for i in range(intersitial_used):
-        redeem(intersitial[i])
+    # # Mark ads as redeemed
+    adIDs = [r.doc_id for r in rewarded[:rewarded_used]]
+    adIDs += [i.doc_id for i in intersitial[:intersitial_used]]
+    update_ads(adIDs, redeemed=False)
 
     # return --> SUCCESS
     return True
@@ -374,7 +373,7 @@ def redeem_gems(user, gemCount):
         else:
             gemCount = gemCount - user["bonus"]
             user["bonus"] = 0
-    
+
     # use base gems second (if possible)
     if user["gems"] > 0 and gemCount > 0:
         if user["gems"] >= gemCount:

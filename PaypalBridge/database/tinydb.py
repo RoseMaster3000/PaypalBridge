@@ -23,6 +23,7 @@ def initialize_db(path):
     backfix_users()
     purge_request_log()
 
+
 # get one user
 def fetch_user(username):
     if type(username) == int:
@@ -104,6 +105,13 @@ def update_ad(ad, **kwargs):
     ads.update(
         kwargs,
         doc_ids=[ad.doc_id]
+    )
+
+
+def update_ads(idList, **kwargs):
+    ads.update(
+        kwargs,
+        doc_ids=idList
     )
 
 # **delete a user record**
