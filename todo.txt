@@ -1,3 +1,7 @@
+delete redeemed ads (instead of toggle T/F)
+
+==================
+
 bonus gems on dashboard (button+table)
 
 /GetBonus (use route in GAME )

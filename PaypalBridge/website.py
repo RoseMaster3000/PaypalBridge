@@ -91,23 +91,17 @@ def convert_epoch(epoch_time):
     return datetime_object.strftime("%Y-%m-%d %H:%M:%S")  # Customize the format as needed
 
 def ad_preview(user):
-    all_ads = fetch_ads(user.doc_id, redeemed=None)
-    all_i = 0
+    all_ads = fetch_ads(user.doc_id)
     all_r = 0
-    redeemed_i = 0
-    redeemed_r = 0
+    all_i = 0
 
     for ad in all_ads:
         if ad.get("type") == "Rewarded":
             all_r += 1
-            if ad.get("redeemed"):
-                redeemed_r += 1
         if ad.get("type") == "Interstitial":
             all_i += 1
-            if ad.get("redeemed"):
-                redeemed_i += 1
 
-    return f"{redeemed_r}/{all_r}" , f"{redeemed_i}/{all_i}"
+    return all_r, all_i
 
 # route to fetch a list of all users
 @app.route('/api/users', methods=['GET'])
@@ -242,10 +236,6 @@ GEM_MINIMUM = CalculateMinimumGems()
 print("GEM MINIMUM:", GEM_MINIMUM)
 
 
-# mark ad as redeemed = True in TinyDB
-def redeem(ad):
-    update_ad(ad, redeemed=True)
-
 
 # minimal number of intersitial / rewarded ads to cover gemCount
 # 1 intersitial == 1 gem (red)
@@ -283,8 +273,9 @@ def minimal_ad_count(r, i, gems, debug=False):
 
 # find subset of ads == the gems you want
 # return False if not enough ads for gemCount 
-def redeem_ads(ads, gemCount):
+def redeem_ads(userID, gemCount):
     # collate our ads   
+    ads = fetch_ads(userID)
     intersitial = []
     rewarded = []
     for ad in ads:
@@ -292,7 +283,6 @@ def redeem_ads(ads, gemCount):
             intersitial.append(ad)
         elif "Rewarded" in ad["adUnitID"]:
             rewarded.append(ad)
-
 
     # Calculate minimal ad count needed to redeem gems
     rewarded_used, intersitial_used = minimal_ad_count(
@@ -308,7 +298,7 @@ def redeem_ads(ads, gemCount):
     # # Mark ads as redeemed
     adIDs = [r.doc_id for r in rewarded[:rewarded_used]]
     adIDs += [i.doc_id for i in intersitial[:intersitial_used]]
-    update_ads(adIDs, redeemed=False)
+    delete_ads(adIDs)
 
     # return --> SUCCESS
     return True
@@ -409,8 +399,7 @@ def Cashout(user):
         return jsonify({"success":False, "message": f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"})
     
     # mark ads as redeemed ( verify S2S callbacks (detects illegal gems / too fast cashout?)
-    ads = fetch_ads(user.doc_id, redeemed=False)
-    redeem_success = redeem_ads(ads, gemCount)
+    redeem_success = redeem_ads(user.doc_id, gemCount)
     if not redeem_success:
         return jsonify({"success": False, "message": "Ad revenue is still processing, please try again in a few hours."})
 
@@ -483,8 +472,7 @@ def WatchFakeRewarded(user, count):
             userID = user.doc_id,
             oid = str(uuid4()),
             adUnitID = "Fake_Rewarded_Ad",
-            type = "Rewarded",
-            redeemed = False
+            type = "Rewarded"
         )
     return redirect("/")
 
@@ -515,7 +503,6 @@ def WatchFakeAdRound(user, count):
 
 # UNITY S2S : Unity will use this route to tell us when users watch ads
 @app.route('/S2S', methods=['GET'])
-@log_request
 def WatchAd():
     try:
         # Extract Parameters 

@@ -22,6 +22,7 @@ def initialize_db(path):
     backfix_ads()
     backfix_users()
     purge_request_log()
+    purge_redeemed_ads()
 
 
 # get one user
@@ -90,6 +91,11 @@ def purge_request_log():
     Record = Query()
     requests_table.remove(~ (Record.path.one_of(["/S2S", "/S3S"])))
 
+# Delete all records of ads that have been redeemed
+def purge_redeemed_ads():
+    Ad = Query()
+    ads.remove(Ad.redeemed == True)
+
 
 # Update the user record
 def update_user(old_username, **kwargs):
@@ -113,6 +119,10 @@ def update_ads(idList, **kwargs):
         kwargs,
         doc_ids=idList
     )
+
+
+def delete_ads(idList):
+    ads.remove(doc_ids=idList)
 
 # **delete a user record**
 def delete_user(username):
@@ -175,15 +185,13 @@ def record_ad_round(user_id, count=1):
             "userID":  user_id,
             "oid":  str(uuid4()),
             "adUnitID": "Fake_Interstitial_Ad",
-            "type": "Interstitial",
-            "redeemed": False
+            "type": "Interstitial"
         })
         data.append({
             "userID":  user_id,
             "oid":  str(uuid4()),
             "adUnitID": "Fake_Rewarded_Ad",
-            "type": "Rewarded",
-            "redeemed": False
+            "type": "Rewarded"
         })
     # populate database
     ads.insert_multiple(data)
@@ -192,25 +200,22 @@ def record_ad_round(user_id, count=1):
 
 
 # get all ads (including children)
-def fetch_ads(userID=None, redeemed=None):
+def fetch_ads(userID=None):
     # get your ads
-    ads = fetch_ads_single(userID, redeemed)
+    ads = fetch_ads_single(userID)
 
     # also get your children's ads
     user = fetch_user(userID)
     for child in user["children"]:
-        ads += fetch_ads_single(child, redeemed)
+        ads += fetch_ads_single(child)
     return ads
 
 
 # get all ads (for specific user)
-def fetch_ads_single(userID=None, redeemed=None):
+def fetch_ads_single(userID=None):
     if userID:
         Ad = Query()
-        if redeemed == None:
-            return ads.search(Ad.userID == userID)
-        else:
-            return ads.search((Ad.userID == userID) & (Ad.redeemed==redeemed))
+        return ads.search(Ad.userID == userID)
     else:
         return ads.all()
 
@@ -231,15 +236,11 @@ def log(tableName, **kwargs):
 # "oid": "f88b...",
 # "userID": 6,
 # "adUnitID": "Fake_Rewarded_Ad",
-# "redeemed": false
 def backfix_ads():
     for ad in ads.all():
         updates = {}
         if "userID" not in ad:
             continue
-        if "redeemed" not in ad:
-            updates['redeemed'] = False;
-        
         if "adUnitID" not in ad:
             updates['adUnitID'] = "Old_Rewarded_Ad"
             updates['type'] = "Rewarded"
