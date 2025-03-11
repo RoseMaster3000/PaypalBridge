@@ -272,7 +272,7 @@ def redeem_ads(userID, gemCount):
 
     # EJECT if not enough ads to cover gem cashout
     if rewarded_used == None:
-        return False
+        return False, user
 
     # Decrement ad count ("redeem" ads by deleting them)
     user["interstitial"] -= interstitial_used
