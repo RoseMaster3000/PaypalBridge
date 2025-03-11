@@ -1,5 +1,6 @@
 # https://tinydb.readthedocs.io/en/latest/
 from tinydb import TinyDB, Query
+from tinydb.table import Document
 from random import randint
 from uuid import uuid4
 import os
@@ -17,16 +18,20 @@ def initialize_db(path):
     global db, users, ads
     db = TinyDB(dbPath)
     users = db.table('users')
-    ads = db.table('ads')
-    db.drop_table('s2s')
-    backfix_ads()
     backfix_users()
     purge_request_log()
-    purge_redeemed_ads()
+    delete_old_tables()
 
+
+# old tables from early in development
+def delete_old_tables():
+    db.drop_table('s2s')
+    db.drop_table('ads')
 
 # get one user
 def fetch_user(username):
+    if type(username) == Document:
+        return username
     if type(username) == int:
         return users.get(doc_id=username)
     elif type(username) == str:
@@ -64,8 +69,8 @@ def create_user(**kwargs):
     return users.get(doc_id=doc_id)
 
 
-# increment total cashout of user
-def increment_cashout(user, increment):
+def record_cashout(user, increment):
+    # increment total cashout of user
     user = users.get(doc_id=user.doc_id)
     new_total = user.get('total_cashout', 0) + increment
     users.update(
@@ -73,6 +78,11 @@ def increment_cashout(user, increment):
         doc_ids=[user.doc_id]
     )
 
+    # Also log cashout redemption?
+    # TODO
+
+    # return updated user
+    return True, user
 
 # delete temp uses (eg 5: accounts older than [5] days old)
 def purge_users(dayRange=0):
@@ -91,38 +101,19 @@ def purge_request_log():
     Record = Query()
     requests_table.remove(~ (Record.path.one_of(["/S2S", "/S3S"])))
 
-# Delete all records of ads that have been redeemed
-def purge_redeemed_ads():
-    Ad = Query()
-    ads.remove(Ad.redeemed == True)
-
 
 # Update the user record
-def update_user(old_username, **kwargs):
-    User = Query()
-    user = users.get(User.username == old_username)
+def update_user(user, **kwargs):
+    user = fetch_user(user)
+    print(user)
+    print(user.doc_id)
+    print(kwargs)
     try:
-        users.update(kwargs, User.username == old_username)
+        users.update(kwargs, doc_ids=[user.doc_id])
         return True
     except Exception as e:
+        print()
         return False
-
-def update_ad(ad, **kwargs):
-    ads.update(
-        kwargs,
-        doc_ids=[ad.doc_id]
-    )
-
-
-def update_ads(idList, **kwargs):
-    ads.update(
-        kwargs,
-        doc_ids=idList
-    )
-
-
-def delete_ads(idList):
-    ads.remove(doc_ids=idList)
 
 # **delete a user record**
 def delete_user(username):
@@ -156,69 +147,38 @@ def adopt_user(parent, child):
     )
 
 
+# log 1 interstitial ad
+def record_rewarded(user, count=1):
+    user = fetch_user(user)
+    r = user['rewarded'] + count
+    users.update(
+        {'rewarded': r},
+        doc_ids=[user.doc_id]
+    )
 
+# log 1 rewarded ad
+def record_interstitial(user, count=1):
+    print("=======================")
+    print(user)
+    print(type(user))
+    user = fetch_user(user)
+    print("=======================")
+    print(user)
+    i = user['interstitial'] + count
+    users.update(
+        {'interstitial': i},
+        doc_ids=[user.doc_id]
+    )
 
-
-# log ad in database 
-def record_ad(**kwargs):
-    # verify userID
-    if "userID" not in kwargs:
-        raise Exception("Ad logs must have [userID]")
-    # sanitize userID  
-    if type(kwargs["userID"]) == str and kwargs["userID"].isdigit():
-        kwargs["userID"] = int(kwargs["userID"])
-    # validate userID
-    if type(kwargs["userID"]) != int:
-        raise Exception("Ad log [userID] must be integer")
-    ads.insert(kwargs)
-
-
-
-# log ad in database 
-def record_ad_round(user_id, count=1):
-    print(user_id, type(user_id), count)
-
-    # generate data
-    data = []
-    for i in range(count):
-        data.append({
-            "userID":  user_id,
-            "oid":  str(uuid4()),
-            "adUnitID": "Fake_Interstitial_Ad",
-            "type": "Interstitial"
-        })
-        data.append({
-            "userID":  user_id,
-            "oid":  str(uuid4()),
-            "adUnitID": "Fake_Rewarded_Ad",
-            "type": "Rewarded"
-        })
-    # populate database
-    ads.insert_multiple(data)
-
-
-
-
-# get all ads (including children)
-def fetch_ads(userID=None):
-    # get your ads
-    ads = fetch_ads_single(userID)
-
-    # also get your children's ads
-    user = fetch_user(userID)
-    for child in user["children"]:
-        ads += fetch_ads_single(child)
-    return ads
-
-
-# get all ads (for specific user)
-def fetch_ads_single(userID=None):
-    if userID:
-        Ad = Query()
-        return ads.search(Ad.userID == userID)
-    else:
-        return ads.all()
-
+# log rewarded+interstitial ad(s) in database 
+def record_ad_round(user, count=1):
+    user = fetch_user(user)
+    r = user['rewarded'] + count
+    i = user['interstitial'] + count
+    users.update(
+        {'rewarded': r, 'interstitial': i},
+        doc_ids=[user.doc_id]
+    )
 
 def fetch_all(tableName):
     table = db.table(tableName)
@@ -230,31 +190,6 @@ def log(tableName, **kwargs):
     kwargs['created_at'] = now()
     table = db.table(tableName)
     table.insert(kwargs)
-
-
-# populate ad type to legacy ads
-# "oid": "f88b...",
-# "userID": 6,
-# "adUnitID": "Fake_Rewarded_Ad",
-def backfix_ads():
-    for ad in ads.all():
-        updates = {}
-        if "userID" not in ad:
-            continue
-        if "adUnitID" not in ad:
-            updates['adUnitID'] = "Old_Rewarded_Ad"
-            updates['type'] = "Rewarded"
-        elif "type" not in ad:
-            updates['type'] = "Rewarded" if "Rewarded" in ad["adUnitID"] else "Interstitial"
-        elif type(ad['type']) == list:
-            updates['type'] = ad['type'][0]
-
-        if updates != {}:
-            ads.update(
-                updates,
-                doc_ids=[ad.doc_id]
-            )
-            print("updated", ad.doc_id)  
 
 
 # populate random dates to legacy users (random time within last [dayRange] days)
@@ -283,3 +218,14 @@ def backfix_users(dayRange=10):
                 {'bonus': 0},
                 doc_ids=[user.doc_id]
             )
+
+        if 'rewarded' not in user:
+            users.update(
+                {'rewarded': 0},
+                doc_ids=[user.doc_id]
+            ) 
+        if 'interstitial' not in user:
+            users.update(
+                {'interstitial': 0},
+                doc_ids=[user.doc_id]
+            ) 

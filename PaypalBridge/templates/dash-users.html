@@ -16,13 +16,11 @@
       <th>Interstitial</th>
       <th>Creation Time</th>
       <th>Delete</th>
-      <th>Ad Log</th>
     </tr>
   </thead>
   <tbody></tbody>
   <tfoot>
   <tr>
-    <th></th>
     <th></th>
     <th></th>
     <th></th>
@@ -57,10 +55,9 @@ $(document).ready(function() {
       {"data": "bonus"},
       {"data": "total_cashout"},
       {"data": "rewarded"},
-      {"data": "intersitial"},
+      {"data": "interstitial"},
       {"data": "created_at"},
       {"data": null, "orderable": false, "render": generateDeleteBox},
-      {"data": null, "orderable": false, "render": generateAdLog}
     ],
     "footerCallback": grandTotalCashout
   });

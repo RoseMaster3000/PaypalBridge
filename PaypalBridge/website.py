@@ -37,6 +37,8 @@ def generate_temp_user():
         password = str(uuid4()),
         gems = 0,
         bonus = 0,
+        rewarded = 0,
+        interstitial = 0,
         total_cashout = 0,
         children = []
     )
@@ -90,18 +92,6 @@ def convert_epoch(epoch_time):
     datetime_object = datetime.fromtimestamp(epoch_time)
     return datetime_object.strftime("%Y-%m-%d %H:%M:%S")  # Customize the format as needed
 
-def ad_preview(user):
-    all_ads = fetch_ads(user.doc_id)
-    all_r = 0
-    all_i = 0
-
-    for ad in all_ads:
-        if ad.get("type") == "Rewarded":
-            all_r += 1
-        if ad.get("type") == "Interstitial":
-            all_i += 1
-
-    return all_r, all_i
 
 # route to fetch a list of all users
 @app.route('/api/users', methods=['GET'])
@@ -109,11 +99,8 @@ def ad_preview(user):
 def GetAllUsers(user):
     users = fetch_users()
     for u in users:
-        rewarded, intersitial = ad_preview(u)
-        u["total_cashout"] = f"{u['total_cashout']:0.2f}"
+        u["total_cashout"] = f"$ {u['total_cashout']:0.2f}"
         u["created_at"] = convert_epoch(u["created_at"])
-        u["rewarded"] = rewarded
-        u["intersitial"] = intersitial
         u["sid"] = u.doc_id
     return jsonify(users)
 
@@ -237,8 +224,8 @@ print("GEM MINIMUM:", GEM_MINIMUM)
 
 
 
-# minimal number of intersitial / rewarded ads to cover gemCount
-# 1 intersitial == 1 gem (red)
+# minimal number of interstitial / rewarded ads to cover gemCount
+# 1 interstitial == 1 gem (red)
 # 1 rewarded == 10 gems  (green)
 def minimal_ad_count(r, i, gems, debug=False):
     usedRewarded = 0
@@ -274,20 +261,12 @@ def minimal_ad_count(r, i, gems, debug=False):
 # find subset of ads == the gems you want
 # return False if not enough ads for gemCount 
 def redeem_ads(userID, gemCount):
-    # collate our ads   
-    ads = fetch_ads(userID)
-    intersitial = []
-    rewarded = []
-    for ad in ads:
-        if "Interstitial" in ad["adUnitID"]:
-            intersitial.append(ad)
-        elif "Rewarded" in ad["adUnitID"]:
-            rewarded.append(ad)
+    user = fetch_user(userID)
 
     # Calculate minimal ad count needed to redeem gems
-    rewarded_used, intersitial_used = minimal_ad_count(
-        i = len(intersitial),
-        r = len(rewarded),
+    rewarded_used, interstitial_used = minimal_ad_count(
+        i = user["interstitial"],
+        r = user["rewarded"],
         gems = gemCount
     )
 
@@ -295,13 +274,13 @@ def redeem_ads(userID, gemCount):
     if rewarded_used == None:
         return False
 
-    # # Mark ads as redeemed
-    adIDs = [r.doc_id for r in rewarded[:rewarded_used]]
-    adIDs += [i.doc_id for i in intersitial[:intersitial_used]]
-    delete_ads(adIDs)
+    # Decrement ad count ("redeem" ads by deleting them)
+    user["interstitial"] -= interstitial_used
+    user["rewarded"] -= rewarded_used
+    success = update_user(user.doc_id, **user)
 
-    # return --> SUCCESS
-    return True
+    # done!
+    return True, user
 
 
 
@@ -376,9 +355,9 @@ def redeem_gems(user, gemCount):
     # verify gems have been covered
     if gemCount == 0:
         update_user(user["username"], **user)
-        return True
+        return True, user
     else:
-        return False
+        return False, user
 
 
 # Cashout Gems (form["gems"] + logged in)
@@ -398,13 +377,13 @@ def Cashout(user):
     if gemCount < GEM_MINIMUM:
         return jsonify({"success":False, "message": f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"})
     
-    # mark ads as redeemed ( verify S2S callbacks (detects illegal gems / too fast cashout?)
-    redeem_success = redeem_ads(user.doc_id, gemCount)
+    # mark ads as redeemed (verify S2S callbacks (detects illegal gems / too fast cashout?)
+    redeem_success, user = redeem_ads(user, gemCount)
     if not redeem_success:
         return jsonify({"success": False, "message": "Ad revenue is still processing, please try again in a few hours."})
 
     # decrement gems (consume bonus if necessary)
-    redeem_success = redeem_gems(user, gemCount)
+    redeem_success, user = redeem_gems(user, gemCount)
     if not redeem_success:
         return jsonify({"success": False, "message": "Insufficient gems? Gem count has de-synced?"})
 
@@ -413,7 +392,7 @@ def Cashout(user):
     create_payout(email, EntitledPayout)
 
     # increment cashout total (track cashout total in our database)
-    increment_cashout(user, EntitledPayout)
+    cashout_success, user = record_cashout(user, EntitledPayout)
     return jsonify({"success": True, "message": f"Cashout of ${EntitledPayout:0.2f} successfully send to {email}"})
 
 # Get current balance (gem count)
@@ -467,13 +446,7 @@ def verify_signature(parameters):
 @app.route('/Fake/S2S/Rewarded/<int:count>', methods=['GET'])
 @admin_required
 def WatchFakeRewarded(user, count):
-    for _ in range(count):
-        record_ad(
-            userID = user.doc_id,
-            oid = str(uuid4()),
-            adUnitID = "Fake_Rewarded_Ad",
-            type = "Rewarded"
-        )
+    record_rewarded(user, count)
     return redirect("/")
 
 
@@ -481,14 +454,7 @@ def WatchFakeRewarded(user, count):
 @app.route('/Fake/S2S/Interstitial/<int:count>', methods=['GET'])
 @admin_required
 def WatchFakeInterstitial(user, count):
-    for _ in range(count):
-        record_ad(
-            userID = user.doc_id,
-            oid = str(uuid4()),
-            adUnitID = "Fake_Interstitial_Ad",
-            type = "Interstitial",
-            redeemed = False
-        )
+    record_interstitial(user, count)
     return redirect("/")
 
 
@@ -503,6 +469,7 @@ def WatchFakeAdRound(user, count):
 
 # UNITY S2S : Unity will use this route to tell us when users watch ads
 @app.route('/S2S', methods=['GET'])
+@log_request
 def WatchAd():
     try:
         # Extract Parameters 
@@ -527,13 +494,11 @@ def WatchAd():
             abort(400, "Invalid user SID")
         
         # Store Ad in database (as unredeemed)
-        record_ad(
-            userID = userID,
-            oid = oid,
-            adUnitID = adUnitID,
-            type = "Rewarded" if "Rewarded" in adUnitID else "Interstitial",
-            redeemed = False
-        )
+        if "Rewarded" in adUnitID:
+            record_rewarded(user)
+        else:
+            record_interstitial(user)
+
         # Report Success (https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#CallbackResponse)
         return "1", 200
     except Exception as e:
