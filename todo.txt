@@ -1,26 +1,34 @@
-record cashouts (tinydb.record_cashout)
 
 
-==================
-
-bonus gems on dashboard (button+table)
-
-/GetBonus (use route in GAME )
+- S2S callback, also record eCPM at that moment from UNITY MonetizationStatsAPI  (then record a general idea of how much money that AD madde)
+  -- https://docs.unity3d.com/Packages/com.unity.ads@3.3/manual/MonetizationResourcesStatistics.html
+  -- https://docs.unity.com/ads/en-us/manual/MonetizationStatsAPI
 
 
-===================
+- Reveise Cashout system
+  -- calcualte total cash geenrated from this user's ad (look at their ad log)
+  -- calcualte this players gamer performance (based on gems collected VS theoretical maximum gems collected, based on ads watched)
 
-- eCPM method for Rewarded / Interstitial ad value
+
+- CALCULATE AdminCut
+    + when people cashout, how much money is left behind? (based on their gem performance)
+
+    + Collect rounding errors (percentages)
+
+    + Collect any discrepancies in paypal processing fees (we assum worse 2%/25c, but we can use PayPal API so see if theres money left behind)
+
+
+- Dashboard -> collect admin money (send money from business to personal paypal;)
+
+
+
+
+
+====================
 
 - 3 month warning if app shuts down
+ (have notificatoin system in app?)
 
 =====================
 
-Instead of convert button (convert.cs), Have UI of button and text in wallet scene
-Button will say
-“Press to register”
-Text will
-If user is not registered
- Text will say "please register to see how much money you can cash out"
-If user is registered
-  Text will say "based on your gem_collected you have total_amount, you can cash out in increments of 20 dollars per month"
+

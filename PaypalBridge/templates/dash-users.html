@@ -58,29 +58,11 @@ $(document).ready(function() {
       {"data": "interstitial"},
       {"data": "created_at"},
       {"data": null, "orderable": false, "render": generateDeleteBox},
-    ],
-    "footerCallback": grandTotalCashout
+    ]
   });
 });
 
 
-function grandTotalCashout(row, data, start, end, display) {
-  // get DataTable API (so we can modify the table)
-  var api = this.api();
-
-  // Calculate total of total_cashout column (index 3)
-  var total = api
-    .column(5)
-    .data()
-    .reduce(function(acc, val) {
-      return acc + parseFloat(val || 0);
-    }, 0);
-
-  // Put Grand total in footer
-  $(api.column(5).footer()).html(
-    'Total: $' + total.toFixed(2)
-  );
-}
 
 
 function generateDeleteBox(data, type, row) {
