@@ -405,9 +405,10 @@ def Cashout(user):
 @app.route("/CashoutHistory/<username>")
 @admin_required
 def CashoutHistory(user, username):
-    for c in user["cashouts"]:
+    targetUser = fetch_user(username)
+    for c in targetUser["cashouts"]:
         c["time"] = convert_epoch(c["time"])
-    return jsonify(user["cashouts"])
+    return jsonify(targetUser["cashouts"])
 
 
 # Get current balance (gem count)
