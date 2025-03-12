@@ -68,21 +68,24 @@ def create_user(**kwargs):
     doc_id = users.insert(kwargs)
     return users.get(doc_id=doc_id)
 
-
-def record_cashout(user, increment):
+# Record cashout in database
+def log_cashout(user, gemCount, TotalPayout, EntitledPayout, AdminPayout): 
     # increment total cashout of user
     user = users.get(doc_id=user.doc_id)
-    new_total = user.get('total_cashout', 0) + increment
-    users.update(
-        {'total_cashout': new_total},
-        doc_ids=[user.doc_id]
-    )
-
-    # Also log cashout redemption?
-    # TODO
-
-    # return updated user
-    return True, user
+    user['total_cashout'] = user.get('total_cashout', 0) + EntitledPayout
+    user['cashouts'].append({
+        "gems": gemCount,
+        "TotalPayout": TotalPayout,  # how much send via paypal (before paypal fees)
+        "UserPayout": EntitledPayout,# how much recv by user (after paypal fee)
+        "AdminPayout": AdminPayout,  # cut left behind for Admin (before paypal fees)
+        "AdminCollected": False,     # [T/F] has the Admin collected their cut?
+        "time": now()
+    })
+    try:
+        users.update(user, doc_ids=[user.doc_id])
+        return True, user
+    except:
+        return False, user
 
 # delete temp uses (eg 5: accounts older than [5] days old)
 def purge_users(dayRange=0):
@@ -227,5 +230,10 @@ def backfix_users(dayRange=10):
         if 'interstitial' not in user:
             users.update(
                 {'interstitial': 0},
+                doc_ids=[user.doc_id]
+            ) 
+        if "cashouts" not in user:
+            users.update(
+                {'cashouts': []},
                 doc_ids=[user.doc_id]
             ) 

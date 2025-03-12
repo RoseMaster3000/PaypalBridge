@@ -53,7 +53,7 @@ $(document).ready(function() {
       {"data": "email"},
       {"data": "gems"},
       {"data": "bonus"},
-      {"data": "total_cashout"},
+      {"data": null, "render": generateCashoutHistory},
       {"data": "rewarded"},
       {"data": "interstitial"},
       {"data": "created_at"},
@@ -96,4 +96,9 @@ function generateDeleteBox(data, type, row) {
 function generateAdLog(data, type, row) {
   return ` <a href="/SeeAllAds/${data.username}"">Ad Log</a>`
 }
+
+function generateCashoutHistory(data, type, row) {
+  return ` <a href="/CashoutHistory/${data.username}"">${data.total_cashout}</a>`
+}
+
 </script>

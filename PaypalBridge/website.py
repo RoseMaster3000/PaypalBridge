@@ -99,7 +99,7 @@ def convert_epoch(epoch_time):
 def GetAllUsers(user):
     users = fetch_users()
     for u in users:
-        u["total_cashout"] = f"$ {u['total_cashout']:0.2f}"
+        u["total_cashout"] = f"{u['total_cashout']:0.2f}"
         u["created_at"] = convert_epoch(u["created_at"])
         u["sid"] = u.doc_id
     return jsonify(users)
@@ -201,13 +201,14 @@ def CalculatePayout(gemCount):
     RevShare = 0.70 # percent the user gets
     TotalCut = gemCount * (SingleGemRevenue * RevShare)
     if (TotalCut * 0.02 > 0.25):
-        PaypalProcessingFee = TotalCut * 0.02
+        PaypalProcessingFee = TotalCut * 0.02 # 2% processing (domestic)
     else:
-        PaypalProcessingFee = 0.25
+        PaypalProcessingFee = 0.25 # 25¢ processing (international)
     EntitledCut = TotalCut - PaypalProcessingFee
     TotalCut = int(TotalCut*100)/100
     EntitledCut = int(EntitledCut*100)/100
-    return TotalCut, EntitledCut
+    AdminCut = (gemCount*SingleGemRevenue) - TotalCut
+    return TotalCut, EntitledCut, AdminCut
 
 
 # Calculate minimum gems needed to cover paypal processing and profit 1 cent
@@ -216,7 +217,7 @@ def CalculateMinimumGems():
     gems = 0
     while EntitledPayout < 0.01:
         gems += 1
-        TotalPayout, EntitledPayout = CalculatePayout(gems)
+        TotalPayout, EntitledPayout, _ = CalculatePayout(gems)
         # print(gems,EntitledPayout)
     return gems
 GEM_MINIMUM = CalculateMinimumGems()
@@ -290,7 +291,7 @@ def PreviewCashout(gemCount:int):
     if gemCount < GEM_MINIMUM:
         return f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
     else:
-        return CalculatePayout(gemCount)
+        return CalculatePayout(gemCount)[:2]
 
 @app.route('/PreviewCashout', methods=['POST'])
 @none_required
@@ -321,7 +322,7 @@ def PreviewCashoutPost(user):
 
     # Standard Cashout
     else:
-        _, entitledPayout = CalculatePayout(data['gemCount'])
+        _, entitledPayout, _ = CalculatePayout(data['gemCount'])
         data["payout"] = f"{entitledPayout:,.02f}"
         data["message"] = "A {gemCount:,} gem cashout would result in a ${payout} payout to PayPal!".format(**data)
     
@@ -388,12 +389,26 @@ def Cashout(user):
         return jsonify({"success": False, "message": "Insufficient gems? Gem count has de-synced?"})
 
     # generate paypal cashout
-    TotalPayout, EntitledPayout = CalculatePayout(gemCount)
+    TotalPayout, EntitledPayout, AdminPayout = CalculatePayout(gemCount)
     create_payout(email, EntitledPayout)
 
-    # increment cashout total (track cashout total in our database)
-    cashout_success, user = record_cashout(user, EntitledPayout)
+    # Record cashout in our database)
+    cashout_success, user = log_cashout(
+        user,
+        gemCount,
+        TotalPayout,
+        EntitledPayout,
+        AdminPayout
+    )
     return jsonify({"success": True, "message": f"Cashout of ${EntitledPayout:0.2f} successfully send to {email}"})
+
+@app.route("/CashoutHistory/<username>")
+@admin_required
+def CashoutHistory(user, username):
+    for c in user["cashouts"]:
+        c["time"] = convert_epoch(c["time"])
+    return jsonify(user["cashouts"])
+
 
 # Get current balance (gem count)
 @app.route('/GemCount')
