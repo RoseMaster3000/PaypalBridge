@@ -5,7 +5,7 @@
   -- https://docs.unity.com/ads/en-us/manual/MonetizationStatsAPI
 
 
-- Reveise Cashout system
+- Revise Cashout system
   -- calcualte total cash geenrated from this user's ad (look at their ad log)
   -- calcualte this players gamer performance (based on gems collected VS theoretical maximum gems collected, based on ads watched)
 
