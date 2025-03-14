@@ -28,8 +28,18 @@ def get_ecpm(resolution="week", dayRange=1):
     try:
         response = requests.get(base_url, params=params, headers=headers)
         response.raise_for_status()
-        return response.json()
-        
+        data = response.json()
+        newdata = []
+        for r in data:
+            if r["placement"] != None:
+                newrecord = {}
+                newrecord["placement"] = r["placement"]
+                newrecord["timestamp"] = r["timestamp"]
+                newrecord["fill_rate"] = r["start_count"] / r["adrequest_count"] if r["adrequest_count"] else 0
+                newrecord["completion_rate"] = r["view_count"] / r["start_count"] if r["start_count"] else 0
+                newrecord["ecpm"] = r["revenue_sum"] / r["view_count"] if r["view_count"] else 0 
+                newdata.append(newrecord)
+        return newdata 
 
     except requests.exceptions.RequestException as e:
         print(f"Error querying Unity Ads API: {e}")
