@@ -6,6 +6,8 @@ from uuid import uuid4
 import os
 import time
 
+from PaypalBridge.ecpm import get_recent_ecpm
+
 # generate current time INT (seconds since January 1, 1970)
 def now():
     return int(time.time())
@@ -152,26 +154,23 @@ def adopt_user(parent, child):
 
 # log 1 interstitial ad
 def record_rewarded(user, count=1):
+    rewarded_ecpm = get_recent_ecpm("rewarded")
     user = fetch_user(user)
-    r = user['rewarded'] + count
-    users.update(
-        {'rewarded': r},
-        doc_ids=[user.doc_id]
-    )
+    # increment ad count & earnings
+    user['rewarded'] += count
+    user['earnings'] += rewarded_ecpm/1000
+    # update database
+    users.update(user, doc_ids=[user.doc_id])
 
 # log 1 rewarded ad
 def record_interstitial(user, count=1):
-    print("=======================")
-    print(user)
-    print(type(user))
+    interstitial_ecpm = get_recent_ecpm("interstitial")
     user = fetch_user(user)
-    print("=======================")
-    print(user)
-    i = user['interstitial'] + count
-    users.update(
-        {'interstitial': i},
-        doc_ids=[user.doc_id]
-    )
+    # increment ad count & earnings
+    user['interstitial'] += count
+    user['earnings'] += interstitial_ecpm/1000
+    # update database
+    users.update(user, doc_ids=[user.doc_id])
 
 # log rewarded+interstitial ad(s) in database 
 def record_ad_round(user, count=1):
@@ -235,5 +234,10 @@ def backfix_users(dayRange=10):
         if "cashouts" not in user:
             users.update(
                 {'cashouts': []},
+                doc_ids=[user.doc_id]
+            ) 
+        if "earnings" not in user:
+            users.update(
+                {'earnings': 0.00},
                 doc_ids=[user.doc_id]
             ) 

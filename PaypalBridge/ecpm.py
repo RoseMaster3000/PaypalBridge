@@ -1,8 +1,42 @@
 from PaypalBridge.SECRET import UNITY_MONETIZATION_KEY, UNITY_ORGINIZATION_KEY
 import requests
 import json
+from os.path import isfile
 import datetime
+from datetime import timezone, timedelta
 
+# check if timestamp is from last 24 hours...
+def is_recent(timestamp_str, hours=24):
+    timestamp = datetime.datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+    now = datetime.datetime.now(timezone.utc)
+    time_diff = now - timestamp
+    return time_diff < timedelta(hours=hours)
+
+# get ecpm from yesterday (cached in "ecpm.json")
+def get_recent_ecpm(placement):
+    ecpmFile = "ecpm.json"
+
+    # get eCPM file from cached file (if it exists)
+    if not isfile(ecpmFile):
+        data = save_ecpm(resolution="day", dayRange=1, output=ecpmFile)
+    else:
+        with open(ecpmFile, 'r') as file:
+            data = json.loads(file.read())
+        # verify cached eCPM file has recent infor
+        if not is_recent(data[0]["timestamp"]):
+            data = save_ecpm(resolution="day", dayRange=1, output=ecpmFile)
+
+    # return data
+    return extract(data, placement)
+
+# extract ecpm for specifc placement type from UnityAdPlacment api data
+def extract(data, placement):
+    placement = placement.lower()
+    for item in data:
+        if placement in item["placement"].lower():
+            return item["ecpm"]
+    return 0
+ 
 # Fetch the eCPM average from yesterday - today
 # resolution : hour, day, week, month, year, all
 # dayRange   : how many days from today in past to query
@@ -38,6 +72,7 @@ def get_ecpm(resolution="week", dayRange=1):
                 newrecord["fill_rate"] = r["start_count"] / r["adrequest_count"] if r["adrequest_count"] else 0
                 newrecord["completion_rate"] = r["view_count"] / r["start_count"] if r["start_count"] else 0
                 newrecord["ecpm"] = r["revenue_sum"] / r["view_count"] if r["view_count"] else 0 
+                newrecord["ecpm"] *= 1000
                 newdata.append(newrecord)
         return newdata 
 
@@ -56,10 +91,14 @@ def get_ecpm(resolution="week", dayRange=1):
         print(response.text)
         return None
 
+# save ecpm to file
+def save_ecpm(resolution, dayRange, output):
+    data = get_ecpm(resolution, dayRange)
+    with open(output, 'w') as file:
+        json.dump(data, file, indent=4)
+    return data
+
 
 def test():
-    data = get_ecpm(resolution='day', dayRange=30)
-    print(data)
-
-    with open('ecpm.json', 'w') as file:
-        json.dump(data, file, indent=4)
+    #save_ecpm(resolution='day', dayRange=1, output="ecpm.json")
+    print(get_recent_ecpm("rewarded"))
