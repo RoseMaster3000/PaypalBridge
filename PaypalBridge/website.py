@@ -89,7 +89,7 @@ def index(user):
 
 
 def convert_epoch(epoch_time):
-    datetime_object = datetime.fromtimestamp(epoch_time)
+    datetime_object = datetime.fromtimestamp(int(epoch_time))
     return datetime_object.strftime("%Y-%m-%d %H:%M:%S")  # Customize the format as needed
 
 
