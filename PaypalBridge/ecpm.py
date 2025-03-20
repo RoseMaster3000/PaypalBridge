@@ -140,7 +140,7 @@ def aggregate_data(data):
     return list(aggregated_by_placement.values())
 
 
-# save ecpm to file
+# fetch [ecpm data], save [data] to file, finally return [data]
 def save_ecpm(resolution, dayRange, output, aggregate=False):
     data = get_ecpm(resolution, dayRange, aggregate)
     with open(output, 'w') as file:
