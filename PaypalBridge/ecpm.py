@@ -32,7 +32,7 @@ def extract(data, placement):
             return item["ecpm"]
     return 0
 
-# convieniece function for current time
+# generate current epoch time
 def now():
     return int(time.time())
 
