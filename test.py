@@ -1,8 +1,12 @@
 # from PaypalBridge.paypal import test_payout
 # test_payout()
 
-from PaypalBridge.ecpm import test
-test()
+from PaypalBridge.ecpm import get_recent_ecpm
+i = get_recent_ecpm("interstitial")
+r = get_recent_ecpm("rewarded")
+
+print("interstitial ecpm:", i)
+print("    rewarded ecpm:", r)
 
 
 # from PaypalBridge.website import minimal_ad_count
@@ -24,6 +28,5 @@ test()
 
 # record_ad_round(userID=1, count=296)
 # redeem_ads(userID=1, gemCount=17000)
-
 
 

@@ -8,7 +8,7 @@ import time
 
 from PaypalBridge.ecpm import get_recent_ecpm
 
-# generate current time INT (seconds since January 1, 1970)
+# generate current epoch time INT (seconds since January 1, 1970)
 def now():
     return int(time.time())
 

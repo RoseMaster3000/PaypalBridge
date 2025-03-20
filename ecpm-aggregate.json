@@ -1,0 +1,42 @@
+[
+    {
+        "placement": null,
+        "adrequest_count": 471,
+        "revenue_sum": 0,
+        "start_count": 0,
+        "available_sum": 471,
+        "view_count": 0,
+        "records": 23,
+        "timestamp": "2025-03-19T00:00:00.000Z"
+    },
+    {
+        "placement": "Rewarded_Android",
+        "adrequest_count": 0,
+        "revenue_sum": 0.16999999999999998,
+        "start_count": 117,
+        "available_sum": 0,
+        "view_count": 114,
+        "records": 18,
+        "timestamp": "2025-03-17T00:00:00.000Z"
+    },
+    {
+        "placement": "banner2",
+        "adrequest_count": 0,
+        "revenue_sum": 0,
+        "start_count": 48,
+        "available_sum": 0,
+        "view_count": 0,
+        "records": 15,
+        "timestamp": "2025-03-17T00:00:00.000Z"
+    },
+    {
+        "placement": "Interstitial_Android",
+        "adrequest_count": 0,
+        "revenue_sum": 0.01,
+        "start_count": 34,
+        "available_sum": 0,
+        "view_count": 12,
+        "records": 12,
+        "timestamp": "2025-03-17T00:00:00.000Z"
+    }
+]

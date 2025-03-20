@@ -1,4 +1,6 @@
+- get most recetn eCPM (above 0...keep goign back 1 hour or 1 day until a positive avlaue hsows up...or keep zooming out resolution until positive value shows up?)
 
+- add earning column 
 
 - S2S callback, also record eCPM at that moment from UNITY MonetizationStatsAPI  (then record a general idea of how much money that AD madde)
   -- https://docs.unity3d.com/Packages/com.unity.ads@3.3/manual/MonetizationResourcesStatistics.html

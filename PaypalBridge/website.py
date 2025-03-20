@@ -285,14 +285,13 @@ def redeem_ads(userID, gemCount):
     return True, user
 
 
-
-
 @app.route("/Cashout/<gemCount>", methods=['GET'])
 def PreviewCashout(gemCount:int):
     if gemCount < GEM_MINIMUM:
         return f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
     else:
         return CalculatePayout(gemCount)[:2]
+
 
 @app.route('/PreviewCashout', methods=['POST'])
 @none_required
