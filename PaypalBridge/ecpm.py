@@ -6,18 +6,6 @@ import datetime
 import time
 
 
-def now():
-    return int(time.time())
-
-
-# check if timestamp is from last 24 hours...
-def is_recent(data, hours=24):
-    for record in data:
-        if "request_timestamp" in record:
-            time_diff = now() - record["request_timestamp"] 
-            return (time_diff < (hours*3600))
-    return False
-
 # get ecpm from yesterday (cached in "ecpm.json")
 def get_recent_ecpm(placement):
     ecpmFile = "ecpm-average.json"
@@ -43,10 +31,25 @@ def extract(data, placement):
         if placement in item.get("placement","").lower():
             return item["ecpm"]
     return 0
- 
-# Fetch the eCPM average from yesterday - today
+
+# convieniece function for current time
+def now():
+    return int(time.time())
+
+
+# check if timestamp is from last 24 hours
+def is_recent(data, hours=24):
+    for record in data:
+        if "request_timestamp" in record:
+            time_diff = now() - record["request_timestamp"] 
+            return (time_diff < (hours*3600))
+    return False
+
+
+# Fetch the eCPM from UnityMonetiztion API
 # resolution : hour, day, week, month, year, all
 # dayRange   : how many days from today in past to query
+# aggregate  : [T/F] sum all records (still grouped by placement)  
 def get_ecpm(resolution="week", dayRange=1, aggregate=False):
     base_url = f"https://monetization.api.unity.com/stats/v1/operate/organizations/{UNITY_ORGINIZATION_KEY}"
 
@@ -71,7 +74,7 @@ def get_ecpm(resolution="week", dayRange=1, aggregate=False):
         response.raise_for_status()
         data = response.json()
         if aggregate:
-            data = aggregated_data(data)
+            data = aggregate_data(data)
             with open("ecpm-aggregate.json", 'w') as file:
                 json.dump(data, file, indent=4)
 
@@ -104,7 +107,7 @@ def get_ecpm(resolution="week", dayRange=1, aggregate=False):
         return None
 
 
-def aggregated_data(data):
+def aggregate_data(data):
     # Initialize a dictionary to store aggregated results
     aggregated_by_placement = {}
 
