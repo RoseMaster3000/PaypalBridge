@@ -107,8 +107,8 @@ def get_ecpm(resolution="week", dayRange=1, aggregate=False):
         return None
 
 
+# sum all records (still grouped by placement) 
 def aggregate_data(data):
-    # Initialize a dictionary to store aggregated results
     aggregated_by_placement = {}
 
     # Aggregate data by placement
@@ -134,12 +134,11 @@ def aggregate_data(data):
         aggregated_by_placement[placement]["available_sum"] += item["available_sum"]
         aggregated_by_placement[placement]["view_count"] += item["view_count"]
         aggregated_by_placement[placement]["timestamp"] = item["timestamp"]
-
-        # Add this record to the array of records for this placement
         aggregated_by_placement[placement]["records"] += 1
 
     # Convert back to list
     return list(aggregated_by_placement.values())
+
 
 # save ecpm to file
 def save_ecpm(resolution, dayRange, output, aggregate=False):
@@ -147,8 +146,3 @@ def save_ecpm(resolution, dayRange, output, aggregate=False):
     with open(output, 'w') as file:
         json.dump(data, file, indent=4)
     return data
-
-
-def test():
-    #save_ecpm(resolution='day', dayRange=1, output="ecpm.json")
-    print(get_recent_ecpm("rewarded"))
