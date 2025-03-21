@@ -175,12 +175,10 @@ def record_interstitial(user, count=1):
 # log rewarded+interstitial ad(s) in database 
 def record_ad_round(user, count=1):
     user = fetch_user(user)
-    r = user['rewarded'] + count
-    i = user['interstitial'] + count
-    users.update(
-        {'rewarded': r, 'interstitial': i},
-        doc_ids=[user.doc_id]
-    )
+    user['interstitial'] += count
+    user['earnings'] += interstitial_ecpm/1000
+    # update database
+    users.update(user, doc_ids=[user.doc_id])
 
 def fetch_all(tableName):
     table = db.table(tableName)

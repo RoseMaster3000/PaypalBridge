@@ -100,7 +100,8 @@ def convert_epoch(epoch_time):
 def GetAllUsers(user):
     users = fetch_users()
     for u in users:
-        u["total_cashout"] = f"{u['total_cashout']:0.2f}"
+        u["earnings"] = f"${u['earnings']:0.5f}"
+        u["total_cashout"] = f"${u['total_cashout']:0.2f}"
         u["created_at"] = convert_epoch(u["created_at"])
         u["sid"] = u.doc_id
     return jsonify(users)
@@ -136,7 +137,7 @@ def CreateUser(user):
 
     # claim temporary account (update new values)
     success = update_user(
-        old_username = user["username"],
+        user = user["username"],
         username = request.form['username'],
         email = request.form['email'],
         password = bcrypt.generate_password_hash(request.form['password']).decode('utf-8'),

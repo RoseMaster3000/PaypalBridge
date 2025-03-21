@@ -1,14 +1,11 @@
-- get most recetn eCPM (above 0...keep goign back 1 hour or 1 day until a positive avlaue hsows up...or keep zooming out resolution until positive value shows up?)
 
-- add earning column 
+- add earning column (admin dash)
 
-- S2S callback, also record eCPM at that moment from UNITY MonetizationStatsAPI  (then record a general idea of how much money that AD madde)
-  -- https://docs.unity3d.com/Packages/com.unity.ads@3.3/manual/MonetizationResourcesStatistics.html
-  -- https://docs.unity.com/ads/en-us/manual/MonetizationStatsAPI
+- Warnign MEssage for minimum  gem
+  >> "You neex $X, which is appoximatly ~Y gems (at current rate)"
 
 
 - Revise Cashout system
-  -- calcualte total cash geenrated from this user's ad (look at their ad log)
   -- calcualte this players gamer performance (based on gems collected VS theoretical maximum gems collected, based on ads watched)
 
 
