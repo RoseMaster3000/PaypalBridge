@@ -154,29 +154,34 @@ def adopt_user(parent, child):
 
 # log 1 interstitial ad
 def record_rewarded(user, count=1):
-    rewarded_ecpm = get_recent_ecpm("rewarded")
     user = fetch_user(user)
+    rewarded_ecpm = get_recent_ecpm("rewarded")
     # increment ad count & earnings
     user['rewarded'] += count
-    user['earnings'] += rewarded_ecpm/1000
+    user['earnings'] += rewarded_ecpm / 1000 * count
     # update database
     users.update(user, doc_ids=[user.doc_id])
 
 # log 1 rewarded ad
 def record_interstitial(user, count=1):
-    interstitial_ecpm = get_recent_ecpm("interstitial")
     user = fetch_user(user)
+    interstitial_ecpm = get_recent_ecpm("interstitial")
     # increment ad count & earnings
     user['interstitial'] += count
-    user['earnings'] += interstitial_ecpm/1000
+    user['earnings'] += interstitial_ecpm / 1000 * count
     # update database
     users.update(user, doc_ids=[user.doc_id])
 
 # log rewarded+interstitial ad(s) in database 
 def record_ad_round(user, count=1):
     user = fetch_user(user)
+    interstitial_ecpm = get_recent_ecpm("interstitial")
+    rewarded_ecpm = get_recent_ecpm("rewarded")
     user['interstitial'] += count
-    user['earnings'] += interstitial_ecpm/1000
+    user['rewarded'] += count
+    user['earnings'] += interstitial_ecpm / 1000 * count
+    user['earnings'] += rewarded_ecpm / 1000 * count
+    user['gems'] += 55 * count
     # update database
     users.update(user, doc_ids=[user.doc_id])
 

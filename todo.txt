@@ -1,14 +1,4 @@
 
-- add earning column (admin dash)
-
-- Warnign MEssage for minimum  gem
-  >> "You neex $X, which is appoximatly ~Y gems (at current rate)"
-
-
-- Revise Cashout system
-  -- calcualte this players gamer performance (based on gems collected VS theoretical maximum gems collected, based on ads watched)
-
-
 - CALCULATE AdminCut
     + when people cashout, how much money is left behind? (based on their gem performance)
 

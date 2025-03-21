@@ -185,8 +185,9 @@ def GetBonusGem(user):
         return f"{user['bonus']} Bonus Gems"
 
 
-# Calculate USD payed from in game Gems
-def CalculatePayout(gemCount):
+# Calculate USD payed (based on hardcoded value for ads)
+# (OLD method where rewarded/intersitial ads have FIXED values)
+def CalculatePayoutFixed(gemCount):
     '''
     TotalCut : amount of money PayPal is sending
     EntitledCut: amount of money player gets (after PayPal Takes Cut)
@@ -200,17 +201,31 @@ def CalculatePayout(gemCount):
         raise Exception("Interstitial Value too low")
 
     SingleGemRevenue = SingleInterstitial / 5
-    RevShare = 0.70 # percent the user gets
-    TotalCut = gemCount * (SingleGemRevenue * RevShare)
-    if (TotalCut * 0.02 > 0.25):
-        PaypalProcessingFee = TotalCut * 0.02 # 2% processing (domestic)
+    TotalRevenue = gemCount * SingleGemRevenue
+    return CalculateCuts(TotalRevenue)
+
+# Calculate USD payed (based on player's performance in game & moving eCPM)
+# "gamerScore" (gems you are cashing out ÷ number of gems you could have earned maximally, based on ads served)
+# (New method, collecting earnings, tracked in S2S callbacks with eCPM)
+def CalculatePayoutSkill(user, gemCount):
+    gamerScore = gemCount / ((user["interstitial"]*5) + (user["rewarded"]*50))
+    gamerEarnings = user["earnings"] * gamerScore # earnings (based on game performance) BEFORE processing fees
+    return CalculateCuts(gamerEarnings)
+    
+
+def CalculateCuts(TotalRevenue):
+    PlayerShare = 0.70 # percent the user gets
+    PlayerCut = TotalRevenue * PlayerShare
+    if (PlayerCut * 0.02 > 0.25):
+        PaypalProcessingFee = PlayerCut * 0.02 # 2% processing (domestic)
     else:
         PaypalProcessingFee = 0.25 # 25¢ processing (international)
-    EntitledCut = TotalCut - PaypalProcessingFee
-    TotalCut = int(TotalCut*100)/100
+    EntitledCut = PlayerCut - PaypalProcessingFee
+    PlayerCut = int(PlayerCut*100)/100
     EntitledCut = int(EntitledCut*100)/100
-    AdminCut = (gemCount*SingleGemRevenue) - TotalCut
-    return TotalCut, EntitledCut, AdminCut
+    AdminCut = TotalRevenue - PaypalProcessingFee - EntitledCut
+    return PlayerCut, EntitledCut, AdminCut
+
 
 
 # Calculate minimum gems needed to cover paypal processing and profit 1 cent
@@ -219,7 +234,7 @@ def CalculateMinimumGems():
     gems = 0
     while EntitledPayout < 0.01:
         gems += 1
-        TotalPayout, EntitledPayout, _ = CalculatePayout(gems)
+        TotalPayout, EntitledPayout, _ = CalculatePayoutFixed(gems)
         # print(gems,EntitledPayout)
     return gems
 GEM_MINIMUM = CalculateMinimumGems()
@@ -289,9 +304,9 @@ def redeem_ads(userID, gemCount):
 @app.route("/Cashout/<gemCount>", methods=['GET'])
 def PreviewCashout(gemCount:int):
     if gemCount < GEM_MINIMUM:
-        return f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"
+        return f"You need $0.26 of  to cashout (~{GEM_MINIMUM} gems at current rate)"
     else:
-        return CalculatePayout(gemCount)[:2]
+        return CalculatePayoutFixed(gemCount)[:2]
 
 
 @app.route('/PreviewCashout', methods=['POST'])
@@ -317,14 +332,15 @@ def PreviewCashoutPost(user):
     if data["gemCount"] > data['totalGem']:
         data["message"] = "Error: Can not cashout {gemCount:,} gems, you only have {totalGem:,}".format(**data)
     
-    # Error: Processing fees too high (invalid cashout)
-    elif data["gemCount"] < GEM_MINIMUM:
-        data["message"] = f"Error: Processing fees outweigh your cashout ({GEM_MINIMUM:,} gems required)"
+    # Calcualte Payouts
+    _, entitledPayout, adminPayout = CalculatePayoutSkill(user, data["gemCount"] )
+    data["payout"] = f"{entitledPayout:,.02f}"
 
+    # Invalid cashout)
+    if entitledPayout <= 0:
+        data["message"] = f"Processing fees outweigh your cashout, try again with more gems!"
     # Standard Cashout
     else:
-        _, entitledPayout, _ = CalculatePayout(data['gemCount'])
-        data["payout"] = f"{entitledPayout:,.02f}"
         data["message"] = "A {gemCount:,} gem cashout would result in a ${payout} payout to PayPal!".format(**data)
     
     # Error: you must login
@@ -376,8 +392,11 @@ def Cashout(user):
     # verify gem count
     if ((user["gems"]+user["bonus"]) < gemCount):
         return "You requested more gems than you have!"
-    if gemCount < GEM_MINIMUM:
-        return jsonify({"success":False, "message": f"Processing fees outweigh your cashout ({GEM_MINIMUM} gems required)"})
+
+    # verify payout ()
+    TotalPayout, EntitledPayout, AdminPayout = CalculatePayoutSkill(user, gemCount)
+    if EntitledPayout <= 0:
+        return jsonify({"success":False, "message": f"Processing fees outweigh your cashout, try again with more gems!"})
     
     # mark ads as redeemed (verify S2S callbacks (detects illegal gems / too fast cashout?)
     redeem_success, user = redeem_ads(user, gemCount)
@@ -389,8 +408,7 @@ def Cashout(user):
     if not redeem_success:
         return jsonify({"success": False, "message": "Insufficient gems? Gem count has de-synced?"})
 
-    # generate paypal cashout
-    TotalPayout, EntitledPayout, AdminPayout = CalculatePayout(gemCount)
+    # Process payout (PayPal)
     create_payout(email, EntitledPayout)
 
     # Record cashout in our database)
@@ -475,13 +493,12 @@ def WatchFakeInterstitial(user, count):
     return redirect("/")
 
 
-# https://dcherevatsky.pythonanywhere.com/S2S?oid=1737946872029&sid=101&hmac=fcd620d061910db14784f00f5d7af63c
+# Simulate Playing the game (watching around of ads / collecting perfect 55 gem)
 @app.route('/Fake/S2S/AdRound/<int:count>', methods=['GET'])
 @admin_required
 def WatchFakeAdRound(user, count):
     record_ad_round(user.doc_id, count)
     return redirect("/")
-
 
 
 # UNITY S2S : Unity will use this route to tell us when users watch ads
