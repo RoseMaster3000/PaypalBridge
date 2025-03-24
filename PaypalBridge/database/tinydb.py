@@ -75,7 +75,7 @@ def log_cashout(user, gemCount, TotalPayout, EntitledPayout, AdminPayout):
     # increment total cashout of user
     user = users.get(doc_id=user.doc_id)
     user['total_cashout'] = user.get('total_cashout', 0) + EntitledPayout
-    user['earnings'] -= EntitledPayout
+    user['earnings'] -= TotalPayout
     user['cashouts'].append({
         "gems": gemCount,
         "TotalPayout": TotalPayout,  # how much send via paypal (before paypal fees)
@@ -107,6 +107,10 @@ def purge_request_log():
     Record = Query()
     requests_table.remove(~ (Record.path.one_of(["/S2S", "/S3S"])))
 
+
+# Update user record
+def update_user(user):
+    update_user(user.doc_id, **user)
 
 # Update the user record
 def update_user(user, **kwargs):

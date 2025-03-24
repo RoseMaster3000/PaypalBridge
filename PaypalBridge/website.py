@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, session, jsonify, abort, make_response
 from flask_bcrypt import Bcrypt
-from datetime import datetime
+import datetime
 from uuid import uuid4
 from urllib.parse import unquote, urlparse
 import hmac
@@ -10,7 +10,7 @@ import os
 from PaypalBridge.paypal import create_payout
 from PaypalBridge import SECRET
 from PaypalBridge.database.tinydb import *
-
+from PaypalBridge.ecpm import get_recent_ecpm
 
 # initialize modules
 app = Flask(__name__) 
@@ -45,6 +45,21 @@ def generate_temp_user():
     )
     session["username"] = user["username"]
     session["gems"] = user["gems"]
+
+
+@app.route("/ResetAccount", methods=['GET'])
+@none_required
+def ResetAccount(user):
+    session["gems"] = 0
+    user["gems"] = 0
+    user["bonus"] = 0
+    user["rewarded"] = 0
+    user["interstitial"] = 0
+    user["total_cashout"] = 0
+    user["earnings"] = 0
+    user["children"] = []
+    update_user(user["username"], **user)
+    return redirect("/")
 
 # ask server for username
 @app.route("/TempUser", methods=['POST'])
@@ -91,7 +106,7 @@ def index(user):
 
 def convert_epoch(epoch_time):
     if type(epoch_time)==str: return epoch_time
-    datetime_object = datetime.fromtimestamp(int(epoch_time))
+    datetime_object = datetime.datetime.fromtimestamp(int(epoch_time))
     return datetime_object.strftime("%Y-%m-%d %H:%M:%S")  # Customize the format as needed
 
 
@@ -209,10 +224,19 @@ def CalculatePayoutFixed(gemCount):
 # "gamerScore" (gems you are cashing out ÷ number of gems you could have earned maximally, based on ads served)
 # (New method, collecting earnings, tracked in S2S callbacks with eCPM)
 def CalculatePayoutSkill(user, gemCount):
+    if gemCount==0: return 0,0,0
     gamerScore = gemCount / ((user["interstitial"]*5) + (user["rewarded"]*50))
     gamerEarnings = user["earnings"] * gamerScore # earnings (based on game performance) BEFORE processing fees
     return CalculateCuts(gamerEarnings)
     
+
+# calcualte generic payout based on today's eCPM~ish
+def CalculatePayoutSkillAppoximate(gemCount):
+    interstitialValue = get_recent_ecpm("interstitial") / 1000
+    rewardedValue = get_recent_ecpm("rewarded") / 1000
+    gemValue = (interstitialValue + rewardedValue) / 55
+    return CalculateCuts(gemCount*gemValue)
+
 
 def CalculateCuts(TotalRevenue):
     PlayerShare = 0.70 # percent the user gets
@@ -230,8 +254,8 @@ def CalculateCuts(TotalRevenue):
 
 
 # Calculate minimum gems needed to cover paypal processing and profit 1 cent
-GEM_MINIMUM = CalculateMinimumGems()
-GEM_MINIMUM_DATE = datetime.date(1, 1)
+import datetime
+GEM_MINIMUM_DATE = datetime.date.today() - datetime.timedelta(days=99)
 def CalculateMinimumGems():
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
     if GEM_MINIMUM_DATE < yesterday:
@@ -239,10 +263,11 @@ def CalculateMinimumGems():
         gems = 0
         while EntitledPayout < 0.01:
             gems += 1
-            TotalPayout, EntitledPayout, _ = CalculatePayoutFixed(gems)
+            TotalPayout, EntitledPayout, _ = CalculatePayoutSkillAppoximate(gems)
             # print(gems,EntitledPayout)
         GEM_MINIMUM = gems
     return GEM_MINIMUM
+GEM_MINIMUM = CalculateMinimumGems()
 
 
 # minimal number of interstitial / rewarded ads to cover gemCount
@@ -336,11 +361,11 @@ def PreviewCashoutPost(user):
         data["message"] = "Error: Can not cashout {gemCount:,} gems, you only have {totalGem:,}".format(**data)
     
     # Calcualte Payouts
-    _, entitledPayout, adminPayout = CalculatePayoutSkill(user, data["gemCount"] )
-    data["payout"] = f"{entitledPayout:,.02f}"
+    _, EntitledCut, AdminCut = CalculatePayoutSkill(user, data["gemCount"] )
+    data["payout"] = f"{EntitledCut:,.02f}"
 
     # Invalid cashout)
-    if entitledPayout <= 0:
+    if EntitledCut <= 0:
         data["message"] = f"Processing fees outweigh your cashout, you need ~{GEM_MINIMUM} gems to cashout (at today's rate)"
     # Standard Cashout
     else:
@@ -397,8 +422,8 @@ def Cashout(user):
         return "You requested more gems than you have!"
 
     # verify payout ()
-    TotalPayout, EntitledPayout, AdminPayout = CalculatePayoutSkill(user, gemCount)
-    if EntitledPayout <= 0:
+    TotalCut, EntitledCut, AdminCut = CalculatePayoutSkill(user, gemCount)
+    if EntitledCut <= 0:
         return jsonify({"success":False, "message": f"Processing fees outweigh your cashout, you need ~{GEM_MINIMUM} gems to cashout (at today's rate)"})
     
     # mark ads as redeemed (verify S2S callbacks (detects illegal gems / too fast cashout?)
@@ -412,17 +437,17 @@ def Cashout(user):
         return jsonify({"success": False, "message": "Insufficient gems? Gem count has de-synced?"})
 
     # Process payout (PayPal)
-    create_payout(email, EntitledPayout)
+    create_payout(email, EntitledCut)
 
     # decrement earnings + log cashout in our database
     cashout_success, user = log_cashout(
         user,
         gemCount,
-        TotalPayout,
-        EntitledPayout,
-        AdminPayout
+        TotalCut,
+        EntitledCut,
+        AdminCut
     )
-    return jsonify({"success": True, "message": f"Cashout of ${EntitledPayout:0.2f} successfully send to {email}"})
+    return jsonify({"success": True, "message": f"Cashout of ${EntitledCut:0.2f} successfully send to {email}"})
 
 @app.route("/CashoutHistory/<username>")
 @admin_required

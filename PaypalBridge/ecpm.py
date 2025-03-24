@@ -67,6 +67,7 @@ def get_ecpm(resolution="week", dayRange=1, aggregate=False):
     headers = {
         "Authorization": f"Token {UNITY_MONETIZATION_KEY}",
         "Accept": "application/json",
+        "User-Agent": "Defined"
     }
 
     try:
