@@ -230,17 +230,19 @@ def CalculateCuts(TotalRevenue):
 
 
 # Calculate minimum gems needed to cover paypal processing and profit 1 cent
-def CalculateMinimumGems():
-    EntitledPayout = 0
-    gems = 0
-    while EntitledPayout < 0.01:
-        gems += 1
-        TotalPayout, EntitledPayout, _ = CalculatePayoutFixed(gems)
-        # print(gems,EntitledPayout)
-    return gems
 GEM_MINIMUM = CalculateMinimumGems()
-print("GEM MINIMUM:", GEM_MINIMUM)
-
+GEM_MINIMUM_DATE = datetime.date(1, 1)
+def CalculateMinimumGems():
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    if GEM_MINIMUM_DATE < yesterday:
+        EntitledPayout = 0
+        gems = 0
+        while EntitledPayout < 0.01:
+            gems += 1
+            TotalPayout, EntitledPayout, _ = CalculatePayoutFixed(gems)
+            # print(gems,EntitledPayout)
+        GEM_MINIMUM = gems
+    return GEM_MINIMUM
 
 
 # minimal number of interstitial / rewarded ads to cover gemCount
@@ -305,7 +307,7 @@ def redeem_ads(userID, gemCount):
 @app.route("/Cashout/<gemCount>", methods=['GET'])
 def PreviewCashout(gemCount:int):
     if gemCount < GEM_MINIMUM:
-        return f"You need $0.26 of  to cashout (~{GEM_MINIMUM} gems at current rate)"
+        return f"Processing fees outweigh your cashout, you need ~{GEM_MINIMUM} gems to cashout (at today's rate)"
     else:
         return CalculatePayoutFixed(gemCount)[:2]
 
@@ -339,7 +341,7 @@ def PreviewCashoutPost(user):
 
     # Invalid cashout)
     if entitledPayout <= 0:
-        data["message"] = f"Processing fees outweigh your cashout, try again with more gems!"
+        data["message"] = f"Processing fees outweigh your cashout, you need ~{GEM_MINIMUM} gems to cashout (at today's rate)"
     # Standard Cashout
     else:
         data["message"] = "A {gemCount:,} gem cashout would result in a ${payout} payout to PayPal!".format(**data)
@@ -397,7 +399,7 @@ def Cashout(user):
     # verify payout ()
     TotalPayout, EntitledPayout, AdminPayout = CalculatePayoutSkill(user, gemCount)
     if EntitledPayout <= 0:
-        return jsonify({"success":False, "message": f"Processing fees outweigh your cashout, try again with more gems!"})
+        return jsonify({"success":False, "message": f"Processing fees outweigh your cashout, you need ~{GEM_MINIMUM} gems to cashout (at today's rate)"})
     
     # mark ads as redeemed (verify S2S callbacks (detects illegal gems / too fast cashout?)
     redeem_success, user = redeem_ads(user, gemCount)
@@ -412,7 +414,7 @@ def Cashout(user):
     # Process payout (PayPal)
     create_payout(email, EntitledPayout)
 
-    # Record cashout in our database)
+    # decrement earnings + log cashout in our database
     cashout_success, user = log_cashout(
         user,
         gemCount,
