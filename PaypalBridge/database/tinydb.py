@@ -75,6 +75,7 @@ def log_cashout(user, gemCount, TotalPayout, EntitledPayout, AdminPayout):
     # increment total cashout of user
     user = users.get(doc_id=user.doc_id)
     user['total_cashout'] = user.get('total_cashout', 0) + EntitledPayout
+    user['earnings'] -= EntitledPayout
     user['cashouts'].append({
         "gems": gemCount,
         "TotalPayout": TotalPayout,  # how much send via paypal (before paypal fees)
