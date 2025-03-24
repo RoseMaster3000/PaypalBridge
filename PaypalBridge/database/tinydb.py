@@ -241,6 +241,6 @@ def backfix_users(dayRange=10):
             ) 
         if "earnings" not in user:
             users.update(
-                {'earnings': 0.00},
+                {'earnings': 0.00000},
                 doc_ids=[user.doc_id]
             ) 

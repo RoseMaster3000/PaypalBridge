@@ -40,6 +40,7 @@ def generate_temp_user():
         rewarded = 0,
         interstitial = 0,
         total_cashout = 0,
+        earnings = 0,
         children = []
     )
     session["username"] = user["username"]
