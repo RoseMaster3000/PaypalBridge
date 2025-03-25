@@ -84,11 +84,37 @@ def log_cashout(user, gemCount, TotalPayout, EntitledPayout, AdminPayout):
         "AdminCollected": False,     # [T/F] has the Admin collected their cut?
         "time": now()
     })
+    
     try:
         users.update(user, doc_ids=[user.doc_id])
         return True, user
     except:
         return False, user
+
+
+ADMIN_CASH = "admin.cash"
+
+# increase admin cash running total
+def increment_admin_cash(increment):
+    cash = fetch_admin_cash()
+    print(cash)
+    cash += increment
+    print(cash)
+    with open(ADMIN_CASH, 'w') as file:
+        file.write(str(cash))
+
+# get curretn admin cash value
+def fetch_admin_cash():
+    if not os.path.isfile(ADMIN_CASH):
+        reset_admin_cash()
+    with open(ADMIN_CASH, 'r') as file:
+        return float(file.read())
+
+# reset admin cash file (set to 0)
+def reset_admin_cash():
+    with open(ADMIN_CASH, 'w') as file:
+        file.write("0")
+
 
 # delete temp uses (eg 5: accounts older than [5] days old)
 def purge_users(dayRange=0):
@@ -163,9 +189,14 @@ def record_rewarded(user, count=1):
     rewarded_ecpm = get_recent_ecpm("rewarded")
     # increment ad count & earnings
     user['rewarded'] += count
-    user['earnings'] += rewarded_ecpm / 1000 * count
+    generated_revenue = rewarded_ecpm / 1000 * count
+    user['earnings'] += generated_revenue
     # update database
     users.update(user, doc_ids=[user.doc_id])
+    # track our profits
+    print(generated_revenue* 0.30)
+    increment_admin_cash(generated_revenue * 0.30)
+
 
 # log 1 rewarded ad
 def record_interstitial(user, count=1):
@@ -173,9 +204,12 @@ def record_interstitial(user, count=1):
     interstitial_ecpm = get_recent_ecpm("interstitial")
     # increment ad count & earnings
     user['interstitial'] += count
-    user['earnings'] += interstitial_ecpm / 1000 * count
+    generated_revenue = interstitial_ecpm / 1000 * count
+    user['earnings'] += generated_revenue
     # update database
     users.update(user, doc_ids=[user.doc_id])
+    # track out profits
+    increment_admin_cash(generated_revenue * 0.30)
 
 # log rewarded+interstitial ad(s) in database 
 def record_ad_round(user, count=1):
@@ -184,11 +218,15 @@ def record_ad_round(user, count=1):
     rewarded_ecpm = get_recent_ecpm("rewarded")
     user['interstitial'] += count
     user['rewarded'] += count
-    user['earnings'] += interstitial_ecpm / 1000 * count
-    user['earnings'] += rewarded_ecpm / 1000 * count
+    interstitial_revenue = interstitial_ecpm / 1000 * count
+    user['earnings'] += interstitial_revenue
+    rewarded_revenue = rewarded_ecpm / 1000 * count
+    user['earnings'] += rewarded_revenue
     user['gems'] += 55 * count
     # update database
     users.update(user, doc_ids=[user.doc_id])
+    increment_admin_cash((interstitial_revenue+rewarded_revenue) * 0.30)
+
 
 def fetch_all(tableName):
     table = db.table(tableName)

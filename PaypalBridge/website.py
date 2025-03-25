@@ -97,12 +97,18 @@ def index(user):
             'dashboard.html',
             users=users,
             user=user,
-            gem_minimum=GEM_MINIMUM
+            gem_minimum=GEM_MINIMUM,
+            admin_cash= f"${fetch_admin_cash():,.02f}"
         )
     elif user['username'] !='admin':
         return render_template('login.html')
 
 
+@app.route("/reset_admin_cash")
+@admin_required
+def reset_cash_counter(user):
+    reset_admin_cash()
+    return redirect("/")
 
 def convert_epoch(epoch_time):
     if type(epoch_time)==str: return epoch_time

@@ -12,14 +12,14 @@ def get_recent_ecpm(placement):
 
     # get eCPM file from cached file (if it exists)
     if not isfile(ecpmFile):
-        data = save_ecpm(resolution="day", dayRange=30, output=ecpmFile, aggregate=True)
+        data = save_ecpm(resolution="day", dayRange=45, output=ecpmFile, aggregate=True)
     else:
         with open(ecpmFile, 'r') as file:
             data = json.loads(file.read())
 
     # verify cached eCPM data is up to date
     if not is_recent(data):
-        data = save_ecpm(resolution="week", dayRange=1, output=ecpmFile, aggregate=True)
+        data = save_ecpm(resolution="day", dayRange=45, output=ecpmFile, aggregate=True)
 
     # return data
     return extract(data, placement)
@@ -87,7 +87,7 @@ def get_ecpm(resolution="week", dayRange=1, aggregate=False):
                 newrecord["timestamp"] = r["timestamp"]
                 newrecord["fill_rate"] = r["start_count"] / r["adrequest_count"] if r["adrequest_count"] else 0
                 newrecord["completion_rate"] = r["view_count"] / r["start_count"] if r["start_count"] else 0
-                newrecord["ecpm"] = r["revenue_sum"] / r["view_count"] if r["view_count"] else 0 
+                newrecord["ecpm"] = r["revenue_sum"] / r["start_count"] if r["start_count"] else 0 
                 newrecord["ecpm"] *= 1000
                 newdata.append(newrecord)
         return newdata 

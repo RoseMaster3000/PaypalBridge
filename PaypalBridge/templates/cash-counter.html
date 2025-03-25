@@ -1,0 +1,29 @@
+<div class="cash-container">
+    <div class="header">Unclaimed Revenue</div>
+    <div class="cash-amount">{{admin_cash}}</div>
+    <button class="reset-btn" onclick="showConfirmationModal()">Reset Counter</button>
+</div>
+
+<div class="overlay" id="confirmationOverlay">
+    <div class="confirmation-modal">
+        <h2>Reset Unclaimed Revenue</h2>
+        <p>Are you sure you want to reset the Unclaimed Revenue counter?</p>
+        <p><strong>Please ensure you have claimed the money from your PayPal account before resetting.</strong></p>
+        <div class="modal-buttons">
+            <button class="modal-btn modal-cancel" onclick="closeConfirmationModal()">Cancel</button>
+            <a href="/reset_admin_cash" class="modal-btn modal-confirm" onclick="resetCounter()">Confirm Reset</a>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function showConfirmationModal() {
+        document.getElementById('confirmationOverlay').style.display = 'flex';
+    }
+
+    function closeConfirmationModal() {
+        document.getElementById('confirmationOverlay').style.display = 'none';
+    }
+
+</script>
