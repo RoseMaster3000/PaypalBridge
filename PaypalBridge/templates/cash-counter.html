@@ -2,33 +2,39 @@
     <div class="cash-container">
         <div class="header">Gross Revenue 100%</div>
         <div class="cash-amount">{{grossRevenue}}</div>
+        <button class="reset-btn" onclick="showConfirmationModal('/reset_revenue/gross')">Reset Counter</button>
     </div>
     <div class="cash-container">
         <div class="header">Website Revenue 30%</div>
         <div class="cash-amount">{{websiteRevenue}}</div>
-        <button class="reset-btn" onclick="showConfirmationModal()">Reset Counter</button>
+        <button class="reset-btn" onclick="showConfirmationModal('/reset_revenue/website')">Reset Counter</button>
     </div>
     <div class="cash-container">
         <div class="header">Player Revenue 70%</div>
         <div class="cash-amount">{{playerRevenue}}</div>
+        <button class="reset-btn" onclick="showConfirmationModal('/reset_revenue/player')">Reset Counter</button>
     </div>
 </div>
 
 <div class="overlay" id="confirmationOverlay">
     <div class="confirmation-modal">
         <h2>Reset Unclaimed Revenue</h2>
-        <p>Are you sure you want to reset the Unclaimed Revenue counter?</p>
+        <p>Are you sure you want to reset this revenue counter?</p>
         <p><strong>Please ensure you have claimed the money from your PayPal account before resetting.</strong></p>
         <div class="modal-buttons">
             <button class="modal-btn modal-cancel" onclick="closeConfirmationModal()">Cancel</button>
-            <a href="/reset_admin_cash" class="modal-btn modal-confirm" onclick="resetCounter()">Confirm Reset</a>
+            <a id="confirmResetLink" href="#" class="modal-btn modal-confirm">Confirm Reset</a>
         </div>
     </div>
 </div>
 
 
 <script>
-    function showConfirmationModal() {
+    let currentResetLink = '';
+
+    function showConfirmationModal(resetLink) {
+        currentResetLink = resetLink;
+        document.getElementById('confirmResetLink').href = currentResetLink;
         document.getElementById('confirmationOverlay').style.display = 'flex';
     }
 
@@ -36,8 +42,6 @@
         document.getElementById('confirmationOverlay').style.display = 'none';
     }
 
+    // The resetCounter function is now implicitly handled by the link in the modal.
+    // You can remove the onclick from the confirm button if you handle the reset on the server-side based on the link.
 </script>
-
-
-
-

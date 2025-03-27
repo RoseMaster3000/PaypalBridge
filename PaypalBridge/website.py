@@ -109,10 +109,10 @@ def index(user):
         return render_template('login.html')
 
 
-@app.route("/reset_admin_cash")
+@app.route("/reset_revenue/<target>")
 @admin_required
-def reset_cash_counter(user):
-    set_revenue("website", 0)
+def reset_cash_counter(user, target):
+    set_revenue(target, 0)
     return redirect("/")
 
 
