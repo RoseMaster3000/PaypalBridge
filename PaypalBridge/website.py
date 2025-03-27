@@ -92,13 +92,18 @@ def index(user):
     if user['username'] =='admin' or app.debug:
         # get all users
         users = fetch_users()
+        websiteRevenue = fetch_revenue("website")
+        playerRevenue = fetch_revenue("player")
+        grossRevenue = fetch_revenue("gross")
         # display page
         return render_template(
             'dashboard.html',
             users=users,
             user=user,
             gem_minimum=GEM_MINIMUM,
-            admin_cash= f"${fetch_admin_cash():,.02f}"
+            websiteRevenue= f"${websiteRevenue:,.02f}",
+            playerRevenue= f"${playerRevenue:,.02f}",
+            grossRevenue= f"${grossRevenue:,.02f}",
         )
     elif user['username'] !='admin':
         return render_template('login.html')
@@ -107,8 +112,9 @@ def index(user):
 @app.route("/reset_admin_cash")
 @admin_required
 def reset_cash_counter(user):
-    reset_admin_cash()
+    set_revenue("website", 0)
     return redirect("/")
+
 
 def convert_epoch(epoch_time):
     if type(epoch_time)==str: return epoch_time
@@ -340,7 +346,7 @@ def PreviewCashout(gemCount:int):
     if gemCount < GEM_MINIMUM:
         return f"Processing fees outweigh your cashout, you need ~{GEM_MINIMUM} gems to cashout (at today's rate)"
     else:
-        return CalculatePayoutFixed(gemCount)[:2]
+        return CalculatePayoutSkill(gemCount)[:2]
 
 
 @app.route('/PreviewCashout', methods=['POST'])

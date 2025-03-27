@@ -1,33 +1,33 @@
 [
     {
         "placement": null,
-        "adrequest_count": 1133,
+        "adrequest_count": 1076,
         "revenue_sum": 0,
         "start_count": 0,
-        "available_sum": 1133,
+        "available_sum": 1076,
         "view_count": 0,
-        "records": 38,
-        "timestamp": "2025-03-24T00:00:00.000Z"
-    },
-    {
-        "placement": "Rewarded_Android",
-        "adrequest_count": 0,
-        "revenue_sum": 0.43999999999999995,
-        "start_count": 305,
-        "available_sum": 0,
-        "view_count": 296,
-        "records": 29,
-        "timestamp": "2025-03-21T00:00:00.000Z"
+        "records": 37,
+        "timestamp": "2025-03-25T00:00:00.000Z"
     },
     {
         "placement": "Interstitial_Android",
         "adrequest_count": 0,
         "revenue_sum": 0.07,
-        "start_count": 95,
+        "start_count": 93,
         "available_sum": 0,
         "view_count": 28,
-        "records": 20,
+        "records": 19,
         "timestamp": "2025-03-17T00:00:00.000Z"
+    },
+    {
+        "placement": "Rewarded_Android",
+        "adrequest_count": 0,
+        "revenue_sum": 0.43000000000000005,
+        "start_count": 301,
+        "available_sum": 0,
+        "view_count": 292,
+        "records": 27,
+        "timestamp": "2025-03-21T00:00:00.000Z"
     },
     {
         "placement": "Banner_Android",

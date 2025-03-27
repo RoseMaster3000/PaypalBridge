@@ -1,6 +1,6 @@
 <h1>Users</h1>
 
-<form method="POST" action="/DeleteUsers">  
+<form method="POST" action="/DeleteUsers">
 
 
 <table id="userTable" class="display">
@@ -21,29 +21,28 @@
   </thead>
   <tbody></tbody>
   <tfoot>
-  <tr>
-    <th></th>
-    <th></th>
-    <th></th>
-    <th></th>
-    <th></th>
-    <th></th>
-    <th></th>
-    <th></th>
-    <th></th>
-    <th></th>
-    <th><button type="submit">Delete</button></th>
-  </tr>
+    <tr>
+      <th></th>
+      <th><button type="button" id="toggleEmailButton">Toggle Email Display</button></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th><button type="submit">Delete</button></th>
+    </tr>
 </tfoot>
 </table>
 
 </form>
 
 
-<!-- Javascript  -->
 <script>
 $(document).ready(function() {
-  $('#userTable').DataTable({
+  var userTable = $('#userTable').DataTable({
     "ajax": {
       "url": "/api/users", // API
       "dataSrc": ""// JSON root
@@ -51,8 +50,8 @@ $(document).ready(function() {
     // The 'data' field should match the keys in JSON
     "columns": [
       {"data": "sid"},
-      {"data": "username"}, 
-      {"data": "email"},
+      {"data": "username"},
+      {"data": "email", "visible": false}, // Initially hide the email column
       {"data": "gems"},
       {"data": "bonus"},
       {"data": "earnings"},
@@ -63,9 +62,16 @@ $(document).ready(function() {
       {"data": null, "orderable": false, "render": generateDeleteBox},
     ]
   });
+
+  // Add a click event listener to the toggle button
+  $('#toggleEmailButton').on('click', function () {
+    // Get the column API object
+    var column = userTable.column(2); // Index 2 corresponds to the Email column
+
+    // Toggle the visibility
+    column.visible( ! column.visible() );
+  });
 });
-
-
 
 
 function generateDeleteBox(data, type, row) {

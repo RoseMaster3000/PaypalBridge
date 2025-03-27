@@ -75,3 +75,8 @@
     background-color: #e74c3c;
     color: white;
 }
+
+.cash-display-container {
+    display: flex;
+    gap: 20px; /* Adjust the gap between the containers as needed */
+}

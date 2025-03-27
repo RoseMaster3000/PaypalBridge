@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-<body>
 
 <!-- Metadata (CSS files, tab title) -->
 <head>
@@ -26,8 +25,14 @@
 
 </head>
 
+
+<body>
+
 <!-- Header : Admin Buttons -->
 {% include "dash-buttons.html" %}
+
+<!-- Admin Cash Display -->
+{% include 'cash-counter.html' %}
 
 <!-- User Table -->
 {% include "dash-users.html" %}

@@ -5,6 +5,7 @@ from random import randint
 from uuid import uuid4
 import os
 import time
+import json
 
 from PaypalBridge.ecpm import get_recent_ecpm
 
@@ -92,28 +93,64 @@ def log_cashout(user, gemCount, TotalPayout, EntitledPayout, AdminPayout):
         return False, user
 
 
-ADMIN_CASH = "admin.cash"
+REVENUE_FILE = "revenue.json"
 
-# increase admin cash running total
-def increment_admin_cash(increment):
-    cash = fetch_admin_cash()
-    print(cash)
-    cash += increment
-    print(cash)
-    with open(ADMIN_CASH, 'w') as file:
-        file.write(str(cash))
 
-# get curretn admin cash value
-def fetch_admin_cash():
-    if not os.path.isfile(ADMIN_CASH):
-        reset_admin_cash()
-    with open(ADMIN_CASH, 'r') as file:
-        return float(file.read())
+def increment_revenue_all(increment):
+    cash_data = fetch_revenue()
+    cash_data["gross"] += increment
+    cash_data["player"] += increment * 0.70
+    cash_data["website"] += increment * 0.30
+    with open(REVENUE_FILE, 'w') as file:
+        json.dump(cash_data, file, indent=4)
 
-# reset admin cash file (set to 0)
-def reset_admin_cash():
-    with open(ADMIN_CASH, 'w') as file:
-        file.write("0")
+# increase admin cash running total for a specific key
+def increment_revenue(key, increment):
+    cash_data = fetch_revenue()
+    if key in cash_data:
+        cash_data[key] += increment
+    else:
+        cash_data[key] = increment
+    with open(REVENUE_FILE, 'w') as file:
+        json.dump(cash_data, file, indent=4)
+
+# get current admin cash value for a specified key
+def fetch_revenue(key=None):
+    if not os.path.isfile(REVENUE_FILE):
+        reset_revenue()
+    with open(REVENUE_FILE, 'r') as file:
+        try:
+            data = json.load(file)
+            if key:
+                return data.get(key, 0)
+            else:
+                return data
+        except json.JSONDecodeError:
+            print("Error decoding JSON. Resetting admin cash.")
+            reset_revenue()
+            return fetch_revenue(key) # Retry fetching after reset
+
+# reset admin cash file (set specified keys to 0)
+def reset_revenue():
+    cash_data = {
+        "gross": 0,
+        "website": 0,
+        "player": 0
+    }
+    with open(REVENUE_FILE, 'w') as file:
+        json.dump(cash_data, file, indent=4)
+
+# set admin cash value to specific value
+def set_revenue(key, value=0):
+    cash_data = fetch_revenue()
+    print(f"Current cash data: {cash_data}")
+    if key in cash_data:
+        cash_data[key] = value
+    else:
+        cash_data[key] = value
+    print(f"Updated cash data: {cash_data}")
+    with open(REVENUE_FILE, 'w') as file:
+        json.dump(cash_data, file, indent=4)
 
 
 # delete temp uses (eg 5: accounts older than [5] days old)
@@ -195,7 +232,7 @@ def record_rewarded(user, count=1):
     users.update(user, doc_ids=[user.doc_id])
     # track our profits
     print(generated_revenue* 0.30)
-    increment_admin_cash(generated_revenue * 0.30)
+    increment_revenue_all(generated_revenue)
 
 
 # log 1 rewarded ad
@@ -209,7 +246,7 @@ def record_interstitial(user, count=1):
     # update database
     users.update(user, doc_ids=[user.doc_id])
     # track out profits
-    increment_admin_cash(generated_revenue * 0.30)
+    increment_revenue_all(generated_revenue)
 
 # log rewarded+interstitial ad(s) in database 
 def record_ad_round(user, count=1):
@@ -225,7 +262,7 @@ def record_ad_round(user, count=1):
     user['gems'] += 55 * count
     # update database
     users.update(user, doc_ids=[user.doc_id])
-    increment_admin_cash((interstitial_revenue+rewarded_revenue) * 0.30)
+    increment_revenue_all((interstitial_revenue+rewarded_revenue))
 
 
 def fetch_all(tableName):

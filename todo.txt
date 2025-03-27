@@ -1,5 +1,3 @@
-- decrease earnings after successful payout
-
 
 - CALCULATE AdminCut
     + when people cashout, how much money is left behind? (based on their gem performance)
