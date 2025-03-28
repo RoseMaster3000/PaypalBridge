@@ -271,7 +271,7 @@ def CalculateCuts(TotalRevenue):
 # (First use user's earnings / gems, then see how many more gems they would need)
 # (will add "~" symbol need additional theoretical market value gems)
 def CalculateGemsNeeded(user, gemCount):
-    gemsLeft = min(user["gems"] - gemCount, 0)
+    gemsLeft = max(user["gems"] - gemCount, 0)
     gemsNeeded = gemCount
     totalEarnings = CalulateEarnings(user, gemCount)
     entitledCut = 0
