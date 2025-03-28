@@ -271,14 +271,12 @@ def CalculateCuts(TotalRevenue):
 # (First use user's earnings / gems, then see how many more gems they would need)
 # (will add "~" symbol need additional theoretical market value gems)
 def CalculateGemsNeeded(user, gemCount):
-    gemsLeft = max(user["gems"] - gemCount, 0)
+    gemsLeft = user["gems"] - gemCount
     gemsNeeded = gemCount
     totalEarnings = CalulateEarnings(user, gemCount)
     entitledCut = 0
     projectedGems = ""
     singleGemValue = MarketGemValue()
-
-    fakeGems = 0
 
     while entitledCut < 0.01:
         gemsNeeded += 1
@@ -286,14 +284,12 @@ def CalculateGemsNeeded(user, gemCount):
         if gemsLeft > 0:
             totalEarnings = CalulateEarnings(user, gemCount)
             gemsLeft -= 1
-        # Then project additional gems at market rate
+        # Then use theoretical additional market rate gems
         else:
             projectedGems = "~"
             totalEarnings += singleGemValue
-            fakeGems += 1
-        print(gemsNeeded, fakeGems, totalEarnings)
+        # Calculate new cut
         _, entitledCut, _ = CalculateCuts(totalEarnings)
-
 
     return f"{projectedGems}{gemsNeeded}"
 
