@@ -1,20 +1,20 @@
 [
     {
-        "request_timestamp": 1743080999
+        "request_timestamp": 1743168155
     },
     {
         "placement": "Interstitial_Android",
         "timestamp": "2025-03-17T00:00:00.000Z",
         "fill_rate": 0,
-        "completion_rate": 0.3010752688172043,
-        "ecpm": 0.7526881720430109
+        "completion_rate": 0.2777777777777778,
+        "ecpm": 0.6944444444444444
     },
     {
         "placement": "Rewarded_Android",
         "timestamp": "2025-03-21T00:00:00.000Z",
         "fill_rate": 0,
-        "completion_rate": 0.9700996677740864,
-        "ecpm": 1.4285714285714288
+        "completion_rate": 0.9773584905660377,
+        "ecpm": 1.4339622641509435
     },
     {
         "placement": "Banner_Android",

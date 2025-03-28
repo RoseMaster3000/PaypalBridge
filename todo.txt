@@ -1,10 +1,11 @@
 
-- CALCULATE AdminCut
-    + when people cashout, how much money is left behind? (based on their gem performance)
+- Cashouts should ddisplay $0 when not enough
 
-    + Collect rounding errors (percentages)
+- GEM_MINIMUM not working...instead calcualte this on a user to user bases (how many more gems do they need)
 
-    + Collect any discrepancies in paypal processing fees (we assum worse 2%/25c, but we can use PayPal API so see if theres money left behind)
+- Front end displays green when you cant cahsout? (should only do that on successful cashout...)
+
+
 
 
 - Dashboard -> collect admin money (send money from business to personal paypal;)

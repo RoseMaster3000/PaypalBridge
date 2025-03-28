@@ -100,7 +100,6 @@ def index(user):
             'dashboard.html',
             users=users,
             user=user,
-            gem_minimum=GEM_MINIMUM,
             websiteRevenue= f"${websiteRevenue:,.02f}",
             playerRevenue= f"${playerRevenue:,.02f}",
             grossRevenue= f"${grossRevenue:,.02f}",
@@ -118,7 +117,7 @@ def reset_cash_counter(user, target):
 
 def convert_epoch(epoch_time):
     if type(epoch_time)==str: return epoch_time
-    datetime_object = datetime.datetime.fromtimestamp(int(epoch_time))
+    datetime_object = datetime.fromtimestamp(int(epoch_time))
     return datetime_object.strftime("%Y-%m-%d %H:%M:%S")  # Customize the format as needed
 
 
@@ -236,18 +235,22 @@ def CalculatePayoutFixed(gemCount):
 # "gamerScore" (gems you are cashing out ÷ number of gems you could have earned maximally, based on ads served)
 # (New method, collecting earnings, tracked in S2S callbacks with eCPM)
 def CalculatePayoutSkill(user, gemCount):
-    if gemCount==0: return 0,0,0
-    gamerScore = gemCount / ((user["interstitial"]*5) + (user["rewarded"]*50))
-    gamerEarnings = user["earnings"] * gamerScore # earnings (based on game performance) BEFORE processing fees
-    return CalculateCuts(gamerEarnings)
+    totalEarnings = CalulateEarnings(user, gemCount)
+    return CalculateCuts(totalEarnings)
     
 
-# calcualte generic payout based on today's eCPM~ish
-def CalculatePayoutSkillAppoximate(gemCount):
+def CalulateEarnings(user, gemCount):
+    if gemCount==0: return 0
+    gamerScore = gemCount / ((user["interstitial"]*5) + (user["rewarded"]*50))
+    return user["earnings"] * gamerScore # earnings (based on game performance) BEFORE processing fees
+
+
+# calculate generic market value of single gem (given current eCPM)
+def MarketGemValue():
     interstitialValue = get_recent_ecpm("interstitial") / 1000
     rewardedValue = get_recent_ecpm("rewarded") / 1000
-    gemValue = (interstitialValue + rewardedValue) / 55
-    return CalculateCuts(gemCount*gemValue)
+    singleGemValue = (interstitialValue + rewardedValue) / 55
+    return singleGemValue
 
 
 def CalculateCuts(TotalRevenue):
@@ -264,22 +267,35 @@ def CalculateCuts(TotalRevenue):
     return PlayerCut, EntitledCut, AdminCut
 
 
+# Calculate # of gems needed to make at least 1 cent
+# (First use user's earnings / gems, then see how many more gems they would need)
+# (will add "~" symbol need additional theoretical market value gems)
+def CalculateGemsNeeded(user, gemCount):
+    gemsLeft = min(user["gems"] - gemCount, 0)
+    gemsNeeded = gemCount
+    totalEarnings = CalulateEarnings(user, gemCount)
+    entitledCut = 0
+    projectedGems = ""
+    singleGemValue = MarketGemValue()
 
-# Calculate minimum gems needed to cover paypal processing and profit 1 cent
-import datetime
-GEM_MINIMUM_DATE = datetime.date.today() - datetime.timedelta(days=99)
-def CalculateMinimumGems():
-    yesterday = datetime.date.today() - datetime.timedelta(days=1)
-    if GEM_MINIMUM_DATE < yesterday:
-        EntitledPayout = 0
-        gems = 0
-        while EntitledPayout < 0.01:
-            gems += 1
-            TotalPayout, EntitledPayout, _ = CalculatePayoutSkillAppoximate(gems)
-            # print(gems,EntitledPayout)
-        GEM_MINIMUM = gems
-    return GEM_MINIMUM
-GEM_MINIMUM = CalculateMinimumGems()
+    fakeGems = 0
+
+    while entitledCut < 0.01:
+        gemsNeeded += 1
+        # First use gems the user has already earned
+        if gemsLeft > 0:
+            totalEarnings = CalulateEarnings(user, gemCount)
+            gemsLeft -= 1
+        # Then project additional gems at market rate
+        else:
+            projectedGems = "~"
+            totalEarnings += singleGemValue
+            fakeGems += 1
+        print(gemsNeeded, fakeGems, totalEarnings)
+        _, entitledCut, _ = CalculateCuts(totalEarnings)
+
+
+    return f"{projectedGems}{gemsNeeded}"
 
 
 # minimal number of interstitial / rewarded ads to cover gemCount
@@ -295,7 +311,7 @@ def minimal_ad_count(r, i, gems, debug=False):
             usedRewarded += 1
             r -= 1
             gems -= 50
-        # use interstial ads (if possible)
+        # use interstitial ads (if possible)
         elif (gems >= 5 and i > 0):
             usedInterstitial += 1
             i -= 1
@@ -341,14 +357,6 @@ def redeem_ads(userID, gemCount):
     return True, user
 
 
-@app.route("/Cashout/<gemCount>", methods=['GET'])
-def PreviewCashout(gemCount:int):
-    if gemCount < GEM_MINIMUM:
-        return f"Processing fees outweigh your cashout, you need ~{GEM_MINIMUM} gems to cashout (at today's rate)"
-    else:
-        return CalculatePayoutSkill(gemCount)[:2]
-
-
 @app.route('/PreviewCashout', methods=['POST'])
 @none_required
 def PreviewCashoutPost(user):
@@ -378,7 +386,9 @@ def PreviewCashoutPost(user):
 
     # Invalid cashout)
     if EntitledCut <= 0:
-        data["message"] = f"Processing fees outweigh your cashout, you need ~{GEM_MINIMUM} gems to cashout (at today's rate)"
+        gemsNeeded = CalculateGemsNeeded(user, data["gemCount"])
+        data["message"] = f"Processing fees outweigh your cashout, you need {gemsNeeded} gems to cashout (at today's rate)"
+        data["payout"] = 0
     # Standard Cashout
     else:
         data["message"] = "A {gemCount:,} gem cashout would result in a ${payout} payout to PayPal!".format(**data)
@@ -436,7 +446,8 @@ def Cashout(user):
     # verify payout ()
     TotalCut, EntitledCut, AdminCut = CalculatePayoutSkill(user, gemCount)
     if EntitledCut <= 0:
-        return jsonify({"success":False, "message": f"Processing fees outweigh your cashout, you need ~{GEM_MINIMUM} gems to cashout (at today's rate)"})
+        gemsNeeded = CalculateGemsNeeded(user, gemCount)
+        return jsonify({"success":False, "message": f"Processing fees outweigh your cashout, you need {gemsNeeded} gems to cashout (at today's rate)"})
     
     # mark ads as redeemed (verify S2S callbacks (detects illegal gems / too fast cashout?)
     redeem_success, user = redeem_ads(user, gemCount)
