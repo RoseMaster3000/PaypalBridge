@@ -271,27 +271,34 @@ def CalculateCuts(TotalRevenue):
 # (First use user's earnings / gems, then see how many more gems they would need)
 # (will add "~" symbol need additional theoretical market value gems)
 def CalculateGemsNeeded(user, gemCount):
-    gemsLeft = min(user["gems"] - gemCount, 0)
+    gemsLeft = max(user["gems"] - gemCount, 0)
     gemsNeeded = gemCount
     totalEarnings = CalulateEarnings(user, gemCount)
     entitledCut = 0
     projectedGems = ""
     singleGemValue = MarketGemValue()
+    fakeGems = 0
 
-    while entitledCut < 0.01:
-        gemsNeeded += 1
+    print(totalEarnings, gemsLeft, fakeGems)
+
+    while entitledCut < 0.01:    
         # First use gems the user has already earned
         if gemsLeft > 0:
-            totalEarnings = CalulateEarnings(user, gemCount)
+            gemsNeeded += 1
             gemsLeft -= 1
-        # Then use theoretical additional market rate gems
+            totalEarnings = CalulateEarnings(user, gemCount)
+        # or use theoretical additional market rate gems
         else:
+            gemsNeeded += 1
+            fakeGems += 1
             projectedGems = "~"
             totalEarnings += singleGemValue
         # Calculate new cut
         _, entitledCut, _ = CalculateCuts(totalEarnings)
 
+    print(totalEarnings, gemsLeft, fakeGems)
     return f"{projectedGems}{gemsNeeded}"
+
 
 
 # minimal number of interstitial / rewarded ads to cover gemCount
