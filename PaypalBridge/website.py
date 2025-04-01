@@ -241,7 +241,8 @@ def CalculatePayoutSkill(user, gemCount):
 
 def CalulateEarnings(user, gemCount):
     if gemCount==0: return 0
-    gamerScore = gemCount / ((user["interstitial"]*5) + (user["rewarded"]*50))
+    gemMaximum = (user["interstitial"]*5) + (user["rewarded"]*50)
+    gamerScore = gemCount / gemMaximum if gemMaximum else 0
     return user["earnings"] * gamerScore # earnings (based on game performance) BEFORE processing fees
 
 
@@ -372,6 +373,11 @@ def PreviewCashoutPost(user):
         "message": "..."
     }
 
+    # Error: you must login
+    if user.get("email", None) == None:
+        data["message"] = "To cashout, login or register with an email associated with a PayPal account."
+        return jsonify(data)
+
     # Error: Client provided strange gem count
     try:
         data["gemCount"] = int(request.form["gems"])
@@ -382,25 +388,21 @@ def PreviewCashoutPost(user):
     # Error: Asking for more gems than you have
     if data["gemCount"] > data['totalGem']:
         data["message"] = "Error: Can not cashout {gemCount:,} gems, you only have {totalGem:,}".format(**data)
-    
+        return jsonify(data)
+
     # Calcualte Payouts
     _, EntitledCut, AdminCut = CalculatePayoutSkill(user, data["gemCount"] )
     data["payout"] = f"{EntitledCut:,.02f}"
-
-    # Invalid cashout)
+    # Invalid cashout
     if EntitledCut <= 0:
         gemsNeeded = CalculateGemsNeeded(user, data["gemCount"])
         data["message"] = f"Processing fees outweigh your cashout, you need {gemsNeeded} gems to cashout (at today's rate)"
-        data["payout"] = 0
+        data["payout"] = "$0.00"
     # Standard Cashout
     else:
         data["message"] = "A {gemCount:,} gem cashout would result in a ${payout} payout to PayPal!".format(**data)
-    
-    # Error: you must login
-    if user.get("email", None) == None:
-        data["message"] = "To cashout, login or register with an email associated with a PayPal account."
-
     return jsonify(data)
+
 
 # decrment base gems (then bonus gems if necessary)
 # return T/F if not enough gems
