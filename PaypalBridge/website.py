@@ -40,8 +40,9 @@ def generate_temp_user():
         rewarded = 0,
         interstitial = 0,
         total_cashout = 0,
+        children = [],
         earnings = 0,
-        children = []
+        cashouts = []
     )
     session["username"] = user["username"]
     session["gems"] = user["gems"]
@@ -58,6 +59,7 @@ def ResetAccount(user):
     user["total_cashout"] = 0
     user["earnings"] = 0
     user["children"] = []
+    user["cashouts"] = []
     update_user(user["username"], **user)
     return redirect("/")
 
@@ -477,9 +479,17 @@ def Cashout(user):
     )
     return jsonify({"success": True, "message": f"Cashout of ${EntitledCut:0.2f} successfully send to {email}"})
 
+@app.route("/CashoutHistory/")
+@none_required
+def CashoutHistorySelf(user):
+    return CashoutHistory(user["username"])
+
 @app.route("/CashoutHistory/<username>")
 @admin_required
-def CashoutHistory(user, username):
+def CashoutHistoryOther(user, username):
+    return CashoutHistory(username)
+
+def CashoutHistory(username):
     targetUser = fetch_user(username)
     for c in targetUser["cashouts"]:
         c["time"] = convert_epoch(c["time"])
