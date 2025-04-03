@@ -1,27 +1,13 @@
 [
     {
-        "request_timestamp": 1743511722
+        "request_timestamp": 1743684854
     },
     {
         "placement": "Interstitial_Android",
         "timestamp": "2025-03-28T00:00:00.000Z",
         "fill_rate": 0,
-        "completion_rate": 0.2765957446808511,
-        "ecpm": 0.425531914893617
-    },
-    {
-        "placement": "Rewarded_Android",
-        "timestamp": "2025-03-28T00:00:00.000Z",
-        "fill_rate": 0,
-        "completion_rate": 0.9761904761904762,
-        "ecpm": 1.349206349206349
-    },
-    {
-        "placement": "Banner_Android",
-        "timestamp": "2025-02-16T00:00:00.000Z",
-        "fill_rate": 0,
-        "completion_rate": 0.0,
-        "ecpm": 0.0
+        "completion_rate": 0.3157894736842105,
+        "ecpm": 0.2631578947368421
     },
     {
         "placement": "banner2",
@@ -29,5 +15,12 @@
         "fill_rate": 0,
         "completion_rate": 0.0,
         "ecpm": 0.0
+    },
+    {
+        "placement": "Rewarded_Android",
+        "timestamp": "2025-04-02T00:00:00.000Z",
+        "fill_rate": 0,
+        "completion_rate": 0.9754098360655737,
+        "ecpm": 1.3934426229508197
     }
 ]

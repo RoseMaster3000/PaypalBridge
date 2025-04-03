@@ -394,7 +394,7 @@ def PreviewCashoutPost(user):
 
     # Calcualte Payouts
     _, EntitledCut, AdminCut = CalculatePayoutSkill(user, data["gemCount"] )
-    data["payout"] = f"{EntitledCut:,.02f}"
+    data["payout"] = f"${EntitledCut:,.02f}"
     # Invalid cashout
     if EntitledCut <= 0:
         gemsNeeded = CalculateGemsNeeded(user, data["gemCount"])
@@ -495,6 +495,16 @@ def CashoutHistory(username):
         c["time"] = convert_epoch(c["time"])
     return jsonify(targetUser["cashouts"])
 
+
+# Return all data on User
+@app.route("/GetUserEarnings")
+@none_required
+def GetUserInfo(user):
+    if "total_cashout" in user:
+        return str(user["total_cashout"])
+    else:
+        return "0.00"
+    
 
 # Get current balance (gem count)
 @app.route('/GemCount')
@@ -648,7 +658,7 @@ def login(user):
         return f"Password is Incorrect"
 
     # if old user is TEMPORARTY ACCOUNT with GEMS
-    if oldUser.get("email","") == None and oldUser.get("gems",0) != 0:
+    if oldUser.get("email",None) == None and oldUser.get("gems",0) != 0:
         # new user takes old user's ads / gems
         adopt_user(
             parent = newUser,
