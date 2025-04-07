@@ -163,7 +163,6 @@ def CreateUser(user):
     if len(request.form['password']) < 8:
         return "Error: Password must be 8 characters long"
 
-
     # claim temporary account (update new values)
     success = update_user(
         user = user["username"],
@@ -501,7 +500,7 @@ def CashoutHistory(username):
 @none_required
 def GetUserInfo(user):
     if "total_cashout" in user:
-        return str(user["total_cashout"])
+        return f"{user["total_cashout"]:.02f}"
     else:
         return "0.00"
     
