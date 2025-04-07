@@ -105,8 +105,8 @@ def index(user):
             websiteRevenue= f"${websiteRevenue:,.02f}",
             playerRevenue= f"${playerRevenue:,.02f}",
             grossRevenue= f"${grossRevenue:,.02f}",
-            interstitialECPM = f"${get_recent_ecpm("interstitial"):,.02f}",
-            rewardedECPM = f"${get_recent_ecpm("rewarded"):,.02f}"
+            interstitialECPM = f"${get_recent_ecpm('interstitial'):,.02f}",
+            rewardedECPM = f"${get_recent_ecpm('rewarded'):,.02f}"
         )
     elif user['username'] !='admin':
         return render_template('login.html')
