@@ -14,6 +14,14 @@
         <div class="cash-amount">{{playerRevenue}}</div>
         <button class="reset-btn" onclick="showConfirmationModal('/reset_revenue/player')">Reset Counter</button>
     </div>
+    <div class="cash-container">
+        <div style="margin-bottom: 0px;" class="header">Interstitial eCPM</div>
+        <div style="font-size: 30px;" class="cash-amount">{{interstitialECPM}}</div>
+        <hr>
+        <div style="margin-bottom: 0px; margin-top:25px;" class="header">Rewarded eCPM</div>
+        <div style="font-size: 30px;" class="cash-amount">{{rewardedECPM}}</div>   
+    </div>
+
 </div>
 
 <div class="overlay" id="confirmationOverlay">
