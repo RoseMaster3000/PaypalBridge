@@ -208,7 +208,8 @@ def adopt_user(parent, child):
     # parent takes all the child's gems 
     update_user(
         parent["username"],
-        gems = parent["gems"] + child["gems"]
+        gems = parent["gems"] + child["gems"],
+        bonus = parent["bonus"] + child["bonus"]
     )
 
     # mark child ad owned by parent
@@ -216,7 +217,8 @@ def adopt_user(parent, child):
     update_user(
         child["username"],
         parent = parent.doc_id,
-        gems = 0
+        gems = 0,
+        bonus = 0
     )
 
 

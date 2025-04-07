@@ -1,5 +1,5 @@
 
-- Cashouts should ddisplay $0 when not enough
+- Cashouts should display $0 when not enough
 
 - GEM_MINIMUM not working...instead calcualte this on a user to user bases (how many more gems do they need)
 
