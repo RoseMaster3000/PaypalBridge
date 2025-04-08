@@ -1,24 +1,24 @@
 [
     {
-        "request_timestamp": 1744029856
+        "request_timestamp": 1744117020
     },
     {
         "placement": "Interstitial_Android",
         "timestamp": "2025-04-03T00:00:00.000Z",
         "fill_rate": 0,
-        "completion_rate": 0.3333333333333333,
-        "ecpm": 0.2777777777777778
+        "completion_rate": 0.22580645161290322,
+        "ecpm": 0.3225806451612903
     },
     {
         "placement": "Rewarded_Android",
-        "timestamp": "2025-04-06T00:00:00.000Z",
+        "timestamp": "2025-04-07T00:00:00.000Z",
         "fill_rate": 0,
-        "completion_rate": 0.9340659340659341,
-        "ecpm": 1.4285714285714286
+        "completion_rate": 0.9411764705882353,
+        "ecpm": 1.4117647058823528
     },
     {
         "placement": "banner2",
-        "timestamp": "2025-04-03T00:00:00.000Z",
+        "timestamp": "2025-04-07T00:00:00.000Z",
         "fill_rate": 0,
         "completion_rate": 0.0,
         "ecpm": 0.0

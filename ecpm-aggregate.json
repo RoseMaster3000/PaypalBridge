@@ -1,42 +1,42 @@
 [
     {
         "placement": null,
-        "adrequest_count": 501,
+        "adrequest_count": 477,
         "revenue_sum": 0,
         "start_count": 0,
-        "available_sum": 501,
+        "available_sum": 477,
         "view_count": 0,
         "records": 37,
-        "timestamp": "2025-04-06T00:00:00.000Z"
+        "timestamp": "2025-04-07T00:00:00.000Z"
     },
     {
         "placement": "Interstitial_Android",
         "adrequest_count": 0,
         "revenue_sum": 0.01,
-        "start_count": 36,
+        "start_count": 31,
         "available_sum": 0,
-        "view_count": 12,
-        "records": 13,
+        "view_count": 7,
+        "records": 12,
         "timestamp": "2025-04-03T00:00:00.000Z"
     },
     {
         "placement": "Rewarded_Android",
         "adrequest_count": 0,
-        "revenue_sum": 0.13,
-        "start_count": 91,
+        "revenue_sum": 0.12,
+        "start_count": 85,
         "available_sum": 0,
-        "view_count": 85,
+        "view_count": 80,
         "records": 22,
-        "timestamp": "2025-04-06T00:00:00.000Z"
+        "timestamp": "2025-04-07T00:00:00.000Z"
     },
     {
         "placement": "banner2",
         "adrequest_count": 0,
         "revenue_sum": 0,
-        "start_count": 52,
+        "start_count": 53,
         "available_sum": 0,
         "view_count": 0,
-        "records": 17,
-        "timestamp": "2025-04-03T00:00:00.000Z"
+        "records": 18,
+        "timestamp": "2025-04-07T00:00:00.000Z"
     }
 ]
