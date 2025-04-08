@@ -659,7 +659,8 @@ def login(user):
         return f"Password is Incorrect"
 
     # if old user is TEMPORARTY ACCOUNT with GEMS
-    if oldUser.get("email",None) == None and oldUser.get("gems",0) != 0:
+    oldGems = oldUser.get("gems",0) + oldUser.get("bonus",0)
+    if oldUser.get("email",None) == None and oldGems > 0:
         # new user takes old user's ads / gems
         adopt_user(
             parent = newUser,
