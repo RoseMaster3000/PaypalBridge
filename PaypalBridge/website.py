@@ -502,7 +502,7 @@ def CashoutHistory(username):
 @none_required
 def GetUserInfo(user):
     if "total_cashout" in user:
-        return f"{user["total_cashout"]:.02f}"
+        return f"{user['total_cashout']:.02f}"
     else:
         return "0.00"
     
