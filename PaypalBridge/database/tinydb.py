@@ -159,7 +159,9 @@ def purge_users(dayRange=0):
     User = Query()
     removed_users = users.remove(
         (User.email == None) & 
-        (User.created_at < cutoffDate)
+        (User.created_at < cutoffDate) &
+        (User.gems == 0) &
+        (User.bonus == 0)
     )
     return len(removed_users)
 
