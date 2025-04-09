@@ -1,2 +1,2 @@
 from PaypalBridge.website import app
-from PaypalBridge import scheduler
+# from PaypalBridge import scheduler
