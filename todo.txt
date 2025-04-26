@@ -1,3 +1,20 @@
+/upload_appad
+/remove_appad
+/modify_appad
+    read/write database
+    (table called appad?)
+
+
+/forgot_appad_password
+    read database (appad?)
+    email temp password
+
+if login (marked as temp password) -->
+    change your password now!
+
+
+====================
+
 
 - Cashouts should display $0 when not enough
 
