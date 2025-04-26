@@ -3,6 +3,7 @@ Flask-Bcrypt==1.0.1
 tinydb==4.8.2
 requests==2.32.3
 Flask-APScheduler==1.13.1
+python-magic==0.4.27
 
 # py3dns==4.0.2
 # validate_email==1.3
