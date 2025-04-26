@@ -24,13 +24,6 @@
 .form-actions button {
     margin-left: 10px;
 }
-.left-divider {
-    width: 20%;
-    height: 2px;
-    background-color: rgb(12, 79, 179);
-    margin-left: 0;
-}
-
 
 .admin-controls {
     display: grid;

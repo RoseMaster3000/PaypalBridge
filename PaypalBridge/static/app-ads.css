@@ -1,0 +1,6 @@
+.left-divider {
+    width: 30%;
+    height: 2px;
+    background-color: rgb(12, 79, 179);
+    margin-left: 0;
+}
