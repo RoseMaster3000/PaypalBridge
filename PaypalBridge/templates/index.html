@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Manage app-ads.txt</title>
+    <style> 
+        .left-divider {
+            width: 20%;
+            height: 2px;
+            background-color: rgb(12, 79, 179);
+            margin-left: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 10%;
+            padding: 2px;
+            box-sizing: border-box;
+        }
+        .form-actions {
+            display: flex;
+            align-items: center;
+        }
+        .form-actions button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!--<h2>Upload, Modify, and Remove app-ads.txt</h2>-->
+
+    <!-- Upload Form -->
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="upload-file">Choose app-ads.txt file:</label>
+            <input type="file" name="file" id="upload-file" required>
+        </div>
+        <hr class="left-divider">
+        <div class="form-group form-actions">
+            <label for="upload-password">Password:</label>
+            <input type="password" name="password" id="upload-password" required>
+            <button type="submit">Upload</button>
+        </div>
+    </form>
+    
+    <!-- Remove Form -->
+    <form action="/remove" method="post">
+        <div class="form-group form-actions">
+            <label for="remove-password">Password:</label>
+            <input type="password" name="password" id="remove-password" required>
+            <button type="submit">Remove app-ads.txt</button>
+        </div>
+    </form>
+    <hr class="left-divider">
+    <!-- Modify Form -->
+    <form action="/modify" method="post">
+       <!-- <div class="form-group">  -->
+            
+            <textarea name="content" id="modify-content" rows="10" cols="30"></textarea>
+            <!--<label for="modify-content">Modify app-ads.txt content:</label>-->
+        </div>
+        <div class="form-group form-actions">
+            <label for="modify-password">Password:</label>
+            <input type="password" name="password" id="modify-password" required>
+            <button type="submit">Modify app-ads.txt content</button>
+        </div>
+    </form>
+    <hr />  <!-- <hr /> - thin line separetor-->
+</body>
+
+</html>
