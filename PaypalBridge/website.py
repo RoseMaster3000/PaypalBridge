@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, session, jsonify, abort, make_response
+from flask import Flask, render_template, request, redirect, session
+from flask import jsonify, abort, make_response, send_from_directory
 from flask_bcrypt import Bcrypt
 import datetime
 from uuid import uuid4
@@ -12,6 +13,11 @@ from PaypalBridge import SECRET
 from PaypalBridge.database.tinydb import *
 from PaypalBridge.ecpm import get_recent_ecpm
 
+
+from werkzeug.utils import secure_filename
+import magic
+
+
 # initialize modules
 app = Flask(__name__) 
 app.config['SECRET_KEY'] =  b'\xb4\xb5\xd0\xc5m\x10p\xdbB\xa2\xd4\x14'
@@ -19,6 +25,9 @@ bcrypt = Bcrypt(app)
 initialize_db(app.root_path)
 from PaypalBridge.decorators import *
 
+# For password storage (?)
+app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)
@@ -694,6 +703,7 @@ def delete_user_route():
 def logout():
     session.pop("username", None)
     return f"You are logged out<br><a href='/'>Go Back<a>"
+
 
 
 if __name__ == '__main__':
