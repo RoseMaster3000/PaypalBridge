@@ -1,23 +1,27 @@
-<hr class="left-divider">
+
+<div class="app-ads-display"> 
+<div class="app-ads-container">
+ 
 <h2>Upload app-add.txt</h2>
+<hr class="left-divider">
 <form action="/upload_appad" method="post" enctype="multipart/form-data">
     <div class="form-group">
         <label for="upload-file"> Select new app-ads.txt:</label>
         <input type="file" name="file" id="upload-file" required>
     </div>
-
-    <div class="form-group form-actions">
+    <br />
+    <div class=" form-group form-actions">
         <label for="upload-password">Password:</label>
         <input type="password" name="password" id="upload-password" required>
         <br>
         <button type="submit">Confirm Upload</button>
         <a href='/forgot_appad_password'><small>Forgot Password?</small></a>
-    </div>
+    </div></div><!--closes app-ads-container-->
 </form>
 
-
-<hr class="left-divider">
+<div class="app-ads-container">
 <h2>Remove app-add.txt</h2>
+<hr class="left-divider">
 <form action="/remove_appad" method="post">
     <div class="form-group form-actions">
         <label for="remove-password">Password:</label>
@@ -26,16 +30,16 @@
         <button type="submit">Confirm Deletion</button>
         <a href='/forgot_appad_password'><small>Forgot Password?</small></a>
     </div>
-</form>
+</form></div><!--closes app-ads-container-->
 
 
-
-<hr class="left-divider">
+<div class="app-ads-container">
 <h2>Modify app-add.txt</h2>
+<hr class="left-divider">
 <form action="/modify_appad" method="post">
     <div class="form-group">       
-    <textarea name="content" id="modify-content" rows="10" cols="30">copy & Paste new content here
-    </textarea>
+      <textarea name="content" id="modify-content" rows="10" cols="30">copy & Paste new content here
+      </textarea>
             
     </div>
     <div class="form-group form-actions">
@@ -45,5 +49,6 @@
         <button type="submit">Confirm Modification</button>
         <a href='/forgot_appad_password'><small>Forgot Password?</small></a>
     </div>
-    </form>
+    </form></div><!--closes app-ads-container-->
+</div><!--this /div is for display flex-->
 <hr/> 

@@ -98,6 +98,7 @@ label {
 /* Range Slider Styling */
 input[type="range"] {
     -webkit-appearance: none;
+    appearance: none; /* Ensures cross-browser consistency */
     height: 8px;
     background: #ddd;
     border-radius: 4px;

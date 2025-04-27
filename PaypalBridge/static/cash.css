@@ -1,7 +1,7 @@
 .cash-container {
     border: 3px solid #2c3e50;
     border-radius: 12px;
-    background-color: white;
+    background-color: rgb(241, 239, 239);
     box-shadow: 0 6px 12px rgba(0,0,0,0.1);
     text-align: center;
     padding: 20px;

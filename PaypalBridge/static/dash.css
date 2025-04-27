@@ -1,0 +1,19 @@
+.dash-divider {
+    width: 50%;
+    height: 2px;
+    background-color: rgb(196, 203, 213);
+    margin-left: 0;
+}
+.app-ads-container {
+    border: 3px solid #2c3e50;
+    border-radius: 12px;
+    background-color: rgb(139, 216, 226);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    text-align: center;
+    padding: 20px;
+    width: 250px;
+}
+.dash-display {
+    display: flex; /*flex is horizontal display*/
+    gap: 20px;
+}

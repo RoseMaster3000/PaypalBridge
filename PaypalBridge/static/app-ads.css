@@ -1,6 +1,24 @@
 .left-divider {
-    width: 30%;
+    width: 50%;
     height: 2px;
     background-color: rgb(12, 79, 179);
-    margin-left: 0;
+    /*margin-left: 0;*/
+    margin: 0 auto; /* Centers the divider */
+    margin-top: -15px; /* Moves the line upward */
+    margin-bottom: 10px; /* Adjusts spacing below */
+
+}
+.app-ads-container {
+    border: 3px solid #2c3e50;
+    border-radius: 12px;
+    background-color: rgb(139, 216, 226);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    text-align: left;
+    padding: 20px;
+    width: 250px;
+}
+.app-ads-display {
+    display: flex; /*flex is horizontal display*/
+    /*justify-content: space-between; /* Distributes columns evenly */
+    gap: 50px;
 }
