@@ -40,28 +40,34 @@ def upload_file():
     else:
         return "Sorry, only text files are allowed.", 400
 
-
 @app.route('/remove_appad', methods=['POST'])
 def remove_file():
-    password = request.form.get('password')
-    if not verify_password(password):
+    admin = fetch_user("admin")  # Fetch stored credentials
+
+    if not bcrypt.check_password_hash(admin['password'], request.form['password']):
         return "Incorrect password.", 403
 
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'app-ads.txt')
-    if os.path.exists(file_path):
-        os.remove(file_path)
-        return "The file app-ads.txt has been removed."
-    else:
-        return "The file app-ads.txt does not exist.", 404
+    file_name = request.form.get('file_name', 'app-ads.txt')  # Defaults to 'app-ads.txt'
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file_name))
 
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+            return f"The file '{file_name}' has been removed.", 200
+        except Exception:
+            return "An error occurred while deleting the file.", 500
+    else:
+        return f"The file '{file_name}' does not exist.", 404
 
 @app.route('/modify_appad', methods=['POST'])
 def modify_file():
-    password = request.form.get('password')
-    if not verify_password(password):
+    admin = fetch_user("admin")  # Fetch stored credentials
+
+    if not bcrypt.check_password_hash(admin['password'], request.form['password']):
         return "Incorrect password.", 403
 
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'app-ads.txt')
+
     if os.path.exists(file_path):
         new_content = request.form.get('content', '')
         with open(file_path, 'w') as file:
