@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Wallet Button Control Panel</title>
+    <script>
+        function toggleInteractableCheckbox() {
+            const visibleCheckbox = document.getElementById('visible');
+            const interactableCheckbox = document.getElementById('interactable');
+            interactableCheckbox.disabled = !visibleCheckbox.checked;
+        }
+    </script>
+</head>
+<body onload="toggleInteractableCheckbox()">
+    <h2>Wallet Button Control Panel</h2>
+    <form method="post">
+        <label>
+            <input type="checkbox" id="visible" name="visible" {% if WALLET_BUTTON_VISIBLE %}checked{% endif %} onchange="toggleInteractableCheckbox()">
+            Wallet Button Visible
+        </label><br>
+        <label>
+            <input type="checkbox" id="interactable" name="interactable" {% if WALLET_BUTTON_INTERACTABLE %}checked{% endif %}>
+            Wallet Button Interactable
+        </label><br><br>
+        <button type="submit">Update</button>
+    </form>
+</body>
+</html>
