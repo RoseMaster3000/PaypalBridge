@@ -706,8 +706,8 @@ def logout():
 
 #----wallet_status api is route to anable disable wallet button in unity----
 # Initial state
-WALLET_BUTTON_VISIBLE = True # not visible change to False
-WALLET_BUTTON_INTERACTABLE = True  # not interactable change to False
+WALLET_BUTTON_VISIBLE = False # not visible change to False/True
+WALLET_BUTTON_INTERACTABLE = False # not interactable change to True/False
  
 @app.route('/api/wallet_status')
 def wallet_status():

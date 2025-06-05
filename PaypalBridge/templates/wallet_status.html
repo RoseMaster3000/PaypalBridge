@@ -13,7 +13,7 @@
 </head>
 <body onload="toggleInteractableCheckbox()">
     <h2>Wallet Button Control Panel</h2>
-    <form method="post">
+    <form method="post" action="/update_wallet_status">
         <label>
             <input type="checkbox" id="visible" name="visible" {% if WALLET_BUTTON_VISIBLE %}checked{% endif %} onchange="toggleInteractableCheckbox()">
             Wallet Button Visible
