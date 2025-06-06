@@ -15,9 +15,8 @@ def now():
 
 
 # initialize database
-def initialize_db(path):
-    dbPath = os.path.join(path, '..', 'DatabaseStorage', 'tinydb.json')
-    os.makedirs(os.path.dirname(dbPath), exist_ok=True)
+def initialize_db(app):
+    dbPath = os.path.join(app.config['DATABASE_FOLDER'], 'tinydb.json')
     global db, users, ads
     db = TinyDB(dbPath)
     users = db.table('users')

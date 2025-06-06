@@ -13,7 +13,6 @@ from PaypalBridge import SECRET
 from PaypalBridge.database.tinydb import *
 from PaypalBridge.ecpm import get_recent_ecpm
 
-
 from werkzeug.utils import secure_filename
 import magic
 
@@ -21,13 +20,13 @@ import magic
 # initialize modules
 app = Flask(__name__) 
 app.config['SECRET_KEY'] =  b'\xb4\xb5\xd0\xc5m\x10p\xdbB\xa2\xd4\x14'
-bcrypt = Bcrypt(app)
-initialize_db(app.root_path)
-from PaypalBridge.decorators import *
-
-# For password storage (?)
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
+app.config['DATABASE_FOLDER'] = os.path.join(os.getcwd(), 'DatabaseStorage')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['DATABASE_FOLDER'], exist_ok=True)
+bcrypt = Bcrypt(app)
+initialize_db(app)
+from PaypalBridge.decorators import *
 
 
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)
