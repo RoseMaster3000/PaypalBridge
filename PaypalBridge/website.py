@@ -679,7 +679,7 @@ def login(user):
     # log user in  
     session["username"] = newUser["username"]
     session["gems"] = newUser["gems"]
-    return f"Logged in Successfully"
+    return f"Logged in Successfully <br><a href='/'>Go Back</a>"
 
 
 # delete multiple users 
@@ -702,7 +702,7 @@ def delete_user_route():
 @app.route('/Logout', methods=['POST'])
 def logout():
     session.pop("username", None)
-    return f"You are logged out<br><a href='/'>Go Back<a>"
+    return f"You are logged out"
 
 #----wallet_status api is route to anable disable wallet button in unity----
 # Initial state
