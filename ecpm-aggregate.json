@@ -1,13 +1,13 @@
 [
     {
         "placement": null,
-        "adrequest_count": 835,
+        "adrequest_count": 867,
         "revenue_sum": 0,
         "start_count": 0,
-        "available_sum": 835,
+        "available_sum": 867,
         "view_count": 0,
-        "records": 43,
-        "timestamp": "2025-06-02T00:00:00.000Z"
+        "records": 44,
+        "timestamp": "2025-06-04T00:00:00.000Z"
     },
     {
         "placement": "Unity_Standard_Placement",
@@ -23,11 +23,11 @@
         "placement": "Rewarded_Android",
         "adrequest_count": 0,
         "revenue_sum": 0.03,
-        "start_count": 140,
+        "start_count": 164,
         "available_sum": 0,
-        "view_count": 138,
-        "records": 19,
-        "timestamp": "2025-06-02T00:00:00.000Z"
+        "view_count": 162,
+        "records": 21,
+        "timestamp": "2025-06-04T00:00:00.000Z"
     },
     {
         "placement": "banner2",
