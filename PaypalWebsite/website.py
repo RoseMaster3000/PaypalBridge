@@ -122,7 +122,7 @@ def index(user):
             interstitialECPM = f"${get_recent_ecpm('interstitial'):,.02f}",
             rewardedECPM = f"${get_recent_ecpm('rewarded'):,.02f}"
         )
-    elif user['username'] !='admin':
+    else:
         return render_template('login.html')
 
 
