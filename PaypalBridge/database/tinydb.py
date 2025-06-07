@@ -6,24 +6,23 @@ from uuid import uuid4
 import os
 import time
 import json
-
 from PaypalBridge.ecpm import get_recent_ecpm
+
 
 # generate current epoch time INT (seconds since January 1, 1970)
 def now():
     return int(time.time())
 
-
 # initialize database
 def initialize_db(app):
+    global db, users, ads, REVENUE_FILE
+    REVENUE_FILE = os.path.join(app.config['DATABASE_FOLDER'], "revenue.json")
     dbPath = os.path.join(app.config['DATABASE_FOLDER'], 'tinydb.json')
-    global db, users, ads
     db = TinyDB(dbPath)
     users = db.table('users')
     backfix_users()
     purge_request_log()
     delete_old_tables()
-
 
 # old tables from early in development
 def delete_old_tables():
@@ -92,7 +91,7 @@ def log_cashout(user, gemCount, TotalPayout, EntitledPayout, AdminPayout):
         return False, user
 
 
-REVENUE_FILE = "revenue.json"
+
 
 
 def increment_revenue_all(increment):

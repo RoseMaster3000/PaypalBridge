@@ -11,7 +11,7 @@ import os
 from PaypalBridge.paypal import create_payout
 from PaypalBridge import SECRET
 from PaypalBridge.database.tinydb import *
-from PaypalBridge.ecpm import get_recent_ecpm
+from PaypalBridge.ecpm import get_recent_ecpm, initialize_ecpm
 
 from werkzeug.utils import secure_filename
 import magic
@@ -19,13 +19,18 @@ import magic
 
 # initialize modules
 app = Flask(__name__) 
+bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] =  b'\xb4\xb5\xd0\xc5m\x10p\xdbB\xa2\xd4\x14'
-app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
-app.config['DATABASE_FOLDER'] = os.path.join(os.getcwd(), 'DatabaseStorage')
+
+# initialize storage folders
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
+app.config['DATABASE_FOLDER'] = os.path.join(app.root_path, '..', 'DatabaseStorage')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['DATABASE_FOLDER'], exist_ok=True)
-bcrypt = Bcrypt(app)
 initialize_db(app)
+initialize_ecpm(app)
+
+# initialize custom decorators
 from PaypalBridge.decorators import *
 
 

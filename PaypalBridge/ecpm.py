@@ -1,25 +1,27 @@
 from PaypalBridge.SECRET import UNITY_MONETIZATION_KEY, UNITY_ORGINIZATION_KEY
 import requests
 import json
-from os.path import isfile
+import os
 import datetime
 import time
 
+def initialize_ecpm(app):
+    global ecpm_aggregate_path, ecpm_average_path
+    ecpm_aggregate_path = os.path.join(app.config['DATABASE_FOLDER'], "ecpm-aggregate.json")
+    ecpm_average_path = os.path.join(app.config['DATABASE_FOLDER'], "ecpm-average.json")
 
 # get ecpm from yesterday (cached in "ecpm.json")
 def get_recent_ecpm(placement):
-    ecpmFile = "ecpm-average.json"
-
     # get eCPM file from cached file (if it exists)
-    if not isfile(ecpmFile):
-        data = save_ecpm(resolution="day", dayRange=45, output=ecpmFile, aggregate=True)
+    if not os.path.isfile(ecpm_average_path):
+        data = save_ecpm(resolution="day", dayRange=45, output=ecpm_average_path, aggregate=True)
     else:
-        with open(ecpmFile, 'r') as file:
+        with open(ecpm_average_path, 'r') as file:
             data = json.loads(file.read())
 
     # verify cached eCPM data is up to date
     if not is_recent(data):
-        data = save_ecpm(resolution="day", dayRange=45, output=ecpmFile, aggregate=True)
+        data = save_ecpm(resolution="day", dayRange=45, output=ecpm_average_path, aggregate=True)
 
     # return data
     return extract(data, placement)
@@ -76,7 +78,7 @@ def get_ecpm(resolution="week", dayRange=1, aggregate=False):
         data = response.json()
         if aggregate:
             data = aggregate_data(data)
-            with open("ecpm-aggregate.json", 'w') as file:
+            with open(ecpm_aggregate_path, 'w') as file:
                 json.dump(data, file, indent=4)
 
         newdata = [{"request_timestamp": now()}]
