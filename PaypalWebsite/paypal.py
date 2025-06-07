@@ -1,7 +1,7 @@
 # https://github.com/paypal/paypal-rest-api-specifications
 # https://developer.paypal.com/docs/api/payments.payouts-batch/v1/
-from PaypalBridge.SECRET import PAYPAL_CLIENT_ID, PAYPAL_SECRET 
-from PaypalBridge.database.tinydb import log
+from PaypalWebsite.SECRET import PAYPAL_CLIENT_ID, PAYPAL_SECRET 
+from PaypalWebsite.database.tinydb import log
 from uuid import uuid4
 import requests
 import base64

@@ -1,4 +1,4 @@
-from PaypalBridge.SECRET import UNITY_MONETIZATION_KEY, UNITY_ORGINIZATION_KEY
+from PaypalWebsite.SECRET import UNITY_MONETIZATION_KEY, UNITY_ORGINIZATION_KEY
 import requests
 import json
 import os

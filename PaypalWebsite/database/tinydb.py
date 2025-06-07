@@ -6,7 +6,7 @@ from uuid import uuid4
 import os
 import time
 import json
-from PaypalBridge.ecpm import get_recent_ecpm
+from PaypalWebsite.ecpm import get_recent_ecpm
 
 
 # generate current epoch time INT (seconds since January 1, 1970)

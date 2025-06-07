@@ -3,10 +3,10 @@ from urllib.parse import unquote, urlparse
 import hmac
 import hashlib
 from flask_bcrypt import Bcrypt
-from PaypalBridge.paypal import create_payout
-from PaypalBridge import SECRET
-from PaypalBridge.database.tinydb import *
-from PaypalBridge.decorators import *
+from PaypalWebsite.paypal import create_payout
+from PaypalWebsite import SECRET
+from PaypalWebsite.database.tinydb import *
+from PaypalWebsite.decorators import *
 from datetime import datetime
 from uuid import uuid4
 import os

@@ -1,7 +1,7 @@
 # from PaypalBridge.paypal import test_payout
 # test_payout()
 
-from PaypalBridge.ecpm import get_recent_ecpm
+from PaypalWebsite.ecpm import get_recent_ecpm
 i = get_recent_ecpm("interstitial")
 r = get_recent_ecpm("rewarded")
 

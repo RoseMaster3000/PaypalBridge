@@ -1,5 +1,5 @@
 from flask_apscheduler import APScheduler
-from PaypalBridge.website import app, purge_users
+from PaypalWebsite.website import app, purge_users
 
 # Configure scheduler
 class Config:

@@ -1,5 +1,5 @@
-from PaypalBridge.website import app, bcrypt
-from PaypalBridge.database.tinydb import *
+from PaypalWebsite.website import app, bcrypt
+from PaypalWebsite.database.tinydb import *
 
 from flask import Flask, request, render_template, send_from_directory
 from tinydb import TinyDB, Query

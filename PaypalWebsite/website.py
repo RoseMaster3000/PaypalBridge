@@ -8,10 +8,10 @@ import hmac
 import hashlib
 import os
 
-from PaypalBridge.paypal import create_payout
-from PaypalBridge import SECRET
-from PaypalBridge.database.tinydb import *
-from PaypalBridge.ecpm import get_recent_ecpm, initialize_ecpm
+from PaypalWebsite.paypal import create_payout
+from PaypalWebsite import SECRET
+from PaypalWebsite.database.tinydb import *
+from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 
 from werkzeug.utils import secure_filename
 import magic
@@ -25,13 +25,15 @@ app.config['SECRET_KEY'] =  b'\xb4\xb5\xd0\xc5m\x10p\xdbB\xa2\xd4\x14'
 # initialize storage folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
 app.config['DATABASE_FOLDER'] = os.path.join(app.root_path, '..', 'DatabaseStorage')
+print(app.config['UPLOAD_FOLDER'])
+print(app.config['DATABASE_FOLDER'])
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['DATABASE_FOLDER'], exist_ok=True)
 initialize_db(app)
 initialize_ecpm(app)
 
 # initialize custom decorators
-from PaypalBridge.decorators import *
+from PaypalWebsite.decorators import *
 
 
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)

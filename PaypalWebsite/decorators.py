@@ -1,8 +1,8 @@
 from functools import wraps
 from flask import session, request
 from datetime import datetime
-from PaypalBridge.database.tinydb import fetch_user, log
-from PaypalBridge.website import app
+from PaypalWebsite.database.tinydb import fetch_user, log
+from PaypalWebsite.website import app
 import os
 
 # any temp account
