@@ -45,6 +45,9 @@ def verify_auth():
 
 # generated/login temp account
 def generate_temp_user():
+    if session.get("username", None) != None:
+        return
+
     user = create_user(
         username = str(uuid4()),
         email = None,
@@ -137,7 +140,6 @@ def dashboard_page(user):
 @none_required
 def login_page(user):
     return render_template('login.html')
-
 
 
 @app.route("/reset_revenue/<target>")
