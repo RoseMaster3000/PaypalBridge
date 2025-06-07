@@ -40,8 +40,7 @@ from PaypalWebsite.decorators import *
 @app.before_request
 def verify_auth():
     username = session.get("username", None)
-    user = fetch_user(username)
-    if not user:
+    if (username==None) or (fetch_user(username)==None):
         generate_temp_user()
 
 # generated/login temp account
