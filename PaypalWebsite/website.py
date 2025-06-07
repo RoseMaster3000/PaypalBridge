@@ -106,24 +106,38 @@ def SID(user):
 @none_required
 def index(user):
     if user['username'] =='admin' or app.debug:
-        # get all users
-        users = fetch_users()
-        websiteRevenue = fetch_revenue("website")
-        playerRevenue = fetch_revenue("player")
-        grossRevenue = fetch_revenue("gross")
-        # display page
-        return render_template(
-            'dashboard.html',
-            users=users,
-            user=user,
-            websiteRevenue= f"${websiteRevenue:,.02f}",
-            playerRevenue= f"${playerRevenue:,.02f}",
-            grossRevenue= f"${grossRevenue:,.02f}",
-            interstitialECPM = f"${get_recent_ecpm('interstitial'):,.02f}",
-            rewardedECPM = f"${get_recent_ecpm('rewarded'):,.02f}"
-        )
+        return redirect("/Dashboard")
     else:
-        return render_template('login.html')
+        return redirect("/Login")
+
+
+@app.route('/Dashboard', methods=['GET'])
+@admin_required
+def dashboard_page(user):
+    # get all users
+    users = fetch_users()
+    websiteRevenue = fetch_revenue("website")
+    playerRevenue = fetch_revenue("player")
+    grossRevenue = fetch_revenue("gross")
+    # display page
+    return render_template(
+        'dashboard.html',
+        users=users,
+        user=user,
+        websiteRevenue= f"${websiteRevenue:,.02f}",
+        playerRevenue= f"${playerRevenue:,.02f}",
+        grossRevenue= f"${grossRevenue:,.02f}",
+        interstitialECPM = f"${get_recent_ecpm('interstitial'):,.02f}",
+        rewardedECPM = f"${get_recent_ecpm('rewarded'):,.02f}"
+    )
+    return render_template('login.html')
+
+
+@app.route('/Login', methods=['GET'])
+@none_required
+def login_page(user):
+    return render_template('login.html')
+
 
 
 @app.route("/reset_revenue/<target>")
@@ -684,7 +698,11 @@ def login(user):
     # log user in  
     session["username"] = newUser["username"]
     session["gems"] = newUser["gems"]
-    return f"Logged in Successfully <br><a href='/'>Go Back</a>"
+
+    if session["username"]=="admin" or app.debug:
+        return redirect("/Dashboard")
+    else:
+        return f"Logged in Successfully"
 
 
 # delete multiple users 
