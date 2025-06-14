@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Unity Script Control</title>
+    <style>
+        #statusMessage {
+            font-weight: bold;
+            opacity: 1;
+            transition: opacity 2s ease-out;
+            margin-top: 10px;
+        }
+        .enabled {
+            color: blue;
+        }
+        .disabled {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h2>Control Unity Script</h2>
+
+    <form id="scriptForm">
+        <label>
+            <input type="radio" name="scriptControl" value="enable" onchange="toggleScript()"> Enable Script
+        </label><br>
+
+        <label>
+            <input type="radio" name="scriptControl" value="disable" onchange="toggleScript()"> Disable Script
+        </label>
+    </form>
+
+    <p id="statusMessage"></p>
+
+    <script>
+        function toggleScript() {
+            const selectedValue = document.querySelector('input[name="scriptControl"]:checked');
+            
+            if (!selectedValue) return; // No selection
+
+            let enabled = selectedValue.value === "enable";
+
+            fetch('/set_script_status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ enabled: enabled })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const msg = document.getElementById("statusMessage");
+                msg.textContent = data.message;
+                msg.className = enabled ? "enabled" : "disabled";
+                msg.style.opacity = 1;
+
+                // Fade out after 3 seconds
+                setTimeout(() => {
+                    msg.style.opacity = 0;
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

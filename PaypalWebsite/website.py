@@ -758,6 +758,17 @@ def update_wallet_status():
                            WALLET_BUTTON_VISIBLE=WALLET_BUTTON_VISIBLE,
                            WALLET_BUTTON_INTERACTABLE=WALLET_BUTTON_INTERACTABLE,
                            success=success)
+script_status = {"enabled": True}
+ 
+@app.route('/set_script_status', methods=['POST'])
+def set_script_status():
+    data = request.get_json()
+    script_status["enabled"] = data.get("enabled", True)
+    return jsonify({"message": f"Script {'enabled' if script_status['enabled'] else 'disabled'}"})
+ 
+@app.route('/script_status', methods=['GET'])
+def get_script_status():
+    return jsonify(script_status)
 
 
 
