@@ -20,7 +20,8 @@ import magic
 # initialize modules
 app = Flask(__name__) 
 bcrypt = Bcrypt(app)
-app.config['SECRET_KEY'] =  b'\xb4\xb5\xd0\xc5m\x10p\xdbB\xa2\xd4\x14'
+app.config['SECRET_KEY'] = SECRET.FLASK_KEY
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # initialize storage folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
