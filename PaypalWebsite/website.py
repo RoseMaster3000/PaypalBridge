@@ -22,10 +22,7 @@ from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 app = Flask(__name__) 
 bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
-CORS(app, 
-    origins=["https://shahros3.pythonanywhere.com"], 
-    supports_credentials=True
-)
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # initialize storage folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
@@ -182,9 +179,7 @@ def GetAllUsers(user):
         u["total_cashout"] = f"${u['total_cashout']:0.2f}"
         u["created_at"] = convert_epoch(u["created_at"])
         u["sid"] = u.doc_id
-    response = make_response(jsonify(users))
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-    return response
+    return jsonify(users)
 
 
 # Create a new account
