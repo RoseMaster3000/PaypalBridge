@@ -33,7 +33,7 @@ def create_admin():
         username = "admin",
         email = "admin@mail.com",
         password = hashedPass.decode('utf-8'),
-        gems = 0
+        gems = 0,
         bonus = 0,
         rewarded = 0,
         interstitial = 0,
