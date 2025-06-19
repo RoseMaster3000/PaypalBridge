@@ -46,6 +46,8 @@ from PaypalWebsite.decorators import *
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)
 @app.before_request
 def verify_auth():
+    if request.path.startswith('/static/'):
+        return
     if "username" not in session:
         session.clear()
         generate_temp_user()
