@@ -23,10 +23,10 @@ bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
 
 # Cookie Settings
-app.config["SEVER_NAME"] = 'shahros3.pythonanywhere.com'
-app.config["SESSION_COOKIE_DOMAIN"] = '.shahros3.pythonanywhere.com'
-app.config["SESSION_COOKIE_SECURE"] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+# app.config["SEVER_NAME"] = 'shahros3.pythonanywhere.com'
+# app.config["SESSION_COOKIE_DOMAIN"] = '.shahros3.pythonanywhere.com'
+# app.config["SESSION_COOKIE_SECURE"] = True
+# app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 
 # Initialize Storage Folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
@@ -48,7 +48,7 @@ from PaypalWebsite.decorators import *
 def verify_auth():
     if request.path.startswith('/static/'):
         return
-    if "username" not in session:
+    elif "username" not in session:
         session.clear()
         generate_temp_user()
 
