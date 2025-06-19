@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, session
 from flask import jsonify, abort, make_response, send_from_directory
 from flask_bcrypt import Bcrypt
-from flask_cors import CORS
 import datetime
 from uuid import uuid4
 from urllib.parse import unquote, urlparse
@@ -22,18 +21,8 @@ from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 app = Flask(__name__) 
 bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-
-# Cookie hotfixes
-# CORS(app)
-# if not app.debug:
-#     app.config['SESSION_COOKIE_SAMESITE'] = 'None'
-#     app.config['SESSION_COOKIE_SECURE'] = True
-#     CORS(
-#         app, 
-#         origins=["https://shahros3.pythonanywhere.com"], 
-#         supports_credentials=True
-#     )
 
 # initialize storage folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
@@ -53,8 +42,10 @@ from PaypalWebsite.decorators import *
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)
 @app.before_request
 def verify_auth():
-    username = session.get("username", None)
-    if (username==None) or (fetch_user(username)==None):
+    if "username" in session and fetch_user(session["username"])!= None:
+        return
+    else:
+        session.clear()
         generate_temp_user()
 
 
