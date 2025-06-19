@@ -25,14 +25,15 @@ app.config['SECRET_KEY'] = SECRET.FLASK_KEY
 
 
 # Cookie hotfixes
-if not app.debug:
-    app.config['SESSION_COOKIE_SAMESITE'] = 'None'
-    app.config['SESSION_COOKIE_SECURE'] = True
-    CORS(
-        app, 
-        origins=["https://shahros3.pythonanywhere.com"], 
-        supports_credentials=True
-    )
+CORS(api, resources={r"/api/*": {"origins": "*"}})
+# if not app.debug:
+#     app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+#     app.config['SESSION_COOKIE_SECURE'] = True
+#     CORS(
+#         app, 
+#         origins=["https://shahros3.pythonanywhere.com"], 
+#         supports_credentials=True
+#     )
 
 # initialize storage folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
@@ -52,7 +53,6 @@ from PaypalWebsite.decorators import *
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)
 @app.before_request
 def verify_auth():
-    print("PRE-AUTH:", request.endpoint)
     username = session.get("username", None)
     if (username==None) or (fetch_user(username)==None):
         generate_temp_user()
