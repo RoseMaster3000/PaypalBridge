@@ -28,7 +28,6 @@ app.config['SECRET_KEY'] = SECRET.FLASK_KEY
 if not app.debug:
     app.config['SESSION_COOKIE_SAMESITE'] = 'None'
     app.config['SESSION_COOKIE_SECURE'] = True
-    # app.config['SESSION_COOKIE_DOMAIN'] = '.pythonanywhere.com'
     CORS(
         app, 
         origins=["https://shahros3.pythonanywhere.com"], 
@@ -158,7 +157,6 @@ def dashboard_page(user):
         interstitialECPM = f"${get_recent_ecpm('interstitial'):,.02f}",
         rewardedECPM = f"${get_recent_ecpm('rewarded'):,.02f}"
     )
-    return render_template('login.html')
 
 
 @app.route('/Login', methods=['GET'])
