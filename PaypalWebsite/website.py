@@ -7,23 +7,26 @@ from urllib.parse import unquote, urlparse
 import hmac
 import hashlib
 import os
+from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix
+import magic
+
 
 from PaypalWebsite.paypal import create_payout
 from PaypalWebsite import SECRET
 from PaypalWebsite.database.tinydb import *
 from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 
-from werkzeug.utils import secure_filename
-import magic
-
 
 # initialize modules
 app = Flask(__name__) 
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
 if not app.debug:
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['SESSION_COOKIE_SECURE'] = True
+
 
 # initialize storage folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
@@ -34,6 +37,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['DATABASE_FOLDER'], exist_ok=True)
 initialize_db(app)
 initialize_ecpm(app)
+
 
 # initialize custom decorators
 from PaypalWebsite.decorators import *
@@ -46,11 +50,10 @@ def verify_auth():
     if (username==None) or (fetch_user(username)==None):
         generate_temp_user()
 
+
 # generated/login temp account
 def generate_temp_user():
-    if session.get("username", None) != None:
-        return
-
+    if session.get("username", None) != None: return
     user = create_user(
         username = str(uuid4()),
         email = None,
