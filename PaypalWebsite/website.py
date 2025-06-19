@@ -24,7 +24,7 @@ app.config['SECRET_KEY'] = SECRET.FLASK_KEY
 
 # Cookie Settings
 app.config["SEVER_NAME"] = 'shahros3.pythonanywhere.com'
-app.config["SESSION_COOKIE_DOMAIN"] = 'shahros3.pythonanywhere.com'
+app.config["SESSION_COOKIE_DOMAIN"] = '.shahros3.pythonanywhere.com'
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 
