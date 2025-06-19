@@ -20,7 +20,7 @@ from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 
 # initialize modules
 app = Flask(__name__) 
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2, x_proto=1, x_host=1, x_prefix=1)
 bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
 app.config["SERVER_NAME"] = "shahros3.pythonanywhere.com"
