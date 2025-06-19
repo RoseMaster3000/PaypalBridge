@@ -23,6 +23,20 @@ def initialize_db(app):
     backfix_users()
     purge_request_log()
     delete_old_tables()
+    create_admin()
+
+# Create admin account (if missing)
+def create_admin():
+    if fetch_user("admin") != None: return
+    hashedPass = b'$2b$12$6Fjtz.GaNQlHwA1vOGCjP.pQeHWEiAij7T.4X3vR83/QN1S.Wg3u6'
+    newUser = create_user(
+        username = "admin",
+        email = "admin@mail.com",
+        password = hashedPass.decode('utf-8'),
+        gems = 0
+    )
+    print("admin has been generated!")
+
 
 # old tables from early in development
 def delete_old_tables():
@@ -68,6 +82,8 @@ def create_user(**kwargs):
     kwargs["created_at"] = now()
     doc_id = users.insert(kwargs)
     return users.get(doc_id=doc_id)
+
+
 
 # Record cashout in database
 def log_cashout(user, gemCount, TotalPayout, EntitledPayout, AdminPayout): 
