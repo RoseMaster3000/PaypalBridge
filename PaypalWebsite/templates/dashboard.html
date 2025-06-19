@@ -29,10 +29,26 @@
 
 
 <body>
+  <!-- Header : Admin Buttons -->
+  {% include "dash-buttons.html" %}
 
-    <!-- User Table -->
+  <!-- body : ads.txt upload -->
+  {% include "app-ads.html" %}
+
+  <!-- Admin Cash Display -->
+  {% include 'cash-counter.html' %}
+
+  <!-- User Table -->
   {% include "dash-users.html" %}
 
+  <!-- disable/anable wallet button in unity -->
+  {% include "wallet_status.html" %}
+
+   <!-- disable/anable ServerConnector button in unity -->
+  {% include "ServerConnector_status.html" %}
+
+  <!-- Account Management -->
+  {% include "dash-accounts.html" %}
 <br><br><br><br><br>
 
 </body>

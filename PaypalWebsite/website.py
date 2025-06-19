@@ -52,17 +52,18 @@ from PaypalWebsite.decorators import *
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)
 @app.before_request
 def verify_auth():
+    print("PRE-AUTH:", request.endpoint)
     username = session.get("username", None)
     if (username==None) or (fetch_user(username)==None):
         generate_temp_user()
 
 
-@app.after_request
-def add_no_cache_headers(response):
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '-1'
-    return response
+# @app.after_request
+# def add_no_cache_headers(response):
+#     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+#     response.headers['Pragma'] = 'no-cache'
+#     response.headers['Expires'] = '-1'
+#     return response
 
 
 @app.route('/debug-headers')
