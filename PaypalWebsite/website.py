@@ -29,8 +29,9 @@ if not app.debug:
     app.config['SESSION_COOKIE_SAMESITE'] = 'None'
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_DOMAIN'] = '.pythonanywhere.com'
-    CORS(app, 
-        origins=["shahros3.pythonanywhere.com"], 
+    CORS(
+        app, 
+        origins=["https://shahros3.pythonanywhere.com"], 
         supports_credentials=True
     )
 
