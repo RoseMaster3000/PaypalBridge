@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 from flask import jsonify, abort, make_response, send_from_directory
 from flask_bcrypt import Bcrypt
+from flask_cors import CORS
 import datetime
 from uuid import uuid4
 from urllib.parse import unquote, urlparse
@@ -21,7 +22,10 @@ from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 app = Flask(__name__) 
 bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
-
+CORS(app, 
+    origins=["https://shahros3.pythonanywhere.com"], 
+    supports_credentials=True
+)
 
 # initialize storage folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
