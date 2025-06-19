@@ -34,6 +34,13 @@ def create_admin():
         email = "admin@mail.com",
         password = hashedPass.decode('utf-8'),
         gems = 0
+        bonus = 0,
+        rewarded = 0,
+        interstitial = 0,
+        total_cashout = 0,
+        children = [],
+        earnings = 0,
+        cashouts = []
     )
     print("admin has been generated!")
 
