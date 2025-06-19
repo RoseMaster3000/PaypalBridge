@@ -17,14 +17,18 @@ from PaypalWebsite.database.tinydb import *
 from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 
 
-# initialize modules
+# Initialize Modules
 app = Flask(__name__) 
 bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
+# Cookie Settings
+app.config["SEVER_NAME"] = 'shahros3.pythonanywhere.com'
+app.config["SESSION_COOKIE_DOMAIN"] = 'shahros3.pythonanywhere.com'
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 
-# initialize storage folders
+# Initialize Storage Folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
 app.config['DATABASE_FOLDER'] = os.path.join(app.root_path, '..', 'DatabaseStorage')
 print(app.config['UPLOAD_FOLDER'])
@@ -47,14 +51,6 @@ def verify_auth():
     else:
         session.clear()
         generate_temp_user()
-
-
-# @app.after_request
-# def add_no_cache_headers(response):
-#     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
-#     response.headers['Pragma'] = 'no-cache'
-#     response.headers['Expires'] = '-1'
-#     return response
 
 
 @app.route('/debug-headers')
