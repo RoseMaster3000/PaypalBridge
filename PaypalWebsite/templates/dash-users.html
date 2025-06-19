@@ -45,7 +45,10 @@ $(document).ready(function() {
   var userTable = $('#userTable').DataTable({
     "ajax": {
       "url": "/api/users", // API
-      "dataSrc": ""// JSON root
+      "dataSrc": "",       // JSON root
+      "xhrFields": {
+        "withCredentials": true
+      }
     },
     // The 'data' field should match the keys in JSON
     "columns": [

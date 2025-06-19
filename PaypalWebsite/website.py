@@ -8,7 +8,6 @@ import hmac
 import hashlib
 import os
 from werkzeug.utils import secure_filename
-from werkzeug.middleware.proxy_fix import ProxyFix
 import magic
 
 
@@ -20,15 +19,8 @@ from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 
 # initialize modules
 app = Flask(__name__) 
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2, x_proto=1, x_host=1, x_prefix=1)
 bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
-app.config["SERVER_NAME"] = "shahros3.pythonanywhere.com"
-
-if not app.debug:
-    app.config['SESSION_COOKIE_DOMAIN'] = False
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['SESSION_COOKIE_SECURE'] = True
 
 
 # initialize storage folders
@@ -186,7 +178,9 @@ def GetAllUsers(user):
         u["total_cashout"] = f"${u['total_cashout']:0.2f}"
         u["created_at"] = convert_epoch(u["created_at"])
         u["sid"] = u.doc_id
-    return jsonify(users)
+    response = make_response(jsonify(users))
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
 
 
 # Create a new account
