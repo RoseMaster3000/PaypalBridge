@@ -25,7 +25,7 @@ app.config['SECRET_KEY'] = SECRET.FLASK_KEY
 
 
 # Cookie hotfixes
-CORS(api, resources={r"/api/*": {"origins": "*"}})
+CORS(app)
 # if not app.debug:
 #     app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 #     app.config['SESSION_COOKIE_SECURE'] = True
