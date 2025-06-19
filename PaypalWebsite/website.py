@@ -16,17 +16,10 @@ from PaypalWebsite import SECRET
 from PaypalWebsite.database.tinydb import *
 from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 
-
 # Initialize Modules
 app = Flask(__name__) 
 bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
-
-# Cookie Settings
-# app.config["SEVER_NAME"] = 'shahros3.pythonanywhere.com'
-# app.config["SESSION_COOKIE_DOMAIN"] = '.shahros3.pythonanywhere.com'
-# app.config["SESSION_COOKIE_SECURE"] = True
-# app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 
 # Initialize Storage Folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
@@ -37,7 +30,6 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['DATABASE_FOLDER'], exist_ok=True)
 initialize_db(app)
 initialize_ecpm(app)
-
 
 # initialize custom decorators
 from PaypalWebsite.decorators import *
