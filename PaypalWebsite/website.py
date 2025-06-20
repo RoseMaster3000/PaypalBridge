@@ -43,7 +43,6 @@ def verify_auth():
     elif "username" in session and fetch_user(session["username"])!=None:
         return
     else:
-        session.clear()
         generate_temp_user()
 
 
