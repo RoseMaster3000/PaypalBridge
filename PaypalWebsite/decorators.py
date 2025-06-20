@@ -1,9 +1,19 @@
 from functools import wraps
-from flask import session, request
+from flask import session, request, after_this_request
 from datetime import datetime
 from PaypalWebsite.database.tinydb import fetch_user, log
 from PaypalWebsite.website import app
 import os
+
+def no_SeesionCoockie(route_func):
+    @wraps(route_func)
+    def wrapper(*args, **kwargs):
+        @after_this_request
+        def remove_cookie(response):
+            response.delete_cookie('session')
+            return response
+        return route_func(*args, **kwargs)
+    return wrapper
 
 # any temp account
 def none_required(f):

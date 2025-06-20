@@ -731,7 +731,7 @@ def logout():
     session.pop("username", None)
     return f"You are logged out"
 
-#----wallet_status api is route to anable disable wallet button in unity----
+"""#----wallet_status api is route to anable disable wallet button in unity----
 # Initial state
 WALLET_BUTTON_VISIBLE = False
 WALLET_BUTTON_INTERACTABLE = False
@@ -772,7 +772,7 @@ def set_script_status():
  
 @app.route('/script_status', methods=['GET'])
 def get_script_status():
-    return jsonify(script_status)
+    return jsonify(script_status)"""
 
 
 
