@@ -731,36 +731,7 @@ def logout():
     session.pop("username", None)
     return f"You are logged out"
 
-"""#----wallet_status api is route to anable disable wallet button in unity----
-# Initial state
-WALLET_BUTTON_VISIBLE = False
-WALLET_BUTTON_INTERACTABLE = False
- 
-@app.route('/api/wallet_status')
-def wallet_status():
-    # Interactable only if visible
-    interactable = WALLET_BUTTON_INTERACTABLE if WALLET_BUTTON_VISIBLE else False
-    return jsonify({
-        "visible": WALLET_BUTTON_VISIBLE,
-        "interactable": interactable
-    })
- 
-@app.route('/update_wallet_status', methods=['GET', 'POST'])
-def update_wallet_status():
-    global WALLET_BUTTON_VISIBLE, WALLET_BUTTON_INTERACTABLE
-    success = False
- 
-    if request.method == 'POST':
-        WALLET_BUTTON_VISIBLE = 'visible' in request.form
-        WALLET_BUTTON_INTERACTABLE = 'interactable' in request.form and WALLET_BUTTON_VISIBLE
-        success = True  # Show success message
-  
-
-    return render_template('wallet_status.html',
-                           WALLET_BUTTON_VISIBLE=WALLET_BUTTON_VISIBLE,
-                           WALLET_BUTTON_INTERACTABLE=WALLET_BUTTON_INTERACTABLE,
-                           success=success)
-
+"""
 script_status = {"enabled": True}
  
 

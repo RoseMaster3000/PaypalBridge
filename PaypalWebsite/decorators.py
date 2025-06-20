@@ -5,7 +5,8 @@ from PaypalWebsite.database.tinydb import fetch_user, log
 from PaypalWebsite.website import app
 import os
 
-def no_SeesionCoockie(route_func):
+# prevents cookie from beeing created
+def no_SessionCookie(route_func):
     @wraps(route_func)
     def wrapper(*args, **kwargs):
         @after_this_request

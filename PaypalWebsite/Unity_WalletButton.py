@@ -1,15 +1,17 @@
-# wallet_api.py
-from flask import Flask, jsonify, render_template, request, after_this_request
+# wallet_Button.py
+from flask import Flask, jsonify, render_template, request
 from PaypalWebsite.website import app, bcrypt
 from PaypalWebsite.decorators import *
-# app = Flask(__name__)
+
+# line only needed if standalon webapp, starting app like main.py
+# app = Flask(__name__)  
 
 # Default button states
 WALLET_BUTTON_VISIBLE = True
 WALLET_BUTTON_INTERACTABLE = True
 
 @app.route('/api/wallet_status')
-@no_SeesionCoockie
+@no_SessionCookie
 def wallet_status():
     # This route is completely stateless—no session, no cookies
     interactable = WALLET_BUTTON_INTERACTABLE if WALLET_BUTTON_VISIBLE else False
@@ -34,7 +36,7 @@ def update_wallet_status():
         WALLET_BUTTON_INTERACTABLE=WALLET_BUTTON_INTERACTABLE,
         success=success
     )
-
-'''if __name__ == "__main__":
+    # line only needed if standalon webapp, starting app like main.py
+'''if __name__ == "__main__":  
     app.run(debug=True)'''
 
