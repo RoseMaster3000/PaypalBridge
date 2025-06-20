@@ -40,7 +40,9 @@ from PaypalWebsite.decorators import *
 def verify_auth():
     if request.path.startswith('/static/'):
         return
-    elif "username" not in session:
+    elif "username" in session and fetch_user(session["username"])!=None:
+        return
+    else:
         session.clear()
         generate_temp_user()
 
@@ -759,8 +761,10 @@ def update_wallet_status():
                            WALLET_BUTTON_VISIBLE=WALLET_BUTTON_VISIBLE,
                            WALLET_BUTTON_INTERACTABLE=WALLET_BUTTON_INTERACTABLE,
                            success=success)
+
 script_status = {"enabled": True}
  
+
 @app.route('/set_script_status', methods=['POST'])
 def set_script_status():
     data = request.get_json()
