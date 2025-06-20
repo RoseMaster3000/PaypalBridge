@@ -45,10 +45,6 @@ def verify_auth():
         generate_temp_user()
 
 
-@app.route('/debug-headers')
-def debug_headers():
-    return dict(request.headers)
-
 # generated/login temp account
 def generate_temp_user():
     if session.get("username", None) != None: return
