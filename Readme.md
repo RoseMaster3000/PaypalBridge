@@ -1,6 +1,7 @@
 ## About
 Unity Game & Flask Server that work together to allow players to earn real money. Its uses Unity S2S Callbacks to record validated ads to a private database. The server can then allow users to cash out their ad revenue using Paypal API.
 
+![Screenshot of Dashboard](screenshot.png)
 
 ## Authorizations
 For paypal to send out Payouts, your business account needs to be approved [here](https://www.paypal.com/payoutsweb/landing) (Payouts API [cost](https://www.paypal.com/us/business/paypal-business-fees#statement-10) 2% internationally and $0.25 domestically.) Also, to verify ad consumption, your Unity account will need approved for S2S callbacks [here](https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#Implementation).
