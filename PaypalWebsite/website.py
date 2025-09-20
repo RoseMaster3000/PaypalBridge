@@ -704,7 +704,7 @@ def login(user):
     session["gems"] = newUser["gems"]
 
     if session["username"]=="admin" or app.debug:
-        return redirect("/Dashboard")
+        return redirect("/")
     else:
         return f"Logged in Successfully"
 
