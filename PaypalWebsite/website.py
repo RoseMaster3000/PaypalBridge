@@ -716,7 +716,7 @@ def isBrowser(request):
     browsers = ['Mozilla', 'Chrome', 'Safari']
     if user_agent == 'Unity':
         return False
-    elif any([b in user_agent for b in browsers])
+    elif any([b in user_agent for b in browsers]):
         return True
     else:
         return None
