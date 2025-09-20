@@ -703,10 +703,24 @@ def login(user):
     session["username"] = newUser["username"]
     session["gems"] = newUser["gems"]
 
-    if session["username"]=="admin" or app.debug:
+    # If you are an admin + this is in a web browser, goto Dashboard
+    isAdmin = (session["username"]=="admin" or app.debug)
+    if isAdmin and isBrowser(request):
         return redirect("/Dashboard")
     else:
         return f"Logged in Successfully"
+
+
+def isBrowser(request):
+    user_agent = request.headers.get('User-Agent', 'Unknown')
+    browsers = ['Mozilla', 'Chrome', 'Safari']
+    if user_agent == 'Unity':
+        return False
+    elif any([b in user_agent for b in browsers])
+        return True
+    else:
+        return None
+
 
 
 # delete multiple users 
