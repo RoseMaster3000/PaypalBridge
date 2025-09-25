@@ -277,7 +277,7 @@ def CalculatePayoutSkill(user, gemCount):
 def CalulateEarnings(user, gemCount):
     if gemCount==0: return 0
     gemMaximum = (user["interstitial"]*5) + (user["rewarded"]*50)
-    gamerScore = gemCount / gemMaximum if gemMaximum else 0
+    gamerScore = min(gemCount / gemMaximum, 1) if gemMaximum else 0
     return user["earnings"] * gamerScore # earnings (based on game performance) BEFORE processing fees
 
 
