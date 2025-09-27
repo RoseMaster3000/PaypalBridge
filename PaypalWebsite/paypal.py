@@ -1,6 +1,7 @@
 # https://github.com/paypal/paypal-rest-api-specifications
 # https://developer.paypal.com/docs/api/payments.payouts-batch/v1/
-from PaypalWebsite.SECRET import PAYPAL_CLIENT_ID, PAYPAL_SECRET 
+from PaypalWebsite.SECRET import (SANDBOX_PAYPAL_CLIENT_ID, SANDBOX_PAYPAL_SECRET, 
+LIVE_PAYPAL_CLIENT_ID, LIVE_PAYPAL_SECRET)
 from PaypalWebsite.database.tinydb import log
 from uuid import uuid4
 import requests
@@ -12,7 +13,14 @@ PAYPAL_URL = "https://api-m.sandbox.paypal.com" if sandbox else "https://api-m.p
 
 # Convert ClientID/Secret -> OAUTH token
 def get_access_token():
-    auth_string = f"{PAYPAL_CLIENT_ID}:{PAYPAL_SECRET}"
+    if sandbox:
+        client_id = SANDBOX_PAYPAL_CLIENT_ID
+        secret = SANDBOX_PAYPAL_SECRET
+    else:
+        client_id = LIVE_PAYPAL_CLIENT_ID
+        secret = LIVE_PAYPAL_SECRET
+
+    auth_string = f"{client_id}:{secret}"
     encoded_auth = base64.b64encode(auth_string.encode('utf-8')).decode('utf-8')
     headers = {
         'Authorization': f'Basic {encoded_auth}',
@@ -24,7 +32,12 @@ def get_access_token():
         headers=headers, 
         data=data
     )
-    return response.json()['access_token']
+    if response.ok:
+        return response.json()['access_token']
+    else:
+        raise Exception(f"PayPal token request failed: {response.status_code} - {response.text}")
+
+
 
 
 # Send money to PayPal email
@@ -68,7 +81,12 @@ def create_payout(recipient_email, amount):
         headers = headers,
         json = payload
     )
-    return response.json()
+    if response.ok:
+        return response.json()
+    else:
+        raise Exception(f"Payout failed: {response.status_code} - {response.text}")
+
+
 
 
 def test_payout():
