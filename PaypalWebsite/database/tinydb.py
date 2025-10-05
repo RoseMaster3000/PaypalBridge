@@ -8,6 +8,22 @@ import time
 import json
 from PaypalWebsite.ecpm import get_recent_ecpm
 
+#----for paypal new add if not delete
+# create table "paypal_config" to store mode
+# PayPal mode config (sandbox or live)
+def set_paypal_mode(mode):
+    config_table = db.table('paypal_config')
+    config_table.upsert({'mode': mode}, Query().mode.exists())
+
+def get_paypal_mode():
+    config_table = db.table('paypal_config')
+    result = config_table.get(Query().mode.exists())
+    return result['mode'] if result else 'sandbox'
+# end of new add if not delete lines 11-22
+
+
+
+
 
 # generate current epoch time INT (seconds since January 1, 1970)
 def now():

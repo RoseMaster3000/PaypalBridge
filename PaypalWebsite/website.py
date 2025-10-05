@@ -467,6 +467,21 @@ def redeem_gems(user, gemCount):
     else:
         return False, user
 
+#----for paypal new add if not delete
+@app.route('/set-paypal-mode', methods=['POST'])
+def set_paypal_mode_route():
+    mode = request.json.get('mode')
+    if mode in ['sandbox', 'live']:
+        set_paypal_mode(mode)
+        return jsonify({'status': 'success', 'mode': mode})
+    return jsonify({'status': 'error', 'message': 'Invalid mode'}), 400
+
+@app.route('/get-paypal-mode', methods=['GET'])
+def get_paypal_mode_route():
+    mode = get_paypal_mode()
+    return jsonify({'mode': mode})
+    # end of new add if not delete lines 470-483
+
 
 # Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
@@ -500,7 +515,10 @@ def Cashout(user):
         return jsonify({"success": False, "message": "Insufficient gems? Gem count has de-synced?"})
 
     # Process payout (PayPal)
-    create_payout(email, EntitledCut)
+    # modifed lines:  origina was
+    # create_payout(email, EntitledCut)
+    paypal_mode = get_paypal_mode()
+    create_payout(email, EntitledCut, mode=paypal_mode)
 
     # decrement earnings + log cashout in our database
     cashout_success, user = log_cashout(

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PayPal Mode Toggle</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .paypal-toggle {
+      margin-top: 30px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      display: inline-block;
+      border-radius: 6px;
+      background-color: #f9f9f9;
+    }
+    .paypal-toggle label {
+      font-weight: bold;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!--<h2>PayPal</h2>-->
+
+  <div class="paypal-toggle">
+    <input type="checkbox" id="paypalToggle" onchange="togglePaypalMode()">
+    <label for="paypalToggle" id="paypalModeLabel">Using Sandbox PayPal</label>
+  </div>
+
+  <script>
+    async function togglePaypalMode() {
+      const isLive = document.getElementById('paypalToggle').checked;
+      const mode = isLive ? 'live' : 'sandbox';
+      document.getElementById('paypalModeLabel').innerText = isLive ? 'Using Live PayPal' : 'Using Sandbox';
+
+      try {
+        await fetch('/set-paypal-mode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode })
+        });
+      } catch (err) {
+        alert("Failed to update PayPal mode.");
+      }
+    }
+
+    async function fetchPaypalMode() {
+      try {
+        const res = await fetch('/get-paypal-mode');
+        const data = await res.json();
+        const isLive = data.mode === 'live';
+        document.getElementById('paypalToggle').checked = isLive;
+        document.getElementById('paypalModeLabel').innerText = isLive ? 'Using Live PayPal' : 'Using Sandbox';
+      } catch (err) {
+        console.warn("Could not fetch PayPal mode.");
+      }
+    }
+
+    window.onload = fetchPaypalMode;
+  </script>
+
+</body>
+</html>

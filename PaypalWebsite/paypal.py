@@ -1,48 +1,45 @@
 # https://github.com/paypal/paypal-rest-api-specifications
 # https://developer.paypal.com/docs/api/payments.payouts-batch/v1/
-from PaypalWebsite.SECRET import (SANDBOX_PAYPAL_CLIENT_ID, SANDBOX_PAYPAL_SECRET, 
-LIVE_PAYPAL_CLIENT_ID, LIVE_PAYPAL_SECRET)
+from PaypalWebsite.SECRET import (
+    SANDBOX_PAYPAL_CLIENT_ID, SANDBOX_PAYPAL_SECRET,
+    LIVE_PAYPAL_CLIENT_ID, LIVE_PAYPAL_SECRET
+)
 from PaypalWebsite.database.tinydb import log
 from uuid import uuid4
 import requests
 import base64
 
-sandbox = True
-PAYPAL_URL = "https://api-m.sandbox.paypal.com" if sandbox else "https://api-m.paypal.com"
-
-
 # Convert ClientID/Secret -> OAUTH token
-def get_access_token():
-    if sandbox:
+def get_access_token(mode='sandbox'):
+    if mode == 'sandbox':
         client_id = SANDBOX_PAYPAL_CLIENT_ID
         secret = SANDBOX_PAYPAL_SECRET
+        base_url = 'https://api-m.sandbox.paypal.com'
     else:
         client_id = LIVE_PAYPAL_CLIENT_ID
         secret = LIVE_PAYPAL_SECRET
+        base_url = 'https://api-m.paypal.com'
 
     auth_string = f"{client_id}:{secret}"
     encoded_auth = base64.b64encode(auth_string.encode('utf-8')).decode('utf-8')
     headers = {
         'Authorization': f'Basic {encoded_auth}',
         'Content-Type': 'application/x-www-form-urlencoded'
-    }    
+    }
     data = {'grant_type': 'client_credentials'}
     response = requests.post(
-        f'{PAYPAL_URL}/v1/oauth2/token', 
-        headers=headers, 
+        f'{base_url}/v1/oauth2/token',
+        headers=headers,
         data=data
     )
     if response.ok:
-        return response.json()['access_token']
+        return response.json()['access_token'], base_url
     else:
         raise Exception(f"PayPal token request failed: {response.status_code} - {response.text}")
 
-
-
-
 # Send money to PayPal email
-def create_payout(recipient_email, amount):
-    access_token = get_access_token()
+def create_payout(recipient_email, amount, mode='sandbox'):
+    access_token, base_url = get_access_token(mode)
     payment_id = str(uuid4())
 
     # generate payout
@@ -66,30 +63,28 @@ def create_payout(recipient_email, amount):
             }
         ]
     }
-    
+
     # log payout in database
     log("payouts",
-        id = payment_id,
-        receiver = recipient_email,
-        value = f"{amount:0.2f}",
-        currency = "USD"
+        id=payment_id,
+        receiver=recipient_email,
+        value=f"{amount:0.2f}",
+        currency="USD"
     )
 
     # submit payout to PayPal
     response = requests.post(
-        f'{PAYPAL_URL}/v1/payments/payouts',
-        headers = headers,
-        json = payload
+        f'{base_url}/v1/payments/payouts',
+        headers=headers,
+        json=payload
     )
     if response.ok:
         return response.json()
     else:
         raise Exception(f"Payout failed: {response.status_code} - {response.text}")
 
-
-
-
+# Optional test
 def test_payout():
-    confirmation = create_payout("sb-sbjc037505269@personal.example.com", 5.50)
+    confirmation = create_payout("sb-sbjc037505269@personal.example.com", 5.50, mode='sandbox')
     from pprint import pprint
     pprint(confirmation)
