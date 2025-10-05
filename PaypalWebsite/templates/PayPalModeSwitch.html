@@ -35,7 +35,7 @@
     async function togglePaypalMode() {
       const isLive = document.getElementById('paypalToggle').checked;
       const mode = isLive ? 'live' : 'sandbox';
-      document.getElementById('paypalModeLabel').innerText = isLive ? 'Using Live PayPal' : 'Using Sandbox';
+      document.getElementById('paypalModeLabel').innerText = isLive ? 'Using Live PayPal' : 'Using Sandbox PayPal';
 
       try {
         await fetch('/set-paypal-mode', {
@@ -54,7 +54,7 @@
         const data = await res.json();
         const isLive = data.mode === 'live';
         document.getElementById('paypalToggle').checked = isLive;
-        document.getElementById('paypalModeLabel').innerText = isLive ? 'Using Live PayPal' : 'Using Sandbox';
+        document.getElementById('paypalModeLabel').innerText = isLive ? 'Using Live PayPal' : 'Using Sandbox PayPal';
       } catch (err) {
         console.warn("Could not fetch PayPal mode.");
       }
