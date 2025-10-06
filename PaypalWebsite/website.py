@@ -123,11 +123,13 @@ def dashboard_page(user):
     websiteRevenue = fetch_revenue("website")
     playerRevenue = fetch_revenue("player")
     grossRevenue = fetch_revenue("gross")
+    paypalMode = get_paypal_mode() # either "sandbox" or "live"
     # display page
     return render_template(
         'dashboard.html',
         users=users,
         user=user,
+        paypalMode = paypalMode,
         websiteRevenue= f"${websiteRevenue:,.02f}",
         playerRevenue= f"${playerRevenue:,.02f}",
         grossRevenue= f"${grossRevenue:,.02f}",

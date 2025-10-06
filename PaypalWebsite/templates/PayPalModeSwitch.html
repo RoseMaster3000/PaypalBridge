@@ -27,8 +27,13 @@
   <!--<h2>PayPal</h2>-->
 
   <div class="paypal-toggle">
-    <input type="checkbox" id="paypalToggle" onchange="togglePaypalMode()">
-    <label for="paypalToggle" id="paypalModeLabel">Using Sandbox PayPal</label>
+    {% if paypalMode == "sandbox" %}
+      <input type="checkbox" id="paypalToggle" onchange="togglePaypalMode()">
+      <label for="paypalToggle" id="paypalModeLabel">Using Sandbox PayPal</label>
+    {% else %}
+      <input type="checkbox" id="paypalToggle" onchange="togglePaypalMode()" checked>
+      <label for="paypalToggle" id="paypalModeLabel">Using Live PayPal</label>
+    {% endif %}
   </div>
 
   <script>
@@ -48,19 +53,19 @@
       }
     }
 
-    async function fetchPaypalMode() {
-      try {
-        const res = await fetch('/get-paypal-mode');
-        const data = await res.json();
-        const isLive = data.mode === 'live';
-        document.getElementById('paypalToggle').checked = isLive;
-        document.getElementById('paypalModeLabel').innerText = isLive ? 'Using Live PayPal' : 'Using Sandbox PayPal';
-      } catch (err) {
-        console.warn("Could not fetch PayPal mode.");
-      }
-    }
+    // async function fetchPaypalMode() {
+    //   try {
+    //     const res = await fetch('/get-paypal-mode');
+    //     const data = await res.json();
+    //     const isLive = data.mode === 'live';
+    //     document.getElementById('paypalToggle').checked = isLive;
+    //     document.getElementById('paypalModeLabel').innerText = isLive ? 'Using Live PayPal' : 'Using Sandbox PayPal';
+    //   } catch (err) {
+    //     console.warn("Could not fetch PayPal mode.");
+    //   }
+    // }
 
-    window.onload = fetchPaypalMode;
+    // window.onload = fetchPaypalMode;
   </script>
 
 </body>
