@@ -4,13 +4,15 @@ from PaypalWebsite.SECRET import (
     SANDBOX_PAYPAL_CLIENT_ID, SANDBOX_PAYPAL_SECRET,
     LIVE_PAYPAL_CLIENT_ID, LIVE_PAYPAL_SECRET
 )
-from PaypalWebsite.database.tinydb import log
+from PaypalWebsite.database.tinydb import log, get_paypal_mode
 from uuid import uuid4
 import requests
 import base64
 
 # Convert ClientID/Secret -> OAUTH token
-def get_access_token(mode='sandbox'):
+def get_access_token(mode=None):
+    # Use manual override if provided, otherwise use TinyDB
+    mode = mode or get_paypal_mode()
     if mode == 'sandbox':
         client_id = SANDBOX_PAYPAL_CLIENT_ID
         secret = SANDBOX_PAYPAL_SECRET
@@ -38,7 +40,9 @@ def get_access_token(mode='sandbox'):
         raise Exception(f"PayPal token request failed: {response.status_code} - {response.text}")
 
 # Send money to PayPal email
-def create_payout(recipient_email, amount, mode='sandbox'):
+def create_payout(recipient_email, amount, mode=None):
+    # Use manual override if provided, otherwise use TinyDB
+    mode = mode or get_paypal_mode()
     access_token, base_url = get_access_token(mode)
     payment_id = str(uuid4())
 
