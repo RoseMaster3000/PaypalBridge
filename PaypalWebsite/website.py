@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, session
 from flask import jsonify, abort, make_response, send_from_directory
 from flask_bcrypt import Bcrypt
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import datetime
 from uuid import uuid4
 from urllib.parse import unquote, urlparse
@@ -9,8 +11,6 @@ import hashlib
 import os
 from werkzeug.utils import secure_filename
 import magic
-
-
 from PaypalWebsite.paypal import create_payout
 from PaypalWebsite import SECRET
 from PaypalWebsite.database.tinydb import *
@@ -19,7 +19,15 @@ from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 # Initialize Modules
 app = Flask(__name__) 
 bcrypt = Bcrypt(app)
+limiter = Limiter(
+    get_remote_address,
+    app = app,
+    default_limits = ["3000 per hour"], # ~ 1/second
+    storage_uri = "memory://", # redis or monogo for production...
+    default_limits_exempt_when = lambda: session.get('username') == 'admin'
+)
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
+
 
 # Initialize Storage Folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
@@ -30,6 +38,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['DATABASE_FOLDER'], exist_ok=True)
 initialize_db(app)
 initialize_ecpm(app)
+
 
 # initialize custom decorators
 from PaypalWebsite.decorators import *
@@ -488,6 +497,7 @@ def get_paypal_mode_route():
 # Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
 @email_required
+@limiter.limit("1 per day")
 def Cashout(user):
     # validate inputs
     try:
@@ -569,6 +579,7 @@ def GemCount(user):
 # TESTING PURPOSES ONLY, Increment Gems
 @app.route('/get_gem/<int:amount>')
 @admin_required
+@limiter.limit("2/second")
 def get_gem(amount, user):
     user["gems"] += amount
     update_user(user["username"], **user)
@@ -633,6 +644,7 @@ def WatchFakeAdRound(user, count):
 # UNITY S2S : Unity will use this route to tell us when users watch ads
 @app.route('/S2S', methods=['GET'])
 @log_request
+@limiter.exempt
 def WatchAd():
     try:
         # Extract Parameters 

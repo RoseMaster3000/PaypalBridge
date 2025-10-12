@@ -5,6 +5,7 @@ requests==2.32.3
 Flask-APScheduler==1.13.1
 python-magic==0.4.27
 flask-cors==6.0.1
+Flask-Limiter==4.0.0
 
 # py3dns==4.0.2
 # validate_email==1.3
