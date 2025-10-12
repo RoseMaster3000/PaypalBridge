@@ -235,6 +235,7 @@ def PurgeTempUsers(user):
 # Increment Gems
 @app.route('/GetGem', methods=['POST'])
 @none_required
+@limiter.limit("2/second")
 def GetGem(user):
     user["gems"] += int(request.form["gems"])
     update_user(user["username"], **user)
@@ -497,7 +498,6 @@ def get_paypal_mode_route():
 # Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
 @email_required
-@limiter.limit("1 per day")
 def Cashout(user):
     # validate inputs
     try:
@@ -579,7 +579,6 @@ def GemCount(user):
 # TESTING PURPOSES ONLY, Increment Gems
 @app.route('/get_gem/<int:amount>')
 @admin_required
-@limiter.limit("2/second")
 def get_gem(amount, user):
     user["gems"] += amount
     update_user(user["username"], **user)
