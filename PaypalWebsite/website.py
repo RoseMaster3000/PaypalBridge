@@ -300,6 +300,21 @@ def MarketGemValue():
     singleGemValue = (interstitialValue + rewardedValue) / 55
     return singleGemValue
 
+# step 1A
+from datetime import datetime, timedelta
+
+def has_cashed_out_today(user):
+    if not user.get("cashouts"):
+        return False, None
+    last_entry = user["cashouts"][-1]
+    last_time = last_entry["time"] if isinstance(last_entry, dict) else last_entry
+    last_time = datetime.fromisoformat(last_time)
+    now = datetime.utcnow()
+    if now.date() == last_time.date():
+        remaining = timedelta(days=1) - (now - last_time)
+        return True, remaining
+    return False, None
+    # enf step 1A
 
 def CalculateCuts(TotalRevenue):
     PlayerShare = 0.70 # percent the user gets
@@ -494,6 +509,22 @@ def get_paypal_mode_route():
     return jsonify({'mode': mode})
     # end of new add if not delete lines 470-483
 
+# step 3c
+@app.route('/CashoutStatus', methods=['POST'])
+@none_required
+def CashoutStatus(user):
+    already_cashed_out, remaining = has_cashed_out_today(user)
+    if already_cashed_out:
+        return jsonify({
+            "can_cashout": False,
+            "message": f"You already cashed out today. Time remaining: {str(remaining).split('.')[0]}"
+        })
+    else:
+        return jsonify({
+            "can_cashout": True,
+            "message": "You can cash out now."
+        })
+# end step 3c
 
 # Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
@@ -506,6 +537,15 @@ def Cashout(user):
     except:
         return jsonify({"success":False, "message": "Invalid Gem Count"})
     
+    # step 1b
+    already_cashed_out, remaining = has_cashed_out_today(user)
+    if already_cashed_out:
+        return jsonify({
+            "success": False,
+            "message": f"You already cashed out today. Time remaining: {str(remaining).split('.')[0]}"
+        }), 403
+    # end step 1b
+
     # verify gem count
     if ((user["gems"]+user["bonus"]) < gemCount):
         return "You requested more gems than you have!"
