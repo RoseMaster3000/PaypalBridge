@@ -235,7 +235,7 @@ def PurgeTempUsers(user):
 # Increment Gems
 @app.route('/GetGem', methods=['POST'])
 @none_required
-@limiter.limit("2/second")
+@limiter.limit("2/second", exempt_when=lambda:(session["username"]=="admin" or app.debug))
 def GetGem(user):
     user["gems"] += int(request.form["gems"])
     update_user(user["username"], **user)
