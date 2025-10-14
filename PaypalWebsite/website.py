@@ -24,7 +24,7 @@ limiter = Limiter(
     app = app,
     default_limits = ["3000 per hour"], # ~ 1/second
     storage_uri = "memory://", # redis or monogo for production...
-    default_limits_exempt_when = lambda: session.get('username') == 'admin'
+    default_limits_exempt_when = lambda: (session["username"]=="admin" or app.debug)
 )
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
 
@@ -498,7 +498,7 @@ def get_paypal_mode_route():
 # Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
 @email_required
-@limiter.limit("1/day", exempt_when=lambda: app.debug)
+@limiter.limit("1/day", exempt_when=lambda:(session["username"]=="admin" or app.debug))
 def Cashout(user):
     # validate inputs
     try:
