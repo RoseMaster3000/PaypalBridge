@@ -498,6 +498,7 @@ def get_paypal_mode_route():
 # Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
 @email_required
+@limiter.limit("1/day", exempt_when=lambda: app.debug)
 def Cashout(user):
     # validate inputs
     try:
