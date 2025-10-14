@@ -510,7 +510,7 @@ def get_paypal_mode_route():
     # end of new add if not delete lines 470-483
 
 # step 3c
-@app.route('/CashoutStatus', methods=['GET', 'POST'])
+@app.route('/CashoutStatus', methods=['POST'])
 @none_required
 def CashoutStatus(user):
     already_cashed_out, remaining = has_cashed_out_today(user)
