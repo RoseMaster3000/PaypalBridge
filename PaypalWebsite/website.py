@@ -16,16 +16,43 @@ from PaypalWebsite import SECRET
 from PaypalWebsite.database.tinydb import *
 from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 
+def get_user_key():
+    return session.get("username", get_remote_address())
+
 # Initialize Modules
 app = Flask(__name__) 
 bcrypt = Bcrypt(app)
 limiter = Limiter(
-    get_remote_address,
+    key_func=get_user_key,
     app = app,
     default_limits = ["3000 per hour"], # ~ 1/second
     storage_uri = "memory://", # redis or monogo for production...
-    default_limits_exempt_when = lambda: (session["username"]=="admin" or app.debug)
+    default_limits_exempt_when = lambda: (session.get("username")=="admin" or app.debug)
 )
+# rate limit test for key_func=get_user_key
+@app.route("/test-key")
+def test_key():
+    username = session.get("username")
+    sid = session.get("SID")
+    ip = get_remote_address()
+    key = get_user_key()
+
+    print(f"Testing rate key for user:")
+    print(f"  Username: {username}")
+    print(f"  SID: {sid}")
+    print(f"  IP: {ip}")
+    print(f"  Rate limit key used: {key}")
+
+    return (
+        f"<pre>"
+        f"Username: {username}\n"
+        f"SID: {sid}\n"
+        f"IP: {ip}\n"
+        f"Rate limit key used: {key}"
+        f"</pre>"
+    )
+    # end of rate limit test
+
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
 
 
@@ -235,7 +262,7 @@ def PurgeTempUsers(user):
 # Increment Gems
 @app.route('/GetGem', methods=['POST'])
 @none_required
-@limiter.limit("2/second", exempt_when=lambda:(session["username"]=="admin" or app.debug))
+@limiter.limit("2/second", exempt_when=lambda:(session.get("username")=="admin" or app.debug))
 def GetGem(user):
     user["gems"] += int(request.form["gems"])
     update_user(user["username"], **user)
@@ -498,7 +525,7 @@ def get_paypal_mode_route():
 # Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
 @email_required
-@limiter.limit("1/day", exempt_when=lambda:(session["username"]=="admin" or app.debug))
+@limiter.limit("1/day", exempt_when=lambda:(session.get("username")=="admin" or app.debug))
 def Cashout(user):
     # validate inputs
     try:
