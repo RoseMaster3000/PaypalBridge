@@ -16,7 +16,7 @@ from PaypalWebsite import SECRET
 from PaypalWebsite.database.tinydb import *
 from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 
-ADMINS = ["admin", "dima", "shahrose"]
+ADMINS = ["admin"] # to add more users(admins to "admin, "dima", "wertyr")
 
 # Initialize Modules
 app = Flask(__name__) 
