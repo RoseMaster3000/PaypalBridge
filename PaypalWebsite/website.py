@@ -49,7 +49,7 @@ from PaypalWebsite.decorators import *
 def verify_auth():
     if request.path.startswith('/static/'):
         return
-    elif "username" in session and fetch_user(session["username"])!=None:
+    elif "username" in session and fetch_user(session["username"]) != None:
         return
     else:
         generate_temp_user()
@@ -57,7 +57,6 @@ def verify_auth():
 
 # generated/login temp account
 def generate_temp_user():
-    if session.get("username", None) != None: return
     user = create_user(
         username = str(uuid4()),
         email = None,
@@ -692,6 +691,7 @@ def SeeMyAds(user, username):
     targetUser = fetch_user(username)
     return jsonify(fetch_ads(targetUser.doc_id))
 
+
 # see the ads that the current user 
 @app.route('/SeeAllAds')
 @admin_required
@@ -704,7 +704,6 @@ def SeeAllAds(user):
 @admin_required
 def RequestLog(user):
     return jsonify(fetch_all('Requests'))
-
 
 
 # take over temp_user account (fake "registration")
@@ -735,15 +734,10 @@ def login(user):
     session["username"] = newUser["username"]
     session["gems"] = newUser["gems"]
 
-
-
-
     # If you are an admin + this is in a web browser, goto Dashboard
     if isDeveloper() and isBrowser(request):
         return redirect("/Dashboard")
     else:
-
-
         return f"Logged in Successfully"
 
 
