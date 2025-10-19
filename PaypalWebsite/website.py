@@ -19,15 +19,15 @@ from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 # Initialize Modules
 app = Flask(__name__) 
 bcrypt = Bcrypt(app)
+def isDeveloper(): return session.get("username", None) == "admin" or app.debug
 limiter = Limiter(
     get_remote_address,
     app = app,
     default_limits = ["3000 per hour"], # ~ 1/second
     storage_uri = "memory://", # redis or monogo for production...
-    default_limits_exempt_when = lambda: (session["username"]=="admin" or app.debug)
+    default_limits_exempt_when = isDeveloper
 )
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
-
 
 # Initialize Storage Folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
@@ -118,7 +118,7 @@ def SID(user):
 @app.route('/')
 @none_required
 def index(user):
-    if user['username'] =='admin' or app.debug:
+    if isDeveloper():
         return redirect("/Dashboard")
     else:
         return redirect("/Login")
@@ -235,7 +235,7 @@ def PurgeTempUsers(user):
 # Increment Gems
 @app.route('/GetGem', methods=['POST'])
 @none_required
-@limiter.limit("2/second", exempt_when=lambda:(session["username"]=="admin" or app.debug))
+@limiter.limit("2/second", exempt_when=isDeveloper)
 def GetGem(user):
     user["gems"] += int(request.form["gems"])
     update_user(user["username"], **user)
@@ -498,7 +498,7 @@ def get_paypal_mode_route():
 # Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
 @email_required
-@limiter.limit("1/day", exempt_when=lambda:(session["username"]=="admin" or app.debug))
+@limiter.limit("1/day", exempt_when=isDeveloper)
 def Cashout(user):
     # validate inputs
     try:
@@ -739,10 +739,11 @@ def login(user):
 
 
     # If you are an admin + this is in a web browser, goto Dashboard
-    isAdmin = (session["username"]=="admin" or app.debug)
-    if isAdmin and isBrowser(request):
+    if isDeveloper() and isBrowser(request):
         return redirect("/Dashboard")
     else:
+
+
         return f"Logged in Successfully"
 
 
