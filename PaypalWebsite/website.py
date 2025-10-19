@@ -16,10 +16,12 @@ from PaypalWebsite import SECRET
 from PaypalWebsite.database.tinydb import *
 from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 
+ADMINS = ["admin", "dima", "shahrose"]
+
 # Initialize Modules
 app = Flask(__name__) 
 bcrypt = Bcrypt(app)
-def isDeveloper(): return session.get("username", None) == "admin" or app.debug
+def isDeveloper(): return session.get("username", None) in ADMINS or app.debug
 limiter = Limiter(
     get_remote_address,
     app = app,
@@ -510,7 +512,7 @@ def Cashout(user):
     if ((user["gems"]+user["bonus"]) < gemCount):
         return "You requested more gems than you have!"
 
-    # verify payout ()
+    # verify payout (processing fees)
     TotalCut, EntitledCut, AdminCut = CalculatePayoutSkill(user, gemCount)
     if EntitledCut <= 0:
         gemsNeeded = CalculateGemsNeeded(user, gemCount)

@@ -2,7 +2,7 @@ from functools import wraps
 from flask import session, request, after_this_request
 from datetime import datetime
 from PaypalWebsite.database.tinydb import fetch_user, log
-from PaypalWebsite.website import app
+from PaypalWebsite.website import app, isDeveloper
 import os
 
 # prevents cookie from beeing created
@@ -55,7 +55,7 @@ def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         kwargs["user"] = fetch_user(session["username"])
-        if kwargs["user"]["username"] == "admin" or app.debug:
+        if isDeveloper():
             return f(*args, **kwargs)
         else:
             return  {"status":403, "message":'admin required'}
