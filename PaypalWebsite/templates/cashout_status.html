@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Wallet Button Control Panel</title>
+    <title>Cash Out Button Control Panel</title>
     <style>
         #success-message {
             transition: opacity 1s ease-out;
@@ -18,41 +18,37 @@
         window.onload = function () {
             toggleInteractableCheckbox();
 
-            // Auto-hide success message with a fade-out effect
             const successMsg = document.getElementById('success-message');
             if (successMsg) {
                 setTimeout(() => {
-                    successMsg.style.opacity = '0'; // Fade out smoothly
+                    successMsg.style.opacity = '0';
                     setTimeout(() => {
                         successMsg.style.display = 'none';
-                    }, 1000); // 1 sec Wait for fade-out completion
-                }, 1000); //1000 miliseconds 1-seconds
+                    }, 1000);
+                }, 1000);
             }
         };
     </script>
 </head>
 <body>
-    <h2>Wallet Button Control Panel</h2>
+    <h2>Cash Out Button Control Panel</h2>
 
     {% if success %}
         <p id="success-message" style="color: green;">Settings updated successfully!</p>
     {% endif %}
 
-    <form method="post" action="/update_wallet_status">
+    <form method="post" action="/update_cashout_status">
         <label>
-            <input type="checkbox" id="visible" name="visible" {% if WALLET_BUTTON_VISIBLE %}checked{% endif %} onchange="toggleInteractableCheckbox()">
-            Wallet Button Visible
+            <input type="checkbox" id="visible" name="visible" {% if CASH_OUT_BUTTON_VISIBLE %}checked{% endif %} onchange="toggleInteractableCheckbox()">
+            Cash Out Button Visible
         </label><br>
         <label>
-            <input type="checkbox" id="interactable" name="interactable" {% if WALLET_BUTTON_INTERACTABLE %}checked{% endif %}>
-            Wallet Button Interactable
-        </label><br>
-        <br>
-        <br>
+            <input type="checkbox" id="interactable" name="interactable" {% if CASH_OUT_BUTTON_INTERACTABLE %}checked{% endif %}>
+            Cash Out Button Interactable
+        </label><br><br>
+
         <button type="submit">Update</button>
         <a href="/">Go Back</a>
-
-
     </form>
 </body>
 </html>
