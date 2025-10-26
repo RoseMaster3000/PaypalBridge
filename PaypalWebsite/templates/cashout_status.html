@@ -25,7 +25,7 @@
                     setTimeout(() => {
                         successMsg.style.display = 'none';
                     }, 1000);
-                }, 1000);
+                }, 1000); <!--1 sec-->
             }
         };
     </script>
@@ -35,6 +35,12 @@
 
     {% if success %}
         <p id="success-message" style="color: green;">Settings updated successfully!</p>
+    {% endif %}
+
+    {% if CASH_OUT_OVERRIDE_ENABLED %}
+        <p style="color: blue;"><i>Override enabled: Unity will cashout Button follow WalletManager2.cs gemCount logic.</i></p>
+    {% else %}
+        <p style="color: gray;"><i>Override disabled: Unity cashout Button will follow server Override .</i></p>
     {% endif %}
 
     <form method="post" action="/update_cashout_status">

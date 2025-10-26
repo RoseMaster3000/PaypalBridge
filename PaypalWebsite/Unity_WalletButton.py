@@ -6,7 +6,7 @@ from PaypalWebsite.decorators import *
 # line only needed if standalon webapp, starting app like main.py
 # app = Flask(__name__)  
 
-# Default button states
+# Default button global states
 WALLET_BUTTON_VISIBLE = True
 WALLET_BUTTON_INTERACTABLE = True
 
