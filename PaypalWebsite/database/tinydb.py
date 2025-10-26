@@ -21,8 +21,12 @@ def get_paypal_mode():
     return result['mode'] if result else 'sandbox'
 # end of new add if not delete lines 11-22
 
+def set_override_status(enabled: bool):
+    db.table('cashout_override').upsert({'enabled': enabled}, Query().enabled.exists())
 
-
+def get_override_status():
+    result = db.table('cashout_override').get(Query().enabled.exists())
+    return result['enabled'] if result else False
 
 
 # generate current epoch time INT (seconds since January 1, 1970)
