@@ -134,12 +134,15 @@ def dashboard_page(user):
     playerRevenue = fetch_revenue("player")
     grossRevenue = fetch_revenue("gross")
     paypalMode = get_paypal_mode() # either "sandbox" or "live"
+    overrideEnabled = get_override_status() #cashout button override
+
     # display page
     return render_template(
         'dashboard.html',
         users=users,
         user=user,
         paypalMode = paypalMode,
+        cashoutOverride=overrideEnabled,
         websiteRevenue= f"${websiteRevenue:,.02f}",
         playerRevenue= f"${playerRevenue:,.02f}",
         grossRevenue= f"${grossRevenue:,.02f}",
