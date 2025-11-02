@@ -16,18 +16,20 @@ from PaypalWebsite import SECRET
 from PaypalWebsite.database.tinydb import *
 from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
 
+ADMINS = ["admin"] # to add more users(admins to "admin, "dima", "wertyr")
+
 # Initialize Modules
 app = Flask(__name__) 
 bcrypt = Bcrypt(app)
+def isDeveloper(): return session.get("username", None) in ADMINS or app.debug
 limiter = Limiter(
     get_remote_address,
     app = app,
     default_limits = ["3000 per hour"], # ~ 1/second
     storage_uri = "memory://", # redis or monogo for production...
-    default_limits_exempt_when = lambda: (session["username"]=="admin" or app.debug)
+    default_limits_exempt_when = isDeveloper
 )
 app.config['SECRET_KEY'] = SECRET.FLASK_KEY
-
 
 # Initialize Storage Folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
@@ -49,7 +51,7 @@ from PaypalWebsite.decorators import *
 def verify_auth():
     if request.path.startswith('/static/'):
         return
-    elif "username" in session and fetch_user(session["username"])!=None:
+    elif "username" in session and fetch_user(session["username"]) != None:
         return
     else:
         generate_temp_user()
@@ -57,7 +59,6 @@ def verify_auth():
 
 # generated/login temp account
 def generate_temp_user():
-    if session.get("username", None) != None: return
     user = create_user(
         username = str(uuid4()),
         email = None,
@@ -117,7 +118,7 @@ def SID(user):
 @app.route('/')
 @none_required
 def index(user):
-    if user['username'] =='admin' or app.debug:
+    if isDeveloper():
         return redirect("/Dashboard")
     else:
         return redirect("/Login")
@@ -132,12 +133,15 @@ def dashboard_page(user):
     playerRevenue = fetch_revenue("player")
     grossRevenue = fetch_revenue("gross")
     paypalMode = get_paypal_mode() # either "sandbox" or "live"
+    overrideEnabled = get_override_status() #cashout button override
+
     # display page
     return render_template(
         'dashboard.html',
         users=users,
         user=user,
         paypalMode = paypalMode,
+        cashoutOverride=overrideEnabled,
         websiteRevenue= f"${websiteRevenue:,.02f}",
         playerRevenue= f"${playerRevenue:,.02f}",
         grossRevenue= f"${grossRevenue:,.02f}",
@@ -234,7 +238,7 @@ def PurgeTempUsers(user):
 # Increment Gems
 @app.route('/GetGem', methods=['POST'])
 @none_required
-@limiter.limit("2/second", exempt_when=lambda:(session["username"]=="admin" or app.debug))
+@limiter.limit("2/second", exempt_when=isDeveloper)
 def GetGem(user):
     user["gems"] += int(request.form["gems"])
     update_user(user["username"], **user)
@@ -497,7 +501,7 @@ def get_paypal_mode_route():
 # Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
 @email_required
-@limiter.limit("1/day", exempt_when=lambda:(session["username"]=="admin" or app.debug))
+@limiter.limit("1/day", exempt_when=isDeveloper)
 def Cashout(user):
     # validate inputs
     try:
@@ -510,7 +514,7 @@ def Cashout(user):
     if ((user["gems"]+user["bonus"]) < gemCount):
         return "You requested more gems than you have!"
 
-    # verify payout ()
+    # verify payout (processing fees)
     TotalCut, EntitledCut, AdminCut = CalculatePayoutSkill(user, gemCount)
     if EntitledCut <= 0:
         gemsNeeded = CalculateGemsNeeded(user, gemCount)
@@ -691,6 +695,7 @@ def SeeMyAds(user, username):
     targetUser = fetch_user(username)
     return jsonify(fetch_ads(targetUser.doc_id))
 
+
 # see the ads that the current user 
 @app.route('/SeeAllAds')
 @admin_required
@@ -703,7 +708,6 @@ def SeeAllAds(user):
 @admin_required
 def RequestLog(user):
     return jsonify(fetch_all('Requests'))
-
 
 
 # take over temp_user account (fake "registration")
@@ -734,12 +738,8 @@ def login(user):
     session["username"] = newUser["username"]
     session["gems"] = newUser["gems"]
 
-
-
-
     # If you are an admin + this is in a web browser, goto Dashboard
-    isAdmin = (session["username"]=="admin" or app.debug)
-    if isAdmin and isBrowser(request):
+    if isDeveloper() and isBrowser(request):
         return redirect("/Dashboard")
     else:
         return f"Logged in Successfully"
