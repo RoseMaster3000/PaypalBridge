@@ -103,7 +103,6 @@ def TempUser():
 @app.route("/Identity", methods=['POST'])
 def identity():
     cookies = request.cookies
-    print("Received cookies:", dict(cookies))
     return session.get("username", "[None]")
 
 
