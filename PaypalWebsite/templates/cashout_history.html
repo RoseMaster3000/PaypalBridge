@@ -1,0 +1,41 @@
+<h2>Cashout History for {{ user.username }} (SID: {{ sid }})</h2>
+<ul>
+  <li><strong>Gems:</strong> {{ user.gems }} (current + redeemed)</li> 
+  <li><strong>Bonus Gems:</strong> {{ user.bonus }}</li>
+  <li><strong>Total Redeemed:</strong> ${{ user.total_cashout }}</li>
+  <li><strong>Rewarded Ads Watched:</strong> {{ user.rewarded }}</li>
+  <li><strong>Interstitial Ads Watched:</strong> {{ user.interstitial }}</li>
+  </ul>
+  <h3>Ad Metrics</h3>
+<ul>
+  <li><strong>Rewarded eCPM:</strong> {{ rewardedECPM }}</li>
+  <li><strong>Interstitial eCPM:</strong> {{ interstitialECPM }}</li>
+  <li><strong>Total Ads Watched:</strong> {{ totalAds }}</li>
+  <li><strong>Total Ad Revenue (estimated):</strong> {{ totalAdRevenue }}</li>
+  <li><strong>Gem Value (USD):</strong> {{ gemValue }} per gem</li>
+</ul>
+{% if rewardedECPM == "$0.00" or interstitialECPM == "$0.00" %}
+  <p style="color:red;"><strong>Warning:</strong> eCPM values may not be available in local mode.</p>
+{% endif %}
+
+
+
+
+
+
+
+<h3>Cashout Log</h3>
+<table border="1">
+  <tr>
+    <th>Time</th><th>Gems</th><th>User Payout</th><th>Admin Payout</th><th>Total Payout</th>
+  </tr>
+  {% for entry in user.cashouts %}
+  <tr>
+    <td>{{ entry.time }}</td>
+    <td>{{ entry.gems }}</td>
+    <td>${{ entry.UserPayout }}</td>
+    <td>${{ entry.AdminPayout }}</td>
+    <td>${{ entry.TotalPayout }}</td>
+  </tr>
+  {% endfor %}
+</table>

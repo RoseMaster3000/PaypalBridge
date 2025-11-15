@@ -92,7 +92,13 @@ function generateAdLog(data, type, row) {
 }
 
 function generateCashoutHistory(data, type, row) {
-  return ` <a href="/CashoutHistory/${data.username}"">${data.total_cashout}</a>`
+  return `
+    <div>
+      <a href="/CashoutHistory/${data.username}">${data.total_cashout}</a>
+      //
+      <a href="/CashoutHistoryView/${data.sid}" class="btn btn-sm btn-info">History</a>
+    </div>
+  `;
 }
 
 </script>
