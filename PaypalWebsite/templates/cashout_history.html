@@ -1,4 +1,11 @@
+<!-- no need for html tasgs bcause flask app uses jinja synthax {{sid}}
+ importing the tags under the hood. so its not raw HTML, its jinja-powered 
+ templete (called from flasks render_templete(file.html))-->
+
+
 <h2>Cashout History for {{ user.username }} (SID: {{ sid }})</h2>
+<a href="/">Go Back</a>
+
 <ul>
   <li><strong>Gems:</strong> {{ user.gems }} (current + redeemed)</li> 
   <li><strong>Bonus Gems:</strong> {{ user.bonus }}</li>
@@ -18,12 +25,25 @@
   <p style="color:red;"><strong>Warning:</strong> eCPM values may not be available in local mode.</p>
 {% endif %}
 
+<!-- filter by date-->
+<form method="get" action="">
+  <label for="start">Start Date:</label>
+  <input type="date" id="start" name="start" value="{{ request.args.get('start', '') }}">
 
+  <label for="end">End Date:</label>
+  <input type="date" id="end" name="end" value="{{ request.args.get('end', '') }}">
 
+  <label for="exact">Or Specific Date:</label>
+  <input type="date" id="exact" name="exact" value="{{ request.args.get('exact', '') }}">
+  <button type="submit">Filter</button>
 
+<!-- Clear Filters Button -->
+  <button type="button" class="btn btn-primary" onclick="window.location.href='/CashoutHistoryView/{{ sid }}'" style="margin-left: 10px;">
+    Clear Filters
+  </button>
+</form>
 
-
-
+<!-- cashout table-->
 <h3>Cashout Log</h3>
 <table border="1">
   <tr>
