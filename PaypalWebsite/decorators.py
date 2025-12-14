@@ -20,7 +20,9 @@ def no_SessionCookie(route_func):
 def none_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        kwargs["user"] = fetch_user(session["username"])
+        username = session.get("username")
+        user = fetch_user(username) if username else None
+        kwargs["user"] = user
         return f(*args, **kwargs)
     return wrapper
 

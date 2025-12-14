@@ -49,12 +49,27 @@ from PaypalWebsite.decorators import *
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)
 @app.before_request
 def verify_auth():
-    if request.path.startswith('/static/'):
+    path = request.path
+
+    # Skip static files
+    if path.startswith('/static/'):
         return
-    elif "username" in session and fetch_user(session["username"]) != None:
+
+    # Skip S2S (Unity Ads servers)
+    if path.startswith('/S2S') or path.startswith('/Fake/S2S'):
         return
-    else:
-        generate_temp_user()
+
+    # Skip Identity (Identity must decide whether to create temp user)
+    if path.startswith('/Identity'):
+        return
+
+    # If session already has a valid user, keep it
+    username = session.get("username")
+    if username and fetch_user(username) is not None:
+        return
+
+    # Otherwise create a temp user
+    generate_temp_user()
 
 
 # generated/login temp account
@@ -103,14 +118,31 @@ def TempUser():
 # ask server for username
 @app.route("/Identity", methods=['POST'])
 def identity():
-    cookies = request.cookies
-    return session.get("username", "[None]")
+    username = session.get("username")
+
+    # No session → create temp user
+    if not username:
+        generate_temp_user()
+        return session["username"]
+
+    # Session exists but user was deleted → create temp user
+    user = fetch_user(username)
+    if user is None:
+        generate_temp_user()
+        return session["username"]
+
+    # Valid user (temp or registered)
+    print("COOKIES:", request.cookies)
+    print("SESSION:", dict(session))
+    return username
 
 
 # ask server for SID (document ID)
 @app.route("/SID")
 @none_required
 def SID(user):
+    if not user:
+        return "-1"
     return str(user.doc_id)
 
 
@@ -595,7 +627,9 @@ def GetUserInfo(user):
 @app.route('/GemCount')
 @none_required
 def GemCount(user):
-    return f"{user['gems']}"
+    if not user:
+        return "0"
+    return f"{user.get('gems', 0)}"
 
 
 # TESTING PURPOSES ONLY, Increment Gems
@@ -815,3 +849,16 @@ def get_script_status():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+@app.route("/Ping")
+def ping():
+    return "SERVER VERSION 7"
+
+@app.route("/DebugIdentity", methods=['GET'])
+def debug_identity():
+    return {
+        "cookies": dict(request.cookies),
+        "session": dict(session),
+        "session_username": session.get("username"),
+        "user_exists": fetch_user(session.get("username")) is not None
+    }
