@@ -29,6 +29,13 @@
 
 
 <body>
+<h1>Admin Dashboard</h1>
+<h2>Welcome, {{session["username"]}}!</h2>
+<hr style="width: 50%; margin: 20px 0; border: 0; border-top: 2px solid #ccc;">
+
+<!-- disable/anable wallet button in unity -->
+  {% include "cashout_status.html" %}
+
 <!-- Header : Admin Buttons -->
   {% include "PayPalModeSwitch.html" %}
 
@@ -45,13 +52,11 @@
   {% include "dash-users.html" %}
 
   <!-- disable/anable wallet button in unity -->
-  {% include "wallet_status.html" %}
+  <!--{% include "wallet_status.html" %}-->
 
-  <!-- disable/anable wallet button in unity -->
-  {% include "cashout_status.html" %}
 
    <!-- disable/anable ServerConnector button in unity -->
-  {% include "ServerConnector_status.html" %}
+  <!--{% include "ServerConnector_status.html" %} -->
 
   <!-- Account Management -->
   {% include "dash-accounts.html" %}

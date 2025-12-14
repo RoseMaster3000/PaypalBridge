@@ -23,6 +23,11 @@
     </script>
 </head>
 <body>
+<div style="max-width: 650px; margin: 30px 0 0px 0; 
+     padding: 10px 10px 10px 20px; border: 2px solid 
+    #ccc; border-radius: 8px; background-color: #f9f9f9; 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+
     <h2>Cash Out Button Control Panel</h2>
 
     {% if success %}
@@ -35,14 +40,18 @@
         <p style="color: gray;"><i>Override disabled: Unity cashout Button will follow server Override.</i></p>
     {% endif %}
 
+    <hr style="width: 50%; margin: 20px 0; border: 0; border-top: 2px solid #ccc;">
+
     <form method="post" action="/update_cashout_status">
         <label>
             <input type="checkbox" id="interactable" name="interactable" {% if CASH_OUT_BUTTON_INTERACTABLE %}checked{% endif %}>
             Cash Out Button Interactable
-        </label><br><br>
+        </label><br></br>
 
         <button type="submit">Update</button>
         <a href="/">Go Back</a>
     </form>
+
+</div>
 </body>
 </html>
