@@ -120,29 +120,20 @@ def TempUser():
 def identity():
     username = session.get("username")
 
-    # CASE 1 — No username in session → create a new temp user
+    # No session → create temp user
     if not username:
-        username = generate_temp_username()
+        generate_temp_user()
+        return session["username"]
 
-        # Only create user if not already in DB
-        if not fetch_user(username):
-            create_user(username)
-
-        session["username"] = username
-        return username
-
-    # CASE 2 — Username exists in session but user was deleted
+    # Session exists but user was deleted → create temp user
     user = fetch_user(username)
     if user is None:
-        username = generate_temp_username()
+        generate_temp_user()
+        return session["username"]
 
-        if not fetch_user(username):
-            create_user(username)
-
-        session["username"] = username
-        return username
-
-    # CASE 3 — Valid user
+    # Valid user (temp or registered)
+    print("COOKIES:", request.cookies)
+    print("SESSION:", dict(session))
     return username
 
 
