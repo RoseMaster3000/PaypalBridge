@@ -451,6 +451,8 @@ def redeem_ads(userID, gemCount):
     # EJECT if not enough ads to cover gem cashout
     if rewarded_used == None:
         return False, user
+   
+    #------------END OF CALCULATIONS------------------    
 
     # Decrement ad count ("redeem" ads by deleting them)
     user["interstitial"] -= interstitial_used
@@ -460,6 +462,7 @@ def redeem_ads(userID, gemCount):
     # done!
     return True, user
 
+#-------------restrictions to the caalculation--------------
 
 @app.route('/PreviewCashout', methods=['POST'])
 @none_required
