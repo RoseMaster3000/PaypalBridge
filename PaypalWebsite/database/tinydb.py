@@ -5,8 +5,14 @@ from random import randint
 from uuid import uuid4
 import os
 import time
+from datetime import datetime
 import json
 from PaypalWebsite.ecpm import get_recent_ecpm
+
+def convert_epoch(epoch_time):
+    if type(epoch_time)==str: return epoch_time
+    datetime_object = datetime.fromtimestamp(int(epoch_time))
+    return datetime_object.strftime("%m/%d/%Y %H:%M:%S")  # Customize the format as needed
 
 #----for paypal new add if not delete
 # create table "paypal_config" to store mode
@@ -113,9 +119,11 @@ def create_user(**kwargs):
 
 
 # Record cashout in database
-def log_cashout(user, gemCount, TotalPayout, EntitledPayout, AdminPayout): 
+def log_cashout(username, gemCount, TotalPayout, EntitledPayout, AdminPayout): 
+    
+
     # increment total cashout of user
-    user = users.get(doc_id=user.doc_id)
+    user = fetch_user(username)
     user['total_cashout'] = user.get('total_cashout', 0) + EntitledPayout
     user['earnings'] -= TotalPayout
     user['cashouts'].append({
@@ -128,13 +136,11 @@ def log_cashout(user, gemCount, TotalPayout, EntitledPayout, AdminPayout):
     })
     
     try:
-        users.update(user, doc_ids=[user.doc_id])
+        update_user(**user)
         return True, user
-    except:
+    except Exception as e:
+        print("LOG CASHOUT ERROR:", e)
         return False, user
-
-
-
 
 
 def increment_revenue_all(increment):
@@ -214,21 +220,17 @@ def purge_request_log():
     requests_table.remove(~ (Record.path.one_of(["/S2S", "/S3S"])))
 
 
-# Update user record
-def update_user(user):
-    update_user(user.doc_id, **user)
-
 # Update the user record
-def update_user(user, **kwargs):
-    user = fetch_user(user)
-    print(user)
-    print(user.doc_id)
-    print(kwargs)
+def update_user(username, **kwargs):
+    user = fetch_user(username)
+    if not user:
+        print(f"UPDATE USER ERROR: user '{username}' not found")
+        return False
     try:
         users.update(kwargs, doc_ids=[user.doc_id])
         return True
     except Exception as e:
-        print()
+        print("UPDATE USER ERROR:", e)
         return False
 
 # **delete a user record**

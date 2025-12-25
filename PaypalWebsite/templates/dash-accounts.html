@@ -19,20 +19,40 @@
 
 <h2>Create User</h2>
 <form method="POST" action="/CreateUser">
+  <!-- Username: must be 1–36 characters, alphanumeric -->
+  <label for="username">Username (1–36 chars, alphanumeric)</label><br />
   <input
     type="text"
+    id="username"
     name="username"
-    placeholder="Username"
+    placeholder="Enter Username"
+    maxlength="36"
+    pattern="[A-Za-z0-9]+"
     required
-  /><br />
-  <input type="email" name="email" placeholder="Email" required /><br />
+  /><br /><br />
+
+  <!-- Email: must be unique -->
+  <label for="email">Email</label><br />
+  <input
+    type="email"
+    id="email"
+    name="email"
+    placeholder="Enter Email"
+    required
+  /><br /><br />
+
+  <!-- Password: must be at least 8 characters -->
+  <label for="password">Password (min 8 characters)</label><br />
   <input
     type="password"
+    id="password"
     name="password"
-    placeholder="Password"
+    placeholder="Enter Password"
+    minlength="8"
     required
-  /><br />
-  <button type="submit">Add User</button>
+  /><br /><br />
+
+  <button type="submit">Create Account</button>
 </form>
 
 <br />

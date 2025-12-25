@@ -1,4 +1,4 @@
-from flask_apscheduler import APScheduler
+'''from flask_apscheduler import APScheduler
 from PaypalWebsite.website import app, purge_users
 
 # Configure scheduler
@@ -21,4 +21,4 @@ scheduler.add_job(
     hour=3,
     minute=30           
 )
-scheduler.start()
+scheduler.start()'''

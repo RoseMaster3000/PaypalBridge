@@ -13,23 +13,65 @@ from werkzeug.utils import secure_filename
 import magic
 from PaypalWebsite.paypal import create_payout
 from PaypalWebsite import SECRET
-from PaypalWebsite.database.tinydb import *
-from PaypalWebsite.ecpm import get_recent_ecpm, initialize_ecpm
-
-ADMINS = ["admin", "dimad"] # to add more users(admins to "admin, "dima", "wertyr")
+#from PaypalWebsite.database.tinydb import *
+from PaypalWebsite.database.tinydb import get_paypal_mode
+from PaypalWebsite.database.tinydb import log_cashout
+from PaypalWebsite.ecpm import initialize_ecpm, get_recent_ecpm
+from PaypalWebsite import calculations
+from PaypalWebsite.isDevelopers import isDeveloper
+from PaypalWebsite.blueprint_appad import appad
+from PaypalWebsite.blueprint_UnityCashoutButton import cashout_button
+from PaypalWebsite.blueprint_CashoutHistory import web_cashoutHistory
+from PaypalWebsite.blueprint_UnityWalletButton import wallet_button
+import traceback
+from PaypalWebsite.database.tinydb import (
+    create_user,
+    fetch_user,
+    fetch_users,
+    update_user,
+    get_paypal_mode,
+    log_cashout,
+    set_revenue,
+    fetch_revenue,
+    convert_epoch,
+    initialize_db,
+    get_override_status,
+    set_override_status
+)
+# initialize custom decorators
+from PaypalWebsite.decorators import (
+none_required, admin_required,
+ email_required, log_request, temp_required)
 
 # Initialize Modules
 app = Flask(__name__) 
+app.secret_key = SECRET.FLASK_KEY
+app.config['SESSION_COOKIE_NAME'] = 'session'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+
+@app.after_request
+def debug_response(response):
+    print("=== FINAL RESPONSE HEADERS ===")
+    print(response.headers)
+    return response
+
+calculations.register_payout_routes(app)
+
+# Register Blueprint for blueprint_appad.py
+app.register_blueprint(appad)
+appad.config = app.config  #Give the blueprint access to the main app's config
+# Register Blueprint for blueprint_UnityCashoutButton.py
+app.register_blueprint(cashout_button)
+# Register Blueprint for blueprint_cashoutHistory.py
+app.register_blueprint(web_cashoutHistory)
+# Register Blueprint for blueprint_UnityWalletButton.py
+app.register_blueprint(wallet_button)
+
 bcrypt = Bcrypt(app)
-def isDeveloper(): return session.get("username", None) in ADMINS or app.debug
-limiter = Limiter(
-    get_remote_address,
-    app = app,
-    default_limits = ["3000 per hour"], # ~ 1/second
-    storage_uri = "memory://", # redis or monogo for production...
-    default_limits_exempt_when = isDeveloper
-)
-app.config['SECRET_KEY'] = SECRET.FLASK_KEY
+
+#app.config['SECRET_KEY'] = SECRET.FLASK_KEY
 
 # Initialize Storage Folders
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, '..', 'uploads')
@@ -40,11 +82,16 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['DATABASE_FOLDER'], exist_ok=True)
 initialize_db(app)
 initialize_ecpm(app)
-
-
-# initialize custom decorators
-from PaypalWebsite.decorators import *
-
+limiter = Limiter(
+    get_remote_address,
+    app = app,
+    default_limits = ["3000 per hour"], # ~ 1/second
+    storage_uri = "memory://", # redis or monogo for production...
+    default_limits_exempt_when = lambda: isDeveloper(
+        session.get("username", None),
+        app.debug
+    )
+)
 
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)
 @app.before_request
@@ -62,7 +109,7 @@ def verify_auth():
     # Skip Identity (Identity must decide whether to create temp user)
     if path.startswith('/Identity'):
         return
-
+      
     # If session already has a valid user, keep it
     username = session.get("username")
     if username and fetch_user(username) is not None:
@@ -70,7 +117,6 @@ def verify_auth():
 
     # Otherwise create a temp user
     generate_temp_user()
-
 
 # generated/login temp account
 def generate_temp_user():
@@ -130,8 +176,7 @@ def identity():
     if user is None:
         generate_temp_user()
         return session["username"]
-
-    # Valid user (temp or registered)
+    
     print("COOKIES:", request.cookies)
     print("SESSION:", dict(session))
     return username
@@ -150,7 +195,7 @@ def SID(user):
 @app.route('/')
 @none_required
 def index(user):
-    if isDeveloper():
+    if user and isDeveloper(user["username"], debug=app.debug):
         return redirect("/Dashboard")
     else:
         return redirect("/Login")
@@ -168,9 +213,6 @@ def dashboard_page(user):
     overrideEnabled = get_override_status() #cashout button override
 
 # eCPM values
-    
-    
-
     interstitial_ecpm = get_recent_ecpm("interstitial") or 0.0  # e.g. $1.20
     rewarded_ecpm = get_recent_ecpm("rewarded") or 0.0     # e.g. $10.00
 
@@ -213,10 +255,6 @@ def reset_cash_counter(user, target):
     return redirect("/")
 
 
-def convert_epoch(epoch_time):
-    if type(epoch_time)==str: return epoch_time
-    datetime_object = datetime.fromtimestamp(int(epoch_time))
-    return datetime_object.strftime("%m/%d/%Y %H:%M:%S")  # Customize the format as needed
 
 
 # route to fetch a list of all users
@@ -242,38 +280,53 @@ def CreateUser(user):
     # validate form
     if "" in request.form.values():
         return "Error: Please Fill All Fields!"
-    
+
+    username = request.form['username']
+    email = request.form['email']
+    password = request.form['password']
+
     # validate username
-    print(request.form['username'])
-    print(len(request.form['username']))
-    if len(request.form['username']) >= 36 and len(request.form['username']) <= 0:
+    if len(username) < 1 or len(username) > 36:
         return "Error: Username must be 1-36 characters long"
-    if fetch_user(request.form['username']) != None:
+    if fetch_user(username) is not None:
         return "Error: Username is taken"
-    if not request.form['username'].isalnum():
+    if not username.isalnum():
         return "Error: Username must be alphanumeric"
 
     # validate email
-    if fetch_user_email(request.form['email']) != None:
-        return "Error: Email already is registered to an account"
+    if fetch_user_email(email) is not None:
+        return "Error: Email already registered to an account"
 
-    # valiate password
-    if len(request.form['password']) < 8:
-        return "Error: Password must be 8 characters long"
+    # validate password
+    if len(password) < 8:
+        return "Error: Password must be at least 8 characters long"
 
-    # claim temporary account (update new values)
-    success = update_user(
-        user = user["username"],
-        username = request.form['username'],
-        email = request.form['email'],
-        password = bcrypt.generate_password_hash(request.form['password']).decode('utf-8'),
+    # CASE 1: Claim temp account
+    if user.get("email") is None and user.get("username","").startswith("temp_"):
+        success = update_user(
+            user["username"],
+            username=username,
+            email=email,
+            password=bcrypt.generate_password_hash(password).decode('utf-8'),
+        )
+        if not success:
+            return "Could not claim temp account"
+        session["username"] = username
+        return "Temp account claimed successfully!"
+
+    # CASE 2: Normal registration
+    new_user = create_user(
+        username=username,
+        email=email,
+        password=bcrypt.generate_password_hash(password).decode('utf-8'),
+        gems=0,
+        bonus=0,
+        children=[]
     )
-    if not success:
-        return "Could not create user"
-
-    # log user in  
-    session["username"] = request.form['username']
-    return f"User has been created!"
+    if not new_user:
+        return "Error: Could not create user"
+    session["username"] = new_user["username"]
+    return "User has been created!"
 
 
 # Purge Old Temp Users
@@ -288,7 +341,10 @@ def PurgeTempUsers(user):
 # Increment Gems
 @app.route('/GetGem', methods=['POST'])
 @none_required
-@limiter.limit("2/second", exempt_when=isDeveloper)
+@limiter.limit("2/second", exempt_when=lambda: isDeveloper(
+    session.get("username", None),
+    app.debug
+))
 def GetGem(user):
     user["gems"] += int(request.form["gems"])
     update_user(user["username"], **user)
@@ -310,230 +366,16 @@ def GetBonusGem(user):
         return f"{user['bonus']} Bonus Gem"
     else:
         return f"{user['bonus']} Bonus Gems"
-
-
-# Calculate USD payed (based on hardcoded value for ads)
-# (OLD method where rewarded/intersitial ads have FIXED values)
-def CalculatePayoutFixed(gemCount):
-    '''
-    TotalCut : amount of money PayPal is sending
-    EntitledCut: amount of money player gets (after PayPal Takes Cut)
-    '''
-    # interstitial ad value
-    SingleRewarded = 0.04 / 35   # sample from ad dashboard
-    SingleInterstitial = SingleRewarded / 10
-    if SingleInterstitial >= (5 / 10000):
-        print(SingleInterstitial)
-        print(5/10000)
-        raise Exception("Interstitial Value too low")
-
-    SingleGemRevenue = SingleInterstitial / 5
-    TotalRevenue = gemCount * SingleGemRevenue
-    return CalculateCuts(TotalRevenue)
-
-# Calculate USD payed (based on player's performance in game & moving eCPM)
-# "gamerScore" (gems you are cashing out ÷ number of gems you could have earned maximally, based on ads served)
-# (New method, collecting earnings, tracked in S2S callbacks with eCPM)
-def CalculatePayoutSkill(user, gemCount):
-    totalEarnings = CalulateEarnings(user, gemCount)
-    return CalculateCuts(totalEarnings)
-    
-
-def CalulateEarnings(user, gemCount):
-    if gemCount==0: return 0
-    gemMaximum = (user["interstitial"]*5) + (user["rewarded"]*50)
-    gamerScore = min(gemCount / gemMaximum, 1) if gemMaximum else 0
-    return user["earnings"] * gamerScore # earnings (based on game performance) BEFORE processing fees
-
-
-# calculate generic market value of single gem (given current eCPM)
-def MarketGemValue():
-    interstitialValue = get_recent_ecpm("interstitial") / 1000
-    rewardedValue = get_recent_ecpm("rewarded") / 1000
-    singleGemValue = (interstitialValue + rewardedValue) / 55
-    return singleGemValue
-
-
-def CalculateCuts(TotalRevenue):
-    PlayerShare = 0.70 # percent the user gets
-    PlayerCut = TotalRevenue * PlayerShare
-    if (PlayerCut * 0.02 > 0.25):
-        PaypalProcessingFee = PlayerCut * 0.02 # 2% processing (domestic)
-    else:
-        PaypalProcessingFee = 0.25 # 25¢ processing (international)
-    EntitledCut = PlayerCut - PaypalProcessingFee
-    PlayerCut = int(PlayerCut*100)/100
-    EntitledCut = int(EntitledCut*100)/100
-    AdminCut = TotalRevenue - PaypalProcessingFee - EntitledCut
-    return PlayerCut, EntitledCut, AdminCut
-
-
-# Calculate # of gems needed to make at least 1 cent
-# (First use user's earnings / gems, then see how many more gems they would need)
-# (will add "~" symbol need additional theoretical market value gems)
-def CalculateGemsNeeded(user, gemCount):
-    gemsLeft = max(user["gems"] - gemCount, 0)
-    gemsNeeded = gemCount
-    totalEarnings = CalulateEarnings(user, gemCount)
-    entitledCut = 0
-    projectedGems = ""
-    singleGemValue = MarketGemValue()
-    fakeGems = 0
-
-    print(totalEarnings, gemsLeft, fakeGems)
-
-    while entitledCut < 0.01:    
-        # First use gems the user has already earned
-        if gemsLeft > 0:
-            gemsNeeded += 1
-            gemsLeft -= 1
-            totalEarnings = CalulateEarnings(user, gemCount)
-        # or use theoretical additional market rate gems
-        else:
-            gemsNeeded += 1
-            fakeGems += 1
-            projectedGems = "~"
-            totalEarnings += singleGemValue
-        # Calculate new cut
-        _, entitledCut, _ = CalculateCuts(totalEarnings)
-
-    print(totalEarnings, gemsLeft, fakeGems)
-    return f"{projectedGems}{gemsNeeded}"
-
-
-
-# minimal number of interstitial / rewarded ads to cover gemCount
-# 1 interstitial == 1 gem (red)
-# 1 rewarded == 10 gems  (green)
-def minimal_ad_count(r, i, gems, debug=False):
-    usedRewarded = 0
-    usedInterstitial = 0
-
-    while gems > 0:
-        # use rewarded ads (if possible)
-        if (gems >= 50 and r > 0):
-            usedRewarded += 1
-            r -= 1
-            gems -= 50
-        # use interstitial ads (if possible)
-        elif (gems >= 5 and i > 0):
-            usedInterstitial += 1
-            i -= 1
-            gems -= 5
-        # use rewarded ads (back up)
-        elif (r > 0):
-            usedRewarded += 1
-            r -= 1
-            gems -= 50
-        # we dont have enough ads to cover the gems
-        else:
-            return None, None
-        # debugger
-        if (debug):
-            print(gems, usedRewarded,usedInterstitial)
-            input()
-
-    return usedRewarded, usedInterstitial
-
-
-# find subset of ads == the gems you want
-# return False if not enough ads for gemCount 
-def redeem_ads(userID, gemCount):
-    user = fetch_user(userID)
-
-    # Calculate minimal ad count needed to redeem gems
-    rewarded_used, interstitial_used = minimal_ad_count(
-        i = user["interstitial"],
-        r = user["rewarded"],
-        gems = gemCount
-    )
-
-    # EJECT if not enough ads to cover gem cashout
-    if rewarded_used == None:
-        return False, user
    
-    #------------END OF CALCULATIONS------------------    
 
     # Decrement ad count ("redeem" ads by deleting them)
     user["interstitial"] -= interstitial_used
     user["rewarded"] -= rewarded_used
-    success = update_user(user.doc_id, **user)
+    success = update_user(["username"], **user)
 
     # done!
     return True, user
 
-#-------------restrictions to the caalculation--------------
-
-@app.route('/PreviewCashout', methods=['POST'])
-@none_required
-def PreviewCashoutPost(user):
-    data = {
-        "gemCount": 0,
-        "baseGem": user.get("gems",0),
-        "bonusGem": user.get("bonus",0),
-        "totalGem": user.get("gems",0) + user.get("bonus",0),
-        "payout": "$0.00",
-        "message": "..."
-    }
-
-    # Error: you must login
-    if user.get("email", None) == None:
-        data["message"] = "To cashout, login or register with an email associated with a PayPal account."
-        return jsonify(data)
-
-    # Error: Client provided strange gem count
-    try:
-        data["gemCount"] = int(request.form["gems"])
-    except:
-        data["message"] = "Error: Invalid gem count provided to server"
-        return jsonify(data)
-
-    # Error: Asking for more gems than you have
-    if data["gemCount"] > data['totalGem']:
-        data["message"] = "Error: Can not cashout {gemCount:,} gems, you only have {totalGem:,}".format(**data)
-        return jsonify(data)
-
-    # Calcualte Payouts
-    _, EntitledCut, AdminCut = CalculatePayoutSkill(user, data["gemCount"] )
-    data["payout"] = f"${EntitledCut:,.02f}"
-    # Invalid cashout
-    if EntitledCut <= 0:
-        gemsNeeded = CalculateGemsNeeded(user, data["gemCount"])
-        data["message"] = f"Processing fees outweigh your cashout, you need {gemsNeeded} gems to cashout (at today's rate)"
-        data["payout"] = "$0.00"
-    # Standard Cashout
-    else:
-        data["message"] = "A {gemCount:,} gem cashout would result in a ${payout} payout to PayPal!".format(**data)
-    return jsonify(data)
-
-
-# decrment base gems (then bonus gems if necessary)
-# return T/F if not enough gems
-def redeem_gems(user, gemCount):
-    # use bonus gems first (if possible)
-    if user["bonus"] > 0 and gemCount > 0:
-        if user["bonus"] >= gemCount:
-            user["bonus"] = user["bonus"] - gemCount
-            gemCount = 0
-        else:
-            gemCount = gemCount - user["bonus"]
-            user["bonus"] = 0
-
-    # use base gems second (if possible)
-    if user["gems"] > 0 and gemCount > 0:
-        if user["gems"] >= gemCount:
-            user["gems"] = user["gems"] - gemCount
-            gemCount = 0
-        else:
-            gemCount = gemCount - user["gems"]
-            user["gems"] = 0
-
-    # verify gems have been covered
-    if gemCount == 0:
-        update_user(user["username"], **user)
-        return True, user
-    else:
-        return False, user
 
 #----for paypal new add if not delete
 @app.route('/set-paypal-mode', methods=['POST'])
@@ -553,51 +395,66 @@ def get_paypal_mode_route():
 
 # Cashout Gems (form["gems"] + logged in)
 @app.route('/Cashout', methods=['POST'])
+@limiter.limit("1/day", exempt_when=lambda: isDeveloper(
+    session.get("username", None),
+    app.debug
+))
 @email_required
-@limiter.limit("1/day", exempt_when=isDeveloper)
 def Cashout(user):
-    # validate inputs
+    print("CASHOUT FUNCTION EXECUTED")
     try:
-        email = user["email"]
-        gemCount = int(request.form["gems"])
-    except:
-        return jsonify({"success":False, "message": "Invalid Gem Count"})
-    
-    # verify gem count
-    if ((user["gems"]+user["bonus"]) < gemCount):
-        return "You requested more gems than you have!"
+        print("USER OBJECT:", user)
+        # validate inputs
+        try:
+            email = user["email"]
+            gemCount = int(request.form["gems"])
+        except:
+            return jsonify({"success":False, "message": "Invalid Gem Count"})
+        
+        # verify gem count
+        if ((user["gems"]+user["bonus"]) < gemCount):
+            return jsonify({"success": False, "message": "You requested more gems than you have!"})
 
-    # verify payout (processing fees)
-    TotalCut, EntitledCut, AdminCut = CalculatePayoutSkill(user, gemCount)
-    if EntitledCut <= 0:
-        gemsNeeded = CalculateGemsNeeded(user, gemCount)
-        return jsonify({"success":False, "message": f"Processing fees outweigh your cashout, you need {gemsNeeded} gems to cashout (at today's rate)"})
-    
-    # mark ads as redeemed (verify S2S callbacks (detects illegal gems / too fast cashout?)
-    redeem_success, user = redeem_ads(user, gemCount)
-    if not redeem_success:
-        return jsonify({"success": False, "message": "Ad revenue is still processing, please try again in a few hours."})
 
-    # decrement gems (consume bonus if necessary)
-    redeem_success, user = redeem_gems(user, gemCount)
-    if not redeem_success:
-        return jsonify({"success": False, "message": "Insufficient gems? Gem count has de-synced?"})
 
-    # Process payout (PayPal)
-    # modifed lines:  origina was
-    # create_payout(email, EntitledCut)
-    paypal_mode = get_paypal_mode()
-    create_payout(email, EntitledCut, mode=paypal_mode)
+        # verify payout (processing fees)
+        TotalCut, EntitledCut, AdminCut = calculations.CalculatePayoutSkill(user, gemCount)
+        if EntitledCut <= 0:
+            gemsNeeded = calculations.CalculateGemsNeeded(user, gemCount)
+            return jsonify({"success":False, "message": f"Processing fees outweigh your cashout, you need {gemsNeeded} gems to cashout (at today's rate)"})
+        
+        # mark ads as redeemed (verify S2S callbacks (detects illegal gems / too fast cashout?)
+        redeem_success, user = calculations.redeem_ads(user["username"], gemCount)
+        if not redeem_success:
+            return jsonify({"success": False, "message": "Ad revenue is still processing, please try again in a few hours."})
 
-    # decrement earnings + log cashout in our database
-    cashout_success, user = log_cashout(
-        user,
-        gemCount,
-        TotalCut,
-        EntitledCut,
-        AdminCut
-    )
-    return jsonify({"success": True, "message": f"Cashout of ${EntitledCut:0.2f} successfully send to {email}"})
+        # decrement gems (consume bonus if necessary)
+        redeem_success, user = calculations.redeem_gems(user["username"], gemCount)
+        if not redeem_success:
+            return jsonify({"success": False, "message": "Insufficient gems? Gem count has de-synced?"})
+
+        # Process payout (PayPal)
+        # modifed lines:  origina was
+        # create_payout(email, EntitledCut)
+        paypal_mode = get_paypal_mode()
+        create_payout(email, EntitledCut, mode=paypal_mode)
+
+        # decrement earnings + log cashout in our database
+        cashout_success, user = log_cashout(
+            user["username"],
+            gemCount,
+            TotalCut,
+            EntitledCut,
+            AdminCut
+        )
+        return jsonify({"success": True, "message": f"Cashout of ${EntitledCut:0.2f} successfully send to {email}","user":user})
+
+    except Exception as e:
+        print("CASHOUT ERROR:", e)
+        traceback.print_exc()
+        return jsonify({"success": False, "message": "Server error","user":user}), 500
+
+
 
 @app.route("/CashoutHistory/")
 @none_required
@@ -764,8 +621,9 @@ def SeeAllAds(user):
 def RequestLog(user):
     return jsonify(fetch_all('Requests'))
 
-
-# take over temp_user account (fake "registration")
+#----- /login for website----------------
+# take over temp_user account
+# admin only login for website, NOT unity
 @app.route('/Login', methods=['POST'])
 @none_required
 def login(user):
@@ -773,32 +631,61 @@ def login(user):
     newUser = fetch_user(request.form['username'])
 
     # verify user
-    if newUser==None:
-        return f"User Does not Exist"
+    if newUser == None:
+        return "User Does not Exist"
     
     # verify password
     if not bcrypt.check_password_hash(newUser['password'], request.form['password']):
-        return f"Password is Incorrect"
+        return "Password is Incorrect"
 
-    # if old user is TEMPORARTY ACCOUNT with GEMS
+    # ADMIN-ONLY LOGIN CHECK (must be inside the function!)
+    if not isDeveloper(newUser["username"], False):
+        # massage your login route does this for non‑admins
+        # if registered non-admin tries to login
+        # "status": 403 admin required
+        return "Access denied — access only for admins"
+
+    # if old user is TEMPORARY ACCOUNT with GEMS
     oldGems = oldUser.get("gems",0) + oldUser.get("bonus",0)
     if oldUser.get("email",None) == None and oldGems > 0:
-        # new user takes old user's ads / gems
-        adopt_user(
-            parent = newUser,
-            child = oldUser
-        )
+        adopt_user(parent=newUser, child=oldUser)
 
     # log user in  
     session["username"] = newUser["username"]
     session["gems"] = newUser["gems"]
 
-    # If you are an admin + this is in a web browser, goto Dashboard
-    if isDeveloper() and isBrowser(request):
+    # redirect admins to dashboard
+    if isDeveloper(newUser["username"], app.debug) and isBrowser(request):
         return redirect("/Dashboard")
     else:
-        return f"Logged in Successfully"
+        return "Logged in Successfully"
 
+  #----- /UnityLogin for unity----------------      
+@app.route('/UnityLogin', methods=['POST'])
+@none_required
+def unity_login(user):
+    oldUser = user
+    newUser = fetch_user(request.form['username'])
+
+    # verify user
+    if newUser == None:
+        return "User Does not Exist"
+    
+    # verify password
+    if not bcrypt.check_password_hash(newUser['password'], request.form['password']):
+        return "Password is Incorrect"
+
+    # TEMP ACCOUNT TAKEOVER (same as old logic)
+    oldGems = oldUser.get("gems",0) + oldUser.get("bonus",0)
+    if oldUser.get("email",None) == None and oldGems > 0:
+        adopt_user(parent=newUser, child=oldUser)
+
+    # log user in  
+    session["username"] = newUser["username"]
+    session["gems"] = newUser["gems"]
+
+    return "Logged in Successfully"
+    #------END OF /UnityLogin-----------
 
 def isBrowser(request):
     user_agent = request.headers.get('User-Agent', 'Unknown')

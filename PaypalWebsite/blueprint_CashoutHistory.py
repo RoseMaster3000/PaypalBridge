@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request
 from datetime import datetime
 from PaypalWebsite.decorators import admin_required
-from PaypalWebsite.website import fetch_users, convert_epoch
+from PaypalWebsite.database.tinydb import fetch_users, convert_epoch
 from PaypalWebsite.ecpm import get_recent_ecpm
 
 web_cashoutHistory = Blueprint("web_cashoutHistory", __name__)

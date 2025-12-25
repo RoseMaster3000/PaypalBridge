@@ -1,12 +1,13 @@
 from functools import wraps
-from flask import session, request, after_this_request
+from flask import session, request, after_this_request, redirect
 from datetime import datetime
 from PaypalWebsite.database.tinydb import fetch_user, log
-from PaypalWebsite.website import app, isDeveloper
+#from PaypalWebsite.website import app
+from PaypalWebsite.isDevelopers import isDeveloper
 import os
 
 # prevents cookie from beeing created
-def no_SessionCookie(route_func):
+'''def no_SessionCookie(route_func):
     @wraps(route_func)
     def wrapper(*args, **kwargs):
         @after_this_request
@@ -14,7 +15,7 @@ def no_SessionCookie(route_func):
             response.delete_cookie('session')
             return response
         return route_func(*args, **kwargs)
-    return wrapper
+    return wrapper'''
 
 # any temp account
 def none_required(f):
@@ -31,24 +32,31 @@ def none_required(f):
 def temp_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        kwargs["user"] = fetch_user(session["username"])
-        
-        if kwargs["user"]["email"] != None:
-            return {"status":401, "message":'temporary account required'}
-        else:
-            return f(*args, **kwargs)
+        user = fetch_user(session.get("username"))
+        kwargs["user"] = user
+
+        if user is None or user.get("email") is not None:
+            return "temporary account required", 401
+
+        return f(*args, **kwargs)
     return wrapper
 
 # must be registered account (with paypal email)
+from flask import jsonify
+
 def email_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        kwargs["user"] = fetch_user(session["username"])
+        print("SESSION USER:", session.get("username"))
+        print("LOCAL DECORATOR USED")
 
-        if kwargs["user"]["email"] == None:
-            return {"status":401, "message": "You are using a temporary account! Please register with your PayPal email address and then try again."}
-        else:
-            return f(*args, **kwargs)
+        user = fetch_user(session.get("username"))
+        kwargs["user"] = user
+
+        if user is None or user.get("email") is None:
+            return "You are using a temporary account! Please register with your PayPal email address and then try again.", 401
+
+        return f(*args, **kwargs)
     return wrapper
 
 
@@ -56,11 +64,20 @@ def email_required(f):
 def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        kwargs["user"] = fetch_user(session["username"])
-        if isDeveloper():
+        username = session.get("username")
+        if not username:
+            return redirect("/Login")
+
+        user = fetch_user(username)
+        if not user:
+            return redirect("/Login")
+
+        kwargs["user"] = user
+
+        if isDeveloper(user["username"], False):
             return f(*args, **kwargs)
-        else:
-            return  {"status":403, "message":'admin required'}
+
+        return redirect("/Login")
     return wrapper
 
 
