@@ -4,6 +4,7 @@ from flask_bcrypt import Bcrypt
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import datetime
+import time
 from uuid import uuid4
 from urllib.parse import unquote, urlparse
 import hmac
@@ -41,7 +42,10 @@ from PaypalWebsite.database.tinydb import (
 # initialize custom decorators
 from PaypalWebsite.decorators import (
 none_required, admin_required,
- email_required, log_request, temp_required)
+email_required, log_request, temp_required)
+ 
+print("=== FLASK SERVER STARTED ===")
+
 
 # Initialize Modules
 app = Flask(__name__) 
@@ -98,7 +102,7 @@ limiter = Limiter(
 def verify_auth():
     path = request.path
 
-    # Skip static files
+    # Skip static files (CSS, JS, images, texts)
     if path.startswith('/static/'):
         return
 
@@ -109,11 +113,20 @@ def verify_auth():
     # Skip Identity (Identity must decide whether to create temp user)
     if path.startswith('/Identity'):
         return
-      
+
+    user_agent = request.headers.get("User-Agent", "")
+    if user_agent == "Unity":
+        # For Unity, we rely on /Identity to establish the session.
+        # If the cookie is missing/invalid, Unity should call Identity() again.
+        return
+   
     # If session already has a valid user, keep it
     username = session.get("username")
     if username and fetch_user(username) is not None:
         return
+
+    if path.startswith('/SID'):
+        return    
 
     # Otherwise create a temp user
     generate_temp_user()
@@ -131,7 +144,8 @@ def generate_temp_user():
         total_cashout = 0,
         children = [],
         earnings = 0,
-        cashouts = []
+        cashouts = [],
+        created_at = time.time()
     )
     session["username"] = user["username"]
     session["gems"] = user["gems"]
@@ -164,28 +178,35 @@ def TempUser():
 # ask server for username
 @app.route("/Identity", methods=['POST'])
 def identity():
+    print("=== /Identity CALLED ===")
+    print("COOKIES:", request.cookies)
+    print("SESSION BEFORE:", dict(session))
+
     username = session.get("username")
+    user = fetch_user(username) if username else None
 
     # No session → create temp user
-    if not username:
-        generate_temp_user()
-        return session["username"]
-
-    # Session exists but user was deleted → create temp user
-    user = fetch_user(username)
     if user is None:
         generate_temp_user()
-        return session["username"]
-    
-    print("COOKIES:", request.cookies)
-    print("SESSION:", dict(session))
-    return username
+        username = session.get("username")
+        print("NEW TEMP USER CREATED BY /Identity:", username)
+        print("SESSION AFTER:", dict(session))
+        return username
+
+    print("EXISTING USER:", username)
+    return user["username"]
 
 
 # ask server for SID (document ID)
 @app.route("/SID")
 @none_required
 def SID(user):
+    print("=== /SID CALLED ===")
+    print("REQUEST HEADERS:", dict(request.headers))
+    print("SESSION:", dict(session))
+    print("USER:", user)
+    print("COOKIES:", request.cookies)
+    print("SECRET KEY:", app.secret_key)
     if not user:
         return "-1"
     return str(user.doc_id)

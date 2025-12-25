@@ -66,7 +66,8 @@ def create_admin():
         total_cashout = 0,
         children = [],
         earnings = 0,
-        cashouts = []
+        cashouts = [],
+        created_at = time.time()
     )
     print("admin has been generated!")
 
