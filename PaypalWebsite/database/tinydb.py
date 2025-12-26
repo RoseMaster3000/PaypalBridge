@@ -137,7 +137,13 @@ def log_cashout(username, gemCount, TotalPayout, EntitledPayout, AdminPayout):
     })
     
     try:
-        update_user(**user)
+        users.update({
+            "total_cashout": user["total_cashout"],
+            "earnings": user["earnings"],
+            "cashouts": user["cashouts"]
+        }, doc_ids=[user.doc_id])
+
+
         return True, user
     except Exception as e:
         print("LOG CASHOUT ERROR:", e)
@@ -277,7 +283,10 @@ def record_rewarded(user, count=1):
     generated_revenue = rewarded_ecpm / 1000 * count
     user['earnings'] += generated_revenue
     # update database
-    users.update(user, doc_ids=[user.doc_id])
+    users.update({
+        "rewarded": user["rewarded"],
+        "earnings": user["earnings"]
+    }, doc_ids=[user.doc_id])
     # track our profits
     print(generated_revenue* 0.30)
     increment_revenue_all(generated_revenue)
@@ -292,7 +301,10 @@ def record_interstitial(user, count=1):
     generated_revenue = interstitial_ecpm / 1000 * count
     user['earnings'] += generated_revenue
     # update database
-    users.update(user, doc_ids=[user.doc_id])
+    users.update({
+        "interstitial": user["interstitial"],
+        "earnings": user["earnings"]
+    }, doc_ids=[user.doc_id])
     # track out profits
     increment_revenue_all(generated_revenue)
 
@@ -309,7 +321,13 @@ def record_ad_round(user, count=1):
     user['earnings'] += rewarded_revenue
     user['gems'] += 55 * count
     # update database
-    users.update(user, doc_ids=[user.doc_id])
+    users.update({
+        "interstitial": user["interstitial"],
+        "rewarded": user["rewarded"],
+        "earnings": user["earnings"],
+        "gems": user["gems"]
+    }, doc_ids=[user.doc_id])
+
     increment_revenue_all((interstitial_revenue+rewarded_revenue))
 
 

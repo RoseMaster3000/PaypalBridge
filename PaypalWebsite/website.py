@@ -37,7 +37,9 @@ from PaypalWebsite.database.tinydb import (
     convert_epoch,
     initialize_db,
     get_override_status,
-    set_override_status
+    set_override_status,
+    purge_users,
+    record_ad_round
 )
 # initialize custom decorators
 from PaypalWebsite.decorators import (
@@ -368,12 +370,25 @@ def PurgeTempUsers(user):
 ))
 def GetGem(user):
     user["gems"] += int(request.form["gems"])
-    update_user(user["username"], **user)
+    update_user(user["username"], gems=user["gems"])
     session["gems"] = user["gems"]
     if user['gems'] == 1:
         return f"{user['gems']} Gem"
     else:
         return f"{user['gems']} Gems"
+
+#--SyncGems--
+@app.route("/SyncGems", methods=["POST"])
+@none_required
+def sync_gems(user):
+    if not user:
+        return "-1"
+
+    gems = int(request.form.get("gems", 0))
+    user["gems"] = gems
+    update_user(user["username"], gems=gems) #update DB
+    session["gems"] = gems
+    return str(gems)      
 
 
 # watch bonus ad (rewarded ad) worth 50 gems
@@ -381,7 +396,7 @@ def GetGem(user):
 @none_required
 def GetBonusGem(user):
     user["bonus"] += int(request.form["gems"])
-    update_user(user["username"], **user)
+    update_user(user["username"], bonus=user["bonus"])
     session["bonus"] = user["bonus"]
     if user['bonus'] == 1:
         return f"{user['bonus']} Bonus Gem"
@@ -518,7 +533,7 @@ def GemCount(user):
 @admin_required
 def get_gem(amount, user):
     user["gems"] += amount
-    update_user(user["username"], **user)
+    update_user(user["username"], gems=user["gems"])
     session["gems"] = user["gems"]
     return redirect("/")
 
@@ -528,7 +543,7 @@ def get_gem(amount, user):
 @admin_required
 def get_bonus_gem(amount, user):
     user["bonus"] += amount
-    update_user(user["username"], **user)
+    update_user(user["username"], bonus=user["bonus"])
     session["bonus"] = user["bonus"]
     return redirect("/")
 

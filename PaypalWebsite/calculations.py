@@ -171,7 +171,11 @@ def redeem_gems(username, gemCount):
 
     # verify gems have been covered
     if gemCount == 0:
-        update_user(**user)
+        update_user(
+            user["username"],
+            gems=user["gems"],
+            bonus=user["bonus"]
+        )
         return True, user
     else:
         return False, user
