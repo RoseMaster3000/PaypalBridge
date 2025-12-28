@@ -423,11 +423,18 @@ def sync_gems(user):
     if not user:
         return "-1"
 
-    gems = int(request.form.get("gems", 0))
-    user["gems"] = gems
-    update_user(user["username"], gems=gems) #update DB
-    session["gems"] = gems
-    return str(gems)      
+    # Gems earned this run
+    gems_earned = int(request.form.get("gems", 0))
+
+    # Add to lifetime total
+    new_total = user.get("gems", 0) + gems_earned
+
+    # Update DB
+    update_user(user["username"], gems=new_total)
+
+    # Update session
+    session["gems"] = new_total
+    return str(new_total)
 
 
 # watch bonus ad (rewarded ad) worth 50 gems
