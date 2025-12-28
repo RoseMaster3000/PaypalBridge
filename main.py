@@ -13,7 +13,7 @@ if __name__ == '__main__':
      # this will print all the routes the app is using
      #print("URL MAP:", app.url_map) 
     
-     app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
     # ---------------------------------------------
     # EXTERNAL + INTERNAL ACCESS (PC <--> Phone AND PC <--> PC)
     # 192.168.x.x:5000 - external (LAN IP from locanhost PC)

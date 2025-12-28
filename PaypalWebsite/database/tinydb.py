@@ -44,6 +44,7 @@ def initialize_db(app):
     global db, users, ads, REVENUE_FILE
     REVENUE_FILE = os.path.join(app.config['DATABASE_FOLDER'], "revenue.json")
     dbPath = os.path.join(app.config['DATABASE_FOLDER'], 'tinydb.json')
+    print("TinyDB is using:", dbPath)
     db = TinyDB(dbPath)
     users = db.table('users')
     backfix_users()
@@ -79,19 +80,22 @@ def delete_old_tables():
 
 # get one user
 def fetch_user(username):
-    if type(username) == Document:
+    User = Query()
+    
+    # If username is already a Document, return it
+    if isinstance(username, Document):
         return username
-    if type(username) == int:
+    
+    # If username is a doc_id (int)
+    if isinstance(username, int):
         return users.get(doc_id=username)
-    elif type(username) == str:
-        User = Query()
-        result = users.search(User.username == username)
-        if len(result) == 0:
-            return None
-        else:
-            return result[0]
-    else:
-        return None
+    
+    # If username is a string
+    if isinstance(username, str):
+        return users.get(User.username == username)
+    return None
+
+
 
 # get one user
 def fetch_user_email(email):
@@ -228,14 +232,31 @@ def purge_request_log():
 
 
 # Update the user record
-def update_user(username, **kwargs):
-    user = fetch_user(username)
+def update_user(old_username, new_username=None, **kwargs):
+    User = Query()
+    user = users.get(User.username == old_username)
+
     if not user:
-        print(f"UPDATE USER ERROR: user '{username}' not found")
+        print(f"UPDATE USER ERROR: user '{old_username}' not found")
         return False
+
+    print(f"UPDATE USER FOUND: doc_id={user.doc_id}, current={user}")
+
+    # Build update fields
+    update_fields = kwargs.copy()
+
+    # If renaming user, include new username
+    if new_username is not None:
+        update_fields["username"] = new_username
+
+    print(f"UPDATE USER FIELDS: {update_fields}")
+
     try:
-        users.update(kwargs, doc_ids=[user.doc_id])
+        users.update(update_fields, doc_ids=[user.doc_id])
+        updated = users.get(doc_id=user.doc_id)
+        print(f"UPDATE USER SUCCESS: updated={updated}")
         return True
+
     except Exception as e:
         print("UPDATE USER ERROR:", e)
         return False

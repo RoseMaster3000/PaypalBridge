@@ -6,6 +6,7 @@ from flask_limiter.util import get_remote_address
 import datetime
 import time
 from uuid import uuid4
+import uuid
 from urllib.parse import unquote, urlparse
 import hmac
 import hashlib
@@ -26,9 +27,12 @@ from PaypalWebsite.blueprint_CashoutHistory import web_cashoutHistory
 from PaypalWebsite.blueprint_UnityWalletButton import wallet_button
 import traceback
 from PaypalWebsite.database.tinydb import (
+    adopt_user,
     create_user,
     fetch_user,
+    delete_user,
     fetch_users,
+    fetch_user_email,
     update_user,
     get_paypal_mode,
     log_cashout,
@@ -240,7 +244,10 @@ def dashboard_page(user):
     rewarded_ecpm = get_recent_ecpm("rewarded") or 0.0     # e.g. $10.00
 
     # Total ads watched
-    total_ads = sum(u["interstitial"] + u["rewarded"] for u in users)
+    total_ads = sum(
+    u.get("interstitial", 0) + u.get("rewarded", 0)
+    for u in users
+)
 
     # Gem value calculation
     interstitial_value = interstitial_ecpm / 1000
@@ -286,20 +293,19 @@ def reset_cash_counter(user, target):
 def GetAllUsers(user):
     users = fetch_users()
     for u in users:
-        u["earnings"] = f"${u['earnings']:0.5f}"
-        u["total_cashout"] = f"${u['total_cashout']:0.2f}"
-        u["created_at"] = convert_epoch(u["created_at"])
+        u["earnings"] = f"${u.get('earnings', 0.0):0.5f}"
+        u["total_cashout"] = f"${u.get('total_cashout', 0.0):0.2f}"
+        u["created_at"] = convert_epoch(u.get("created_at", 0))
         u["sid"] = u.doc_id
     response = make_response(jsonify(users))
     response.headers['Access-Control-Allow-Credentials'] = 'true'
     return response
 
 
-# Create a new account
+# Create a new account for Unity
 @app.route('/Register', methods=['POST'])
 @app.route('/CreateUser', methods=['POST'])
-@none_required
-def CreateUser(user):
+def CreateUser():
     # validate form
     if "" in request.form.values():
         return "Error: Please Fill All Fields!"
@@ -324,32 +330,65 @@ def CreateUser(user):
     if len(password) < 8:
         return "Error: Password must be at least 8 characters long"
 
-    # CASE 1: Claim temp account
-    if user.get("email") is None and user.get("username","").startswith("temp_"):
-        success = update_user(
-            user["username"],
-            username=username,
-            email=email,
-            password=bcrypt.generate_password_hash(password).decode('utf-8'),
-        )
-        if not success:
-            return "Could not claim temp account"
-        session["username"] = username
-        return "Temp account claimed successfully!"
-
-    # CASE 2: Normal registration
+    # Normal registration
     new_user = create_user(
         username=username,
         email=email,
         password=bcrypt.generate_password_hash(password).decode('utf-8'),
         gems=0,
         bonus=0,
+        rewarded=0,
+        interstitial=0,
         children=[]
     )
+
     if not new_user:
         return "Error: Could not create user"
+
     session["username"] = new_user["username"]
     return "User has been created!"
+
+#----claim temp user after registretion (after/createUser)
+def is_guid(value):
+    try:
+        uuid.UUID(str(value))
+        return True
+    except ValueError:
+        return False
+
+
+@app.route('/ClaimTempAccount', methods=['POST'])
+@none_required
+def ClaimTempAccount(user):
+    # Only temp users can be claimed
+    if not user or not is_guid(user["username"]):
+        return "Error: No temp account to claim"
+
+    username = request.form['username']
+    email = request.form['email']
+    password = request.form['password']
+
+    # Validate username/email/password (same as CreateUser)
+    if fetch_user(username) is not None:
+        return "Error: Username is taken"
+    if fetch_user_email(email) is not None:
+        return "Error: Email already registered"
+    if len(password) < 8:
+        return "Error: Password must be at least 8 characters long"
+
+    # Update the temp user into a real user
+    success = update_user(
+        user["username"],
+        username=username,
+        email=email,
+        password=bcrypt.generate_password_hash(password).decode('utf-8'),
+    )
+
+    if not success:
+        return "Error: Could not claim temp account"
+
+    session["username"] = username
+    return "Temp account claimed successfully!"
 
 
 # Purge Old Temp Users
@@ -403,7 +442,6 @@ def GetBonusGem(user):
     else:
         return f"{user['bonus']} Bonus Gems"
    
-
     # Decrement ad count ("redeem" ads by deleting them)
     user["interstitial"] -= interstitial_used
     user["rewarded"] -= rewarded_used

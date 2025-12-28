@@ -1,6 +1,8 @@
 from flask import jsonify, request
 from PaypalWebsite.decorators import none_required
 from PaypalWebsite.ecpm import get_recent_ecpm
+from PaypalWebsite.database.tinydb import update_user, fetch_user
+
 
 # Calculate USD payed (based on hardcoded value for ads)
 # (OLD method where rewarded/intersitial ads have FIXED values)
@@ -129,7 +131,7 @@ def minimal_ad_count(r, i, gems, debug=False):
 # find subset of ads == the gems you want
 # return False if not enough ads for gemCount 
 def redeem_ads(username, gemCount):
-    from PaypalWebsite.database.tinydb import fetch_user
+    #from PaypalWebsite.database.tinydb import fetch_user
     user = fetch_user(username)
 
     # Calculate minimal ad count needed to redeem gems
@@ -148,7 +150,7 @@ def redeem_ads(username, gemCount):
 # decrment base gems (then bonus gems if necessary)
 # return T/F if not enough gems
 def redeem_gems(username, gemCount):
-    from PaypalWebsite.database.tinydb import fetch_user, update_user
+    #from PaypalWebsite.database.tinydb import fetch_user, update_user
     user = fetch_user(username)
 
     # use bonus gems first (if possible)
@@ -182,7 +184,7 @@ def redeem_gems(username, gemCount):
 
     #------------END OF CALCULATIONS------------------   
 
-#-------------restrictions to the calculation--------------
+#-------------restrictions to the calculation--/preview---------
 
 def register_payout_routes(app):
     @app.route('/PreviewCashout', methods=['POST'])
@@ -196,7 +198,6 @@ def register_payout_routes(app):
             "payout": "$0.00",
             "message": "..."
         }
-
         # ---------------------------------------------------------
         # 1. Must be logged in
         # ---------------------------------------------------------
@@ -315,3 +316,36 @@ def register_payout_routes(app):
         return jsonify(data)
 
     #---------------END RESTRICTIONS-------------------
+
+    @app.route('/AddBonus', methods=['POST'])
+    @none_required
+    def AddBonus(user):
+        user = fetch_user(user["username"])
+
+        # Real S2S flag from Unity
+        is_s2s = request.form.get("s2s", "0") == "1"
+
+        # Debug mode flag (server controlled)
+        # CHANGE TO FALSE FOR PRODUCTION
+        DEBUG_MODE = True 
+
+        # -----------------------------------------
+        # REAL S2S PATH ( is_s2s="1")
+        # -----------------------------------------
+        if is_s2s:
+            user["bonus"] += 50
+            update_user(user["username"], bonus=user["bonus"])
+            return jsonify({"bonusGem": user["bonus"], "mode": "s2s"})
+
+        # -----------------------------------------
+        # DEBUG PATH (debug=true)
+        # -----------------------------------------
+        if DEBUG_MODE:
+            user["bonus"] += 50
+            update_user(user["username"], bonus=user["bonus"])
+            return jsonify({"bonusGem": user["bonus"], "mode": "debug"})
+
+        # -----------------------------------------
+        # PRODUCTION (no debug=false, no S2S="0")
+        # -----------------------------------------
+        return jsonify({"error": "Bonus not allowed"}), 403
