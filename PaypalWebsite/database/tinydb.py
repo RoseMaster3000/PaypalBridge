@@ -58,7 +58,7 @@ def create_admin():
     hashedPass = b'$2b$12$6Fjtz.GaNQlHwA1vOGCjP.pQeHWEiAij7T.4X3vR83/QN1S.Wg3u6'
     newUser = create_user(
         username = "admin",
-        email = "admin@mail.com",
+        email = "sb-obcg635472172@personal.example.com",
         password = hashedPass.decode('utf-8'),
         gems = 0,
         bonus = 0,

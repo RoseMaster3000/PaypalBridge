@@ -473,8 +473,7 @@ def get_paypal_mode_route():
     return jsonify({'mode': mode})
     # end of new add if not delete lines 470-483
 
-
-# Cashout Gems (form["gems"] + logged in)
+#--------------/CASHOUT--------------------------------
 @app.route('/Cashout', methods=['POST'])
 @limiter.limit("1/day", exempt_when=lambda: isDeveloper(
     session.get("username", None),
@@ -482,60 +481,195 @@ def get_paypal_mode_route():
 ))
 @email_required
 def Cashout(user):
+    print("CASHOUT ROUTE HIT")
     print("CASHOUT FUNCTION EXECUTED")
     try:
         print("USER OBJECT:", user)
-        # validate inputs
+
+        # ---------------------------------------------------------
+        # 1. Must be logged in with an email
+        # ---------------------------------------------------------
+        email = user.get("email", None)
+        if email is None:
+            return jsonify({
+                "success": False,
+                "message": "To cashout, login or register with an email associated with a PayPal account."
+            })
+            print("USER OBJECT:", user)
+
+
+        # ---------------------------------------------------------
+        # 2. Parse gemCount safely
+        # ---------------------------------------------------------
         try:
-            email = user["email"]
             gemCount = int(request.form["gems"])
-        except:
-            return jsonify({"success":False, "message": "Invalid Gem Count"})
-        
-        # verify gem count
-        if ((user["gems"]+user["bonus"]) < gemCount):
-            return jsonify({"success": False, "message": "You requested more gems than you have!"})
+            print("FORM DATA:", request.form)
+            print("GEM COUNT RECEIVED:", gemCount)
 
+        except Exception:
+            return jsonify({
+                "success": False,
+                "message": "Error: Invalid gem count provided to server."
+            })
 
+        # ---------------------------------------------------------
+        # 3. gemCount must be > 0
+        # ---------------------------------------------------------
+        if gemCount <= 0:
+            return jsonify({
+                "success": False,
+                "message": "Input the number of gems you would like to cashout."
+            })
 
-        # verify payout (processing fees)
-        TotalCut, EntitledCut, AdminCut = calculations.CalculatePayoutSkill(user, gemCount)
+        # Precompute totals
+        baseGem = user.get("gems", 0)
+        bonusGem = user.get("bonus", 0)
+        totalGem = baseGem + bonusGem
+
+        # ---------------------------------------------------------
+        # 4. User must have enough gems (base + bonus)
+        # ---------------------------------------------------------
+        if gemCount > totalGem:
+            return jsonify({
+                "success": False,
+                "message": f"Error: Cannot cashout {gemCount:,} gems, you only have {totalGem:,}."
+            })
+
+        # ---------------------------------------------------------
+        # 5. gemCount must not exceed gemMaximum (GamerScore > 1)
+        # ---------------------------------------------------------
+        gemMaximum = (user["interstitial"] * 5) + (user["rewarded"] * 50)
+        if gemCount > gemMaximum:
+            return jsonify({
+                "success": False,
+                "message": (
+                    f"You cannot redeem {gemCount:,} gems because your ads only justify "
+                    f"{gemMaximum:,} gems. (GamerScore would exceed 1.0)"
+                )
+            })
+
+        # ---------------------------------------------------------
+        # 6. User must have enough ads to justify gems
+        #    (same logic as minimal_ad_count)
+        # ---------------------------------------------------------
+        rewarded_used, interstitial_used = calculations.minimal_ad_count(
+            r=user["rewarded"],
+            i=user["interstitial"],
+            gems=gemCount
+        )
+        if rewarded_used is None:
+            return jsonify({
+                "success": False,
+                "message": (
+                    f"You do not have enough rewarded/interstitial ads to justify "
+                    f"{gemCount:,} gems."
+                )
+            })
+
+        # ---------------------------------------------------------
+        # 7. S2S earnings must be above minimum threshold
+        # ---------------------------------------------------------
+        MIN_EARNINGS = 0.50
+        if user["earnings"] < MIN_EARNINGS:
+            return jsonify({
+                "success": False,
+                "message": (
+                    f"Your Unity ad earnings (${user['earnings']:.2f}) are too low to cash out. "
+                    f"Keep playing to increase your S2S revenue."
+                )
+            })
+
+        # ---------------------------------------------------------
+        # 8. Minimum gemCount required
+        # ---------------------------------------------------------
+        MIN_GEMS = 3000
+        if gemCount < MIN_GEMS:
+            return jsonify({
+                "success": False,
+                "message": f"Minimum cashout is {MIN_GEMS:,} gems."
+            })
+
+        # ---------------------------------------------------------
+        # 9. Calculate payout (same as PreviewCashout)
+        # ---------------------------------------------------------
+        PlayerCut, EntitledCut, AdminCut = calculations.CalculatePayoutSkill(user, gemCount)
+
+        # ---------------------------------------------------------
+        # 10. PlayerCut must exceed PayPal fee threshold
+        # ---------------------------------------------------------
+        if PlayerCut <= 0.25:
+            return jsonify({
+                "success": False,
+                "message": (
+                    f"Your payout (${PlayerCut:.2f}) is too small to cover PayPal's $0.25 fee."
+                )
+            })
+
+        # ---------------------------------------------------------
+        # 11. EntitledCut must be positive
+        # ---------------------------------------------------------
         if EntitledCut <= 0:
             gemsNeeded = calculations.CalculateGemsNeeded(user, gemCount)
-            return jsonify({"success":False, "message": f"Processing fees outweigh your cashout, you need {gemsNeeded} gems to cashout (at today's rate)"})
-        
-        # mark ads as redeemed (verify S2S callbacks (detects illegal gems / too fast cashout?)
+            return jsonify({
+                "success": False,
+                "message": (
+                    f"Processing fees outweigh your cashout. "
+                    f"You need {gemsNeeded} gems to cashout at today's rate."
+                )
+            })
+
+        # ---------------------------------------------------------
+        # 12. Mark ads as redeemed (S2S callbacks / anti-fraud)
+        # ---------------------------------------------------------
         redeem_success, user = calculations.redeem_ads(user["username"], gemCount)
         if not redeem_success:
-            return jsonify({"success": False, "message": "Ad revenue is still processing, please try again in a few hours."})
+            return jsonify({
+                "success": False,
+                "message": "Ad revenue is still processing, please try again in a few hours."
+            })
 
-        # decrement gems (consume bonus if necessary)
+        # ---------------------------------------------------------
+        # 13. Decrement gems (consume bonus if necessary)
+        # ---------------------------------------------------------
         redeem_success, user = calculations.redeem_gems(user["username"], gemCount)
         if not redeem_success:
-            return jsonify({"success": False, "message": "Insufficient gems? Gem count has de-synced?"})
+            return jsonify({
+                "success": False,
+                "message": "Insufficient gems? Gem count has de-synced?"
+            })
 
-        # Process payout (PayPal)
-        # modifed lines:  origina was
-        # create_payout(email, EntitledCut)
+        # ---------------------------------------------------------
+        # 14. Process payout (PayPal)
+        # ---------------------------------------------------------
         paypal_mode = get_paypal_mode()
         create_payout(email, EntitledCut, mode=paypal_mode)
 
-        # decrement earnings + log cashout in our database
+        # ---------------------------------------------------------
+        # 15. Log cashout & update earnings in DB
+        # ---------------------------------------------------------
         cashout_success, user = log_cashout(
             user["username"],
             gemCount,
-            TotalCut,
+            PlayerCut,   # total revenue attributed to player
             EntitledCut,
             AdminCut
         )
-        return jsonify({"success": True, "message": f"Cashout of ${EntitledCut:0.2f} successfully send to {email}","user":user})
+
+        return jsonify({
+            "success": True,
+            "message": f"Cashout of ${EntitledCut:0.2f} successfully sent to {email}",  
+        })
 
     except Exception as e:
         print("CASHOUT ERROR:", e)
         traceback.print_exc()
-        return jsonify({"success": False, "message": "Server error","user":user}), 500
-
-
+        # user may not be defined if error happened early
+        return jsonify({
+            "success": False,
+            "message": "Server error",
+            "user": user if 'user' in locals() else None
+        }), 500
+#------------END OF /CASHOUT--------------
 
 @app.route("/CashoutHistory/")
 @none_required

@@ -36,7 +36,7 @@ def CreateAdmin():
 
     newUser = create_user(
         username="admin",
-        email="admin@mail.com",
+        email="sb-obcg635472172@personal.example.com",
         password=hashedPass.decode('utf-8'),
         gems=0
     )

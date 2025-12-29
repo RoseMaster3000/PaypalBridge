@@ -8,6 +8,10 @@ from PaypalWebsite.database.tinydb import log, get_paypal_mode
 from uuid import uuid4
 import requests
 import base64
+import re
+
+def is_valid_paypal_email(email):
+    return re.match(r"[^@]+@[^@]+\.[^@]+", email)
 
 # Convert ClientID/Secret -> OAUTH token
 def get_access_token(mode=None):
@@ -41,9 +45,21 @@ def get_access_token(mode=None):
 
 # Send money to PayPal email
 def create_payout(recipient_email, amount, mode=None):
+
+    # Validate email
+    if not is_valid_paypal_email(recipient_email):
+        raise Exception(f"Invalid PayPal email format: {recipient_email}")
+
     # Use manual override if provided, otherwise use TinyDB
     mode = mode or get_paypal_mode()
-    access_token, base_url = get_access_token(mode)
+    try:
+        access_token, base_url = get_access_token(mode)
+    except Exception:
+        import time
+        time.sleep(1)
+        access_token, base_url = get_access_token(mode)
+
+
     payment_id = str(uuid4())
 
     # generate payout
@@ -83,7 +99,13 @@ def create_payout(recipient_email, amount, mode=None):
         json=payload
     )
     if response.ok:
-        return response.json()
+        result = response.json()
+        status = result["batch_header"]["batch_status"]
+
+        if status not in ("SUCCESS", "PENDING"):
+            raise Exception(f"PayPal payout failed with status: {status}")
+
+        return result
     else:
         raise Exception(f"Payout failed: {response.status_code} - {response.text}")
 
