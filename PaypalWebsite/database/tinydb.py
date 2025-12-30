@@ -3,6 +3,7 @@ from tinydb import TinyDB, Query
 from tinydb.table import Document
 from random import randint
 from uuid import uuid4
+#from PaypalWebsite.database import db
 import os
 import time
 from datetime import datetime
@@ -33,6 +34,17 @@ def set_override_status(enabled: bool):
 def get_override_status():
     result = db.table('cashout_override').get(Query().enabled.exists())
     return result['enabled'] if result else False
+
+def set_interactable_status(enabled: bool):
+    db.table('cashout_interactable').upsert(
+        {'enabled': enabled},
+        Query().enabled.exists()
+    )
+
+def get_interactable_status():
+    result = db.table('cashout_interactable').get(Query().enabled.exists())
+    return result['enabled'] if result else True   # default = True
+
 
 
 # generate current epoch time INT (seconds since January 1, 1970)

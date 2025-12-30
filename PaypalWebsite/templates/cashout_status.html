@@ -44,9 +44,14 @@
 
     <form method="post" action="/update_cashout_status">
         <label>
-            <input type="checkbox" id="interactable" name="interactable" {% if CASH_OUT_BUTTON_INTERACTABLE %}checked{% endif %}>
-            Cash Out Button Interactable
-        </label><br></br>
+            <input type="checkbox" name="override" {% if override %}checked{% endif %}>
+            Enable Override (button always grey)
+        </label>
+
+        <label>
+            <input type="checkbox" name="interactable" {% if interactable %}checked{% endif %}>
+            Server Interactable (used only when override is OFF)
+        </label>
 
         <button type="submit">Update</button>
         <a href="/">Go Back</a>
