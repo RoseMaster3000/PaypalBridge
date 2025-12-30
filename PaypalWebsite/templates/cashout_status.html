@@ -35,9 +35,9 @@
     {% endif %}
 
     {% if cashoutOverride %}
-        <p style="color: blue;"><i>Override enabled: Unity cashout Button will follow WalletManager2.cs gemCount logic.</i></p>
+        <p style="color: blue;"><i>Override enabled: server maintanance overide.</i></p>
     {% else %}
-        <p style="color: gray;"><i>Override disabled: Unity cashout Button will follow server Override.</i></p>
+        <p style="color: gray;"><i>Override disabled: Unity logic according to website.py cashout route.</i></p>
     {% endif %}
 
     <hr style="width: 50%; margin: 20px 0; border: 0; border-top: 2px solid #ccc;">
@@ -47,12 +47,12 @@
             <input type="checkbox" name="override" {% if override %}checked{% endif %}>
             Enable Override (button always grey)
         </label>
-
+            <br> <!--breakPoint – insert a single line break-->
         <label>
             <input type="checkbox" name="interactable" {% if interactable %}checked{% endif %}>
             Server Interactable (used only when override is OFF)
         </label>
-
+            <br>
         <button type="submit">Update</button>
         <a href="/">Go Back</a>
     </form>

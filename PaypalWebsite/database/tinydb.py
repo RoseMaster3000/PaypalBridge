@@ -15,7 +15,7 @@ def convert_epoch(epoch_time):
     datetime_object = datetime.fromtimestamp(int(epoch_time))
     return datetime_object.strftime("%m/%d/%Y %H:%M:%S")  # Customize the format as needed
 
-#----for paypal new add if not delete
+#-------FOR oaypal.py 2 defs-----------
 # create table "paypal_config" to store mode
 # PayPal mode config (sandbox or live)
 def set_paypal_mode(mode):
@@ -28,6 +28,8 @@ def get_paypal_mode():
     return result['mode'] if result else 'sandbox'
 # end of new add if not delete lines 11-22
 
+#---------FOR blueprint_UnityCashoutButton.py 4 defs-------------
+#create table "cashout_override" to store mode
 def set_override_status(enabled: bool):
     db.table('cashout_override').upsert({'enabled': enabled}, Query().enabled.exists())
 
@@ -44,7 +46,7 @@ def set_interactable_status(enabled: bool):
 def get_interactable_status():
     result = db.table('cashout_interactable').get(Query().enabled.exists())
     return result['enabled'] if result else True   # default = True
-
+#---------END of blueprint_UnityCashoutButton.py-------------
 
 
 # generate current epoch time INT (seconds since January 1, 1970)
