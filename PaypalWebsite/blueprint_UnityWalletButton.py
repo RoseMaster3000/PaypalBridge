@@ -1,38 +1,52 @@
-# wallet_Button.py
 from flask import Blueprint, jsonify, render_template, request
-from PaypalWebsite.decorators import *
+from PaypalWebsite.database.tinydb import (
+    get_age_restriction_enabled,
+    get_minimum_age,
+    get_user_age,
+    get_hide_all_buttons,
+    set_age_restriction_enabled,
+    set_minimum_age,
+    set_user_age,
+    set_hide_all_buttons
+
+)
 
 wallet_button = Blueprint("wallet_button", __name__)
 
-# Default button global states
-WALLET_BUTTON_VISIBLE = True
-WALLET_BUTTON_INTERACTABLE = True
-
+#---flask API to communicate with Unity----
 @wallet_button.route('/api/wallet_status')
 def wallet_status():
-    # This route is completely stateless—no session, no cookies
-    interactable = WALLET_BUTTON_INTERACTABLE if WALLET_BUTTON_VISIBLE else False
+    # Load settings from TinyDB
+    enabled = get_age_restriction_enabled()
+    min_age = get_minimum_age()
+    user_age = get_user_age()
+    hide_all = get_hide_all_buttons()
+
+    # Determine if user is underage
+    underage = enabled and user_age < min_age
+
+    # Unity will use this to hide buttons
     return jsonify({
-        "visible": WALLET_BUTTON_VISIBLE,
-        "interactable": interactable
+        "age_restriction_enabled": enabled,
+        "minimum_age": min_age,
+        "user_age": user_age,
+        "underage": underage,
+        "hide_all_buttons": hide_all and underage
     })
 
+#---flask API(we control) to communicate with website (wallet_status.html)----
 @wallet_button.route('/update_wallet_status', methods=['GET', 'POST'])
 def update_wallet_status():
-    global WALLET_BUTTON_VISIBLE, WALLET_BUTTON_INTERACTABLE
-    success = False
-
     if request.method == 'POST':
-        WALLET_BUTTON_VISIBLE = 'visible' in request.form
-        WALLET_BUTTON_INTERACTABLE = 'interactable' in request.form and WALLET_BUTTON_VISIBLE
-        success = True
+        set_age_restriction_enabled('enabled' in request.form)
+        set_minimum_age(int(request.form.get('min_age', 10)))
+        set_user_age(int(request.form.get('user_age', 18)))
+        set_hide_all_buttons('hide_all' in request.form)
 
     return render_template(
         'wallet_status.html',
-        WALLET_BUTTON_VISIBLE=WALLET_BUTTON_VISIBLE,
-        WALLET_BUTTON_INTERACTABLE=WALLET_BUTTON_INTERACTABLE,
-        success=success
+        enabled=get_age_restriction_enabled(),
+        min_age=get_minimum_age(),
+        user_age=get_user_age(),
+        hide_all=get_hide_all_buttons()
     )
-    
-
-

@@ -1,0 +1,55 @@
+<style>
+    .collapsible-box {
+        max-width: 600px;
+        margin: 20px 0;
+        font-family: Arial, sans-serif;
+    }
+
+    .collapsible-header {
+        background: #4a90e2;
+        color: white;
+        padding: 12px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        user-select: none;
+    }
+
+    .collapsible-content {
+        border: 2px solid #4a90e2;
+        background: #f0f7ff;
+        padding: 15px;
+        border-radius: 0 0 6px 6px;
+        display: none;
+        margin-top: -2px;
+    }
+</style>
+
+<div class="collapsible-box">
+    <div class="collapsible-header" onclick="
+        var c = this.nextElementSibling;
+        c.style.display = (c.style.display === 'block') ? 'none' : 'block';
+    ">
+        Age Restriction System – Help & Information
+    </div>
+
+    <div class="collapsible-content">
+        <p>
+            If Google Play implements age‑verification rules, this system will automatically hide all access to cash‑out features inside Unity when the user is under the minimum age.
+        </p>
+
+        <p><strong>Unity will hide the following three buttons:</strong></p>
+        <ul>
+            <li>Wallet access button</li>
+            <li>Counter access button</li>
+            <li>Login button that normally has access to the wallet (Unity will instead show the new login button without access to cashout)</li>
+        </ul>
+
+        <p><strong>Both checkboxes must be enabled for this behavior:</strong></p>
+        <ol>
+            <li><strong>Enable Age Restriction System</strong> — master switch that turns the entire system ON or OFF.</li>
+            <li><strong>Hide All Buttons When Underage</strong> — tells Unity to hide all three buttons for underage users.</li>
+        </ol>
+    </div>
+</div>

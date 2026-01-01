@@ -1,58 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Wallet Button Control Panel</title>
-    <style>
-        #success-message {
-            transition: opacity 1s ease-out;
-        }
-    </style>
-    <script>
-        function toggleInteractableCheckbox() {
-            const visibleCheckbox = document.getElementById('visible');
-            const interactableCheckbox = document.getElementById('interactable');
-            interactableCheckbox.disabled = !visibleCheckbox.checked;
-        }
+<div style="
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+    background: #f9f9f9;
+    width: 650px;
 
-        window.onload = function () {
-            toggleInteractableCheckbox();
+">
+{% include 'wallet_status-description.html' %}
 
-            // Auto-hide success message with a fade-out effect
-            const successMsg = document.getElementById('success-message');
-            if (successMsg) {
-                setTimeout(() => {
-                    successMsg.style.opacity = '0'; // Fade out smoothly
-                    setTimeout(() => {
-                        successMsg.style.display = 'none';
-                    }, 1000); // 1 sec Wait for fade-out completion
-                }, 1000); //1000 miliseconds 1-seconds
-            }
-        };
-    </script>
-</head>
-<body>
-    <h2>Wallet Button Control Panel</h2>
-
-    {% if success %}
-        <p id="success-message" style="color: green;">Settings updated successfully!</p>
-    {% endif %}
+    <h2>Age Restriction Settings</h2>
 
     <form method="post" action="/update_wallet_status">
+
         <label>
-            <input type="checkbox" id="visible" name="visible" {% if WALLET_BUTTON_VISIBLE %}checked{% endif %} onchange="toggleInteractableCheckbox()">
-            Wallet Button Visible
-        </label><br>
+            <input type="checkbox" name="enabled" {% if enabled %}checked{% endif %}>
+            Enable Age Restriction System
+        </label>
+        <br><br>
+
         <label>
-            <input type="checkbox" id="interactable" name="interactable" {% if WALLET_BUTTON_INTERACTABLE %}checked{% endif %}>
-            Wallet Button Interactable
-        </label><br>
-        <br>
-        <br>
-        <button type="submit">Update</button>
+            Minimum Age:
+            <input type="number" name="min_age" value="{{ min_age }}">
+        </label>
+        <br><br>
+
+        <label>
+            User Age:
+            <input type="number" name="user_age" value="{{ user_age }}">
+        </label>
+        <br><br>
+
+        <label>
+            <input type="checkbox" name="hide_all" {% if hide_all %}checked{% endif %}>
+            Hide All Buttons When Underage
+        </label>
+        <br><br>
+
+        <button type="submit">Save</button>
         <a href="/">Go Back</a>
 
-
     </form>
-</body>
-</html>
+
+</div>

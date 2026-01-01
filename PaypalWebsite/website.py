@@ -43,7 +43,11 @@ from PaypalWebsite.database.tinydb import (
     get_override_status,
     set_override_status,
     purge_users,
-    record_ad_round
+    record_ad_round,
+    get_age_restriction_enabled,
+    get_minimum_age,
+    get_user_age,
+    get_hide_all_buttons
 )
 # initialize custom decorators
 from PaypalWebsite.decorators import (
@@ -238,6 +242,12 @@ def dashboard_page(user):
     grossRevenue = fetch_revenue("gross")
     paypalMode = get_paypal_mode() # either "sandbox" or "live"
     overrideEnabled = get_override_status() #cashout button override
+    # 4 values for wallet_status
+    ageEnabled = get_age_restriction_enabled()
+    minAge = get_minimum_age()
+    userAge = get_user_age()
+    hideAll = get_hide_all_buttons()
+
 
 # eCPM values
     interstitial_ecpm = get_recent_ecpm("interstitial") or 0.0  # e.g. $1.20
@@ -261,6 +271,12 @@ def dashboard_page(user):
         user=user,
         paypalMode = paypalMode,
         cashoutOverride=overrideEnabled,
+        #values for included dasboard.html from walle_status
+        enabled=ageEnabled,
+        min_age=minAge,
+        user_age=userAge,
+        hide_all=hideAll,
+
         websiteRevenue= f"${websiteRevenue:,.02f}",
         playerRevenue= f"${playerRevenue:,.02f}",
         grossRevenue= f"${grossRevenue:,.02f}",

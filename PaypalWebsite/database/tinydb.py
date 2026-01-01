@@ -425,3 +425,43 @@ def backfix_users(dayRange=10):
                 {'earnings': 0.00000},
                 doc_ids=[user.doc_id]
             ) 
+
+#----tinyDB storage save FOR blueprint_UnityWalletButton.py--------
+# to hide unity wallet, counter buttons and the go back 
+# to wallet on login panel--
+
+# Enable/Disable Age Restriction System
+def set_age_restriction_enabled(value: bool):
+    db.table('age_restriction_enabled').upsert({'value': value}, Query().value.exists())
+
+def get_age_restriction_enabled():
+    result = db.table('age_restriction_enabled').get(Query().value.exists())
+    return result['value'] if result else False
+
+
+# Minimum Age (default = 10)
+def set_minimum_age(value: int):
+    db.table('minimum_age').upsert({'value': value}, Query().value.exists())
+
+def get_minimum_age():
+    result = db.table('minimum_age').get(Query().value.exists())
+    return result['value'] if result else 10
+
+
+# User Age (default = 18)
+def set_user_age(value: int):
+    db.table('user_age').upsert({'value': value}, Query().value.exists())
+
+def get_user_age():
+    result = db.table('user_age').get(Query().value.exists())
+    return result['value'] if result else 18
+
+
+# Combined checkbox: Hide All Buttons When Underage
+def set_hide_all_buttons(value: bool):
+    db.table('hide_all_buttons').upsert({'value': value}, Query().value.exists())
+
+def get_hide_all_buttons():
+    result = db.table('hide_all_buttons').get(Query().value.exists())
+    return result['value'] if result else False
+
