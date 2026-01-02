@@ -1,45 +1,50 @@
-<div style="
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 15px 0;
-    background: #f9f9f9;
-    width: 650px;
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wallet Status</title>
 
-">
-{% include 'wallet_status-description.html' %}
+    <style>
+        .frame-box {
+            max-width: 650px;
+            margin: 20px 0px;
+            padding: 15px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            background: #f9f9f9;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
 
-    <h2>Age Restriction Settings</h2>
+<body>
 
-    <form method="post" action="/update_wallet_status">
+<div class="frame-box">
+
+    <!-- Collapsible help box -->
+    {% include 'wallet_status-description.html' %}
+
+    <!-- Main form -->
+    <form method="POST">
 
         <label>
-            <input type="checkbox" name="enabled" {% if enabled %}checked{% endif %}>
+            <input type="checkbox" name="enabled" {% if age_restriction_enabled %}checked{% endif %}>
             Enable Age Restriction System
         </label>
         <br><br>
 
-        <label>
-            Minimum Age:
-            <input type="number" name="min_age" value="{{ min_age }}">
-        </label>
+        <label>Minimum Age:</label>
+        <input type="number" name="min_age" value="{{ minimum_age }}" min="1" max="99">
         <br><br>
 
-        <label>
-            User Age:
-            <input type="number" name="user_age" value="{{ user_age }}">
-        </label>
-        <br><br>
-
-        <label>
-            <input type="checkbox" name="hide_all" {% if hide_all %}checked{% endif %}>
-            Hide All Buttons When Underage
-        </label>
+        <label>User Age:</label>
+        <input type="number" name="user_age" value="{{ user_age }}" min="1" max="99">
         <br><br>
 
         <button type="submit">Save</button>
         <a href="/">Go Back</a>
-
     </form>
 
 </div>
+
+</body>
+</html>

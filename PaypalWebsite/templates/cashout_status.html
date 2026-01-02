@@ -27,7 +27,7 @@
      padding: 10px 10px 10px 20px; border: 2px solid 
     #ccc; border-radius: 8px; background-color: #f9f9f9; 
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-
+    {% include 'cashout_status-description.html' %}
     <h2>Cash Out Button Control Panel</h2>
 
     {% if success %}
@@ -50,7 +50,7 @@
             <br> <!--breakPoint – insert a single line break-->
         <label>
             <input type="checkbox" name="interactable" {% if interactable %}checked{% endif %}>
-            Server Interactable (used only when override is OFF)
+            Server‑override Button State (used when Override is ON)
         </label>
             <br>
         <button type="submit">Update</button>

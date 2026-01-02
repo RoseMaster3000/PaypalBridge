@@ -457,11 +457,4 @@ def get_user_age():
     return result['value'] if result else 18
 
 
-# Combined checkbox: Hide All Buttons When Underage
-def set_hide_all_buttons(value: bool):
-    db.table('hide_all_buttons').upsert({'value': value}, Query().value.exists())
-
-def get_hide_all_buttons():
-    result = db.table('hide_all_buttons').get(Query().value.exists())
-    return result['value'] if result else False
 

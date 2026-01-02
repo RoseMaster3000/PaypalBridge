@@ -1,0 +1,60 @@
+<style>
+    .collapsible-box {
+        max-width: 600px;
+        margin: 20px 0;
+        font-family: Arial, sans-serif;
+    }
+
+    .collapsible-header {
+        background: #4a90e2;
+        color: white;
+        padding: 12px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        user-select: none;
+    }
+
+    .collapsible-content {
+        border: 2px solid #4a90e2;
+        background: #f0f7ff;
+        padding: 15px;
+        border-radius: 0 0 6px 6px;
+        display: none;
+        margin-top: -2px;
+    }
+</style>
+
+<div class="collapsible-box">
+    <div class="collapsible-header" onclick="
+        var c = this.nextElementSibling;
+        c.style.display = (c.style.display === 'block') ? 'none' : 'block';
+    ">
+        Cashout Button Status – Help & Information
+    </div>
+
+    <div class="collapsible-content">
+        <p>
+            This panel controls the behavior of the Cashout button inside Unity.  
+            The server can override the button’s state at any time, allowing you to disable or enable cashout functionality remotely.
+        </p>
+
+        <p><strong>The Cashout button has two independent controls:</strong></p>
+        <ul>
+            <li><strong>Override</strong> — forces Unity to use the server‑defined state instead of local logic.</li>
+            <li><strong>Interactable</strong> — determines whether the Cashout button is clickable or disabled (greyed out).</li>
+        </ul>
+
+        <p><strong>How Unity behaves:</strong></p>
+        <ul>
+            <li>If <strong>Override</strong> is OFF → Unity uses its normal logic (payout amount, gem count, errors, etc.).</li>
+            <li>If <strong>Override</strong> is ON → Unity ignores local logic and uses the server’s Interactable value.</li>
+            <li>If <strong>Interactable</strong> is OFF → Unity greys out the Cashout button and prevents clicking.</li>
+        </ul>
+
+        <p>
+            This system allows you to temporarily disable cashouts globally, perform maintenance, or prevent abuse without updating the app.
+        </p>
+    </div>
+</div>

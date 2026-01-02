@@ -3,11 +3,10 @@ from PaypalWebsite.database.tinydb import (
     get_age_restriction_enabled,
     get_minimum_age,
     get_user_age,
-    get_hide_all_buttons,
     set_age_restriction_enabled,
     set_minimum_age,
     set_user_age,
-    set_hide_all_buttons
+    
 
 )
 
@@ -20,7 +19,7 @@ def wallet_status():
     enabled = get_age_restriction_enabled()
     min_age = get_minimum_age()
     user_age = get_user_age()
-    hide_all = get_hide_all_buttons()
+    
 
     # Determine if user is underage
     underage = enabled and user_age < min_age
@@ -30,8 +29,8 @@ def wallet_status():
         "age_restriction_enabled": enabled,
         "minimum_age": min_age,
         "user_age": user_age,
-        "underage": underage,
-        "hide_all_buttons": hide_all and underage
+        "underage": underage
+        
     })
 
 #---flask API(we control) to communicate with website (wallet_status.html)----
@@ -41,12 +40,11 @@ def update_wallet_status():
         set_age_restriction_enabled('enabled' in request.form)
         set_minimum_age(int(request.form.get('min_age', 10)))
         set_user_age(int(request.form.get('user_age', 18)))
-        set_hide_all_buttons('hide_all' in request.form)
+        
 
     return render_template(
         'wallet_status.html',
         enabled=get_age_restriction_enabled(),
         min_age=get_minimum_age(),
-        user_age=get_user_age(),
-        hide_all=get_hide_all_buttons()
+        user_age=get_user_age() 
     )

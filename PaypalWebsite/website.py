@@ -46,8 +46,7 @@ from PaypalWebsite.database.tinydb import (
     record_ad_round,
     get_age_restriction_enabled,
     get_minimum_age,
-    get_user_age,
-    get_hide_all_buttons
+    get_user_age  
 )
 # initialize custom decorators
 from PaypalWebsite.decorators import (
@@ -246,7 +245,7 @@ def dashboard_page(user):
     ageEnabled = get_age_restriction_enabled()
     minAge = get_minimum_age()
     userAge = get_user_age()
-    hideAll = get_hide_all_buttons()
+    
 
 
 # eCPM values
@@ -275,7 +274,7 @@ def dashboard_page(user):
         enabled=ageEnabled,
         min_age=minAge,
         user_age=userAge,
-        hide_all=hideAll,
+        
 
         websiteRevenue= f"${websiteRevenue:,.02f}",
         playerRevenue= f"${playerRevenue:,.02f}",
