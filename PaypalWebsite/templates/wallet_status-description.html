@@ -1,3 +1,5 @@
+<link href="{{ url_for('static', filename='descrition_colapseFrame.css') }}" rel="stylesheet">
+<!-- Shared collapsible CSS -->
 <div class="collapsible-box">
     <div class="collapsible-header" onclick="
         var c = this.nextElementSibling;
@@ -6,7 +8,8 @@
         Age Restriction System – Help & Information
     </div>
 
-    <div class="collapsible-content">
+    <!-- Start collapsed by default -->
+    <div class="collapsible-content" style="display: none;">
         <p>
             When the Age Restriction System is enabled, Unity will check the user's age
             against the minimum age you set here.

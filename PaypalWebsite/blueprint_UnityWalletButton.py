@@ -44,7 +44,7 @@ def update_wallet_status():
 
     return render_template(
         'wallet_status.html',
-        enabled=get_age_restriction_enabled(),
+        age_restriction_enabled=get_age_restriction_enabled(),
         min_age=get_minimum_age(),
         user_age=get_user_age() 
     )

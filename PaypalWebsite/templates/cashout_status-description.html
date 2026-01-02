@@ -1,31 +1,4 @@
-<style>
-    .collapsible-box {
-        max-width: 600px;
-        margin: 20px 0;
-        font-family: Arial, sans-serif;
-    }
-
-    .collapsible-header {
-        background: #4a90e2;
-        color: white;
-        padding: 12px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-        user-select: none;
-    }
-
-    .collapsible-content {
-        border: 2px solid #4a90e2;
-        background: #f0f7ff;
-        padding: 15px;
-        border-radius: 0 0 6px 6px;
-        display: none;
-        margin-top: -2px;
-    }
-</style>
-
+<link href="{{ url_for('static', filename='descrition_colapseFrame.css') }}" rel="stylesheet">
 <div class="collapsible-box">
     <div class="collapsible-header" onclick="
         var c = this.nextElementSibling;
@@ -34,10 +7,12 @@
         Cashout Button Status – Help & Information
     </div>
 
-    <div class="collapsible-content">
+    <div class="collapsible-content" style="display: none;"
+>
         <p>
-            This panel controls the behavior of the Cashout button inside Unity.  
-            The server can override the button’s state at any time, allowing you to disable or enable cashout functionality remotely.
+            This panel controls the behavior of the Cashout button inside Unity.
+            The server can override the button’s state at any time, allowing you to disable
+            or enable cashout functionality remotely.
         </p>
 
         <p><strong>The Cashout button has two independent controls:</strong></p>
@@ -54,7 +29,8 @@
         </ul>
 
         <p>
-            This system allows you to temporarily disable cashouts globally, perform maintenance, or prevent abuse without updating the app.
+            This system allows you to temporarily disable cashouts globally, perform maintenance,
+            or prevent abuse without updating the app.
         </p>
     </div>
 </div>

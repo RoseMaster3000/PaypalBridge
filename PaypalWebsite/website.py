@@ -271,7 +271,7 @@ def dashboard_page(user):
         paypalMode = paypalMode,
         cashoutOverride=overrideEnabled,
         #values for included dasboard.html from walle_status
-        enabled=ageEnabled,
+        age_restriction_enabled=ageEnabled,
         min_age=minAge,
         user_age=userAge,
         

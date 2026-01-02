@@ -3,6 +3,8 @@
 <head>
     <title>Wallet Status</title>
 
+    
+
     <style>
         .frame-box {
             max-width: 650px;
@@ -24,7 +26,7 @@
     {% include 'wallet_status-description.html' %}
 
     <!-- Main form -->
-    <form method="POST">
+    <form method="POST" action="/update_wallet_status">
 
         <label>
             <input type="checkbox" name="enabled" {% if age_restriction_enabled %}checked{% endif %}>
@@ -33,7 +35,7 @@
         <br><br>
 
         <label>Minimum Age:</label>
-        <input type="number" name="min_age" value="{{ minimum_age }}" min="1" max="99">
+        <input type="number" name="min_age" value="{{ min_age }}" min="1" max="99">
         <br><br>
 
         <label>User Age:</label>
