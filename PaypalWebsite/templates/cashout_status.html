@@ -23,40 +23,57 @@
     </script>
 </head>
 <body>
-<div style="max-width: 650px; margin: 30px 0 0px 0; 
-     padding: 10px 10px 10px 20px; border: 2px solid 
-    #ccc; border-radius: 8px; background-color: #f9f9f9; 
+
+<div style="max-width: 650px; margin: 30px 0 0px 0;
+     padding: 10px 10px 10px 20px; border: 2px solid
+    #ccc; border-radius: 8px; background-color: #f9f9f9;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+
     {% include 'cashout_status-description.html' %}
+
     <h2>Cash Out Button Control Panel</h2>
 
     {% if success %}
         <p id="success-message" style="color: green;">Settings updated successfully!</p>
     {% endif %}
 
-    {% if cashoutOverride %}
-        <p style="color: blue;"><i>Override enabled: server maintanance overide.</i></p>
+    {% if override %}
+        {% if adminInteractable %}
+            <p style="color: blue;">
+                <i>Override enabled: Admin‑Only Testing Mode (non‑admins in maintenance).</i>
+            </p>
+        {% else %}
+            <p style="color: blue;">
+                <i>Override enabled: Global Maintenance Mode (all users).</i>
+            </p>
+        {% endif %}
     {% else %}
-        <p style="color: gray;"><i>Override disabled: Unity logic according to website.py cashout route.</i></p>
+        <p style="color: gray;">
+            <i>Override disabled: Unity follows gem logic.</i>
+        </p>
     {% endif %}
 
     <hr style="width: 50%; margin: 20px 0; border: 0; border-top: 2px solid #ccc;">
 
     <form method="post" action="/update_cashout_status">
+
         <label>
             <input type="checkbox" name="override" {% if override %}checked{% endif %}>
-            Enable Override (button always grey)
+            Enable Override System
         </label>
-            <br> <!--breakPoint – insert a single line break-->
+        <br>
+
         <label>
-            <input type="checkbox" name="interactable" {% if interactable %}checked{% endif %}>
-            Server‑override Button State (used when Override is ON)
+            <input type="checkbox" name="adminInteractable" {% if adminInteractable %}checked{% endif %}>
+            Admin‑Only Interactable (Testing Mode)
         </label>
-            <br>
+        <br>
+
         <button type="submit">Update</button>
         <a href="/">Go Back</a>
     </form>
 
 </div>
+
 </body>
 </html>

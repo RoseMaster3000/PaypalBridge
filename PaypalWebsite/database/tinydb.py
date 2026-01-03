@@ -15,7 +15,7 @@ def convert_epoch(epoch_time):
     datetime_object = datetime.fromtimestamp(int(epoch_time))
     return datetime_object.strftime("%m/%d/%Y %H:%M:%S")  # Customize the format as needed
 
-#-------FOR oaypal.py 2 defs-----------
+#-------FOR paypal.py 2 defs-----------
 # create table "paypal_config" to store mode
 # PayPal mode config (sandbox or live)
 def set_paypal_mode(mode):
@@ -26,7 +26,7 @@ def get_paypal_mode():
     config_table = db.table('paypal_config')
     result = config_table.get(Query().mode.exists())
     return result['mode'] if result else 'sandbox'
-# end of new add if not delete lines 11-22
+# end of paqypal.py
 
 #---------FOR blueprint_UnityCashoutButton.py 4 defs-------------
 #create table "cashout_override" to store mode
@@ -37,15 +37,16 @@ def get_override_status():
     result = db.table('cashout_override').get(Query().enabled.exists())
     return result['enabled'] if result else False
 
-def set_interactable_status(enabled: bool):
-    db.table('cashout_interactable').upsert(
+# Admin-only interactable flag (used only when override = ON)
+def set_admin_interactable_status(enabled: bool):
+    db.table('cashout_admin_interactable').upsert(
         {'enabled': enabled},
         Query().enabled.exists()
     )
 
-def get_interactable_status():
-    result = db.table('cashout_interactable').get(Query().enabled.exists())
-    return result['enabled'] if result else True   # default = True
+def get_admin_interactable_status():
+    result = db.table('cashout_admin_interactable').get(Query().enabled.exists())
+    return result['enabled'] if result else False  # default = False (safer)
 #---------END of blueprint_UnityCashoutButton.py-------------
 
 

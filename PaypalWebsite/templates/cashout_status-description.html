@@ -1,4 +1,5 @@
 <link href="{{ url_for('static', filename='descrition_colapseFrame.css') }}" rel="stylesheet">
+
 <div class="collapsible-box">
     <div class="collapsible-header" onclick="
         var c = this.nextElementSibling;
@@ -7,30 +8,45 @@
         Cashout Button Status – Help & Information
     </div>
 
-    <div class="collapsible-content" style="display: none;"
->
+    <div class="collapsible-content" style="display: none;">
+
         <p>
-            This panel controls the behavior of the Cashout button inside Unity.
-            The server can override the button’s state at any time, allowing you to disable
-            or enable cashout functionality remotely.
+            This panel controls how the Cashout button behaves inside Unity.  
+            The server can override Unity’s normal gem‑based logic and enforce global maintenance
+            or admin‑only testing mode without requiring an app update.
         </p>
 
-        <p><strong>The Cashout button has two independent controls:</strong></p>
+        <p><strong>The Cashout system has two server‑side controls:</strong></p>
         <ul>
-            <li><strong>Override</strong> — forces Unity to use the server‑defined state instead of local logic.</li>
-            <li><strong>Interactable</strong> — determines whether the Cashout button is clickable or disabled (greyed out).</li>
+            <li><strong>Override</strong> — when enabled, Unity ignores gem logic and follows server rules.</li>
+            <li><strong>Admin‑Only Interactable</strong> — when Override is ON, this determines whether
+                <u>admins only</u> can use the Cashout button.</li>
         </ul>
 
         <p><strong>How Unity behaves:</strong></p>
         <ul>
-            <li>If <strong>Override</strong> is OFF → Unity uses its normal logic (payout amount, gem count, errors, etc.).</li>
-            <li>If <strong>Override</strong> is ON → Unity ignores local logic and uses the server’s Interactable value.</li>
-            <li>If <strong>Interactable</strong> is OFF → Unity greys out the Cashout button and prevents clicking.</li>
+            <li>
+                <strong>Override OFF</strong>  
+                → Unity uses normal gem logic (payout amount, gem count, login state, etc.).
+            </li>
+
+            <li>
+                <strong>Override ON + Admin‑Only Interactable OFF</strong>  
+                → <u>Global Maintenance Mode</u>:  
+                The Cashout button is always disabled for all users, and Unity shows a maintenance message.
+            </li>
+
+            <li>
+                <strong>Override ON + Admin‑Only Interactable ON</strong>  
+                → <u>Admin‑Only Testing Mode</u>:  
+                Admins follow gem logic normally; all non‑admins see maintenance and cannot cash out.
+            </li>
         </ul>
 
         <p>
-            This system allows you to temporarily disable cashouts globally, perform maintenance,
-            or prevent abuse without updating the app.
+            This system allows you to safely disable cashouts, run maintenance, or test payouts as an admin
+            without affecting normal players.
         </p>
+
     </div>
 </div>

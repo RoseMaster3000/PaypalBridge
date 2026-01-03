@@ -42,6 +42,7 @@ from PaypalWebsite.database.tinydb import (
     initialize_db,
     get_override_status,
     set_override_status,
+    get_admin_interactable_status,
     purge_users,
     record_ad_round,
     get_age_restriction_enabled,
@@ -240,14 +241,16 @@ def dashboard_page(user):
     playerRevenue = fetch_revenue("player")
     grossRevenue = fetch_revenue("gross")
     paypalMode = get_paypal_mode() # either "sandbox" or "live"
-    overrideEnabled = get_override_status() #cashout button override
+    
+    #cashout button override
+    overrideEnabled = get_override_status()
+    adminInteractable = get_admin_interactable_status()
+
     # 4 values for wallet_status
     ageEnabled = get_age_restriction_enabled()
     minAge = get_minimum_age()
     userAge = get_user_age()
     
-
-
 # eCPM values
     interstitial_ecpm = get_recent_ecpm("interstitial") or 0.0  # e.g. $1.20
     rewarded_ecpm = get_recent_ecpm("rewarded") or 0.0     # e.g. $10.00
@@ -269,7 +272,9 @@ def dashboard_page(user):
         users=users,
         user=user,
         paypalMode = paypalMode,
-        cashoutOverride=overrideEnabled,
+        override=overrideEnabled,
+        adminInteractable=adminInteractable,
+
         #values for included dasboard.html from walle_status
         age_restriction_enabled=ageEnabled,
         min_age=minAge,
@@ -283,7 +288,6 @@ def dashboard_page(user):
         rewardedECPM = f"${get_recent_ecpm('rewarded'):,.02f}",
         totalAds=total_ads,
         gemValue=f"${gem_value:,.5f}"
-
     )
 
 
