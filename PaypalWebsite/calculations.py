@@ -188,39 +188,4 @@ def redeem_gems(username, gemCount):
 
     #---------------END RESTRICTIONS-------------------
 
-    @app.route('/AddBonus', methods=['POST'])
-    @none_required
-    def AddBonus(user):
-
-        if not user:
-            return jsonify({"error": "Not logged in"}), 403
-
-        user = fetch_user(user["username"])
-
-        # Real S2S flag from Unity
-        is_s2s = request.form.get("s2s", "0") == "1"
-
-        # Debug mode flag (server controlled)
-        # CHANGE TO FALSE FOR PRODUCTION
-        DEBUG_MODE = True 
-
-        # -----------------------------------------
-        # REAL S2S PATH ( is_s2s="1")
-        # -----------------------------------------
-        if is_s2s:
-            user["bonus"] += 50
-            update_user(user["username"], bonus=user["bonus"])
-            return jsonify({"bonusGem": user["bonus"], "mode": "s2s"})
-
-        # -----------------------------------------
-        # DEBUG PATH (debug=true)
-        # -----------------------------------------
-        if DEBUG_MODE:
-            user["bonus"] += 50
-            update_user(user["username"], bonus=user["bonus"])
-            return jsonify({"bonusGem": user["bonus"], "mode": "debug"})
-
-        # -----------------------------------------
-        # PRODUCTION (no debug=false, no S2S="0")
-        # -----------------------------------------
-        return jsonify({"error": "Bonus not allowed"}), 403
+    

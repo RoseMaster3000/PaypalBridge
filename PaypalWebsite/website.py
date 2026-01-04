@@ -20,7 +20,7 @@ from PaypalWebsite.calculations import (
     CalculatePayoutSkill,
     redeem_ads,
     redeem_gems,
-    #register_payout_routes
+    
 )
 from PaypalWebsite.routes_preview_cashout import register_preview_cashout_route
 from PaypalWebsite.cashout_validator import validate_cashout
@@ -71,8 +71,8 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 @app.after_request
 def debug_response(response):
-    print("=== FINAL RESPONSE HEADERS ===")
-    print(response.headers)
+    #print("=== FINAL RESPONSE HEADERS ===")
+    #print(response.headers)
     return response
 
 #register_payout_routes(app)
@@ -111,6 +111,7 @@ limiter = Limiter(
         app.debug
     )
 )
+
 
 # [PRE-REQUEST] always have user "logged in" (generate temp accounts)
 @app.before_request
@@ -712,6 +713,42 @@ def WatchAd():
         log("Requests", url=request.url, error=str(e))
         return "1", 200
 
+@app.route('/AddBonus', methods=['POST'])
+@none_required
+def AddBonus(user):
+
+    if not user:
+         return jsonify({"error": "Not logged in"}), 403
+
+    user = fetch_user(user["username"])
+
+        # Real S2S flag from Unity
+    is_s2s = request.form.get("s2s", "0") == "1"
+
+        # Debug mode flag (server controlled)
+        # CHANGE TO FALSE FOR PRODUCTION
+    DEBUG_MODE = False 
+
+        # -----------------------------------------
+        # REAL S2S PATH ( is_s2s="1")
+        # -----------------------------------------
+    if is_s2s:
+        user["bonus"] += 50
+        update_user(user["username"], bonus=user["bonus"])
+        return jsonify({"bonusGem": user["bonus"], "mode": "s2s"})
+
+        # -----------------------------------------
+        # DEBUG PATH (debug=true)
+        # -----------------------------------------
+    if DEBUG_MODE:
+        user["bonus"] += 50
+        update_user(user["username"], bonus=user["bonus"])
+        return jsonify({"bonusGem": user["bonus"], "mode": "debug"})
+
+        # -----------------------------------------
+        # PRODUCTION (no debug=false, no S2S="0")
+        # -----------------------------------------
+    return jsonify({"error": "Bonus not allowed"}), 403
 
 # see the ads that the current user 
 @app.route('/SeeAllAds/<username>')
@@ -852,7 +889,7 @@ def get_script_status():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
+#print(app.url_map) #to ptint all the routes
 '''@app.route("/Ping")
 def ping():
     return "SERVER VERSION 7"
