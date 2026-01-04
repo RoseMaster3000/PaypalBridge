@@ -617,22 +617,27 @@ def get_bonus_gem(amount, user):
 
 #https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#Signing_the_Callback_URL
 def verify_signature(parameters):
-    # URL parameters (except the HMAC), alphabetical order, with commas.
-    receivedSignature = parameters.pop("hmac", None)
-    unhashed = ",".join([f"{key}={value}" for key,value in sorted(parameters.items())])
-    
-    # Generate Expected Hash
-    expectedSignature = hmac.new(
+    # Extract received signature WITHOUT modifying the original dict
+    received = parameters.get("hmac")
+    if received is None:
+        return False
+
+    # Create a copy so we can safely remove hmac
+    params = parameters.copy()
+    params.pop("hmac", None)
+
+    # Build unhashed string in alphabetical order
+    unhashed = ",".join(f"{key}={value}" for key, value in sorted(params.items()))
+
+    # Compute expected signature
+    expected = hmac.new(
         SECRET.UNITY_ANDRIOD_S2S.encode(),
         unhashed.encode(),
         hashlib.md5
     ).hexdigest()
 
-    # Verify Hash
-    return hmac.compare_digest(
-        receivedSignature, 
-        expectedSignature
-    )
+    # Compare safely
+    return hmac.compare_digest(received, expected)
 
 
 # https://dcherevatsky.pythonanywhere.com/S2S?oid=1737946872029&sid=101&hmac=fcd620d061910db14784f00f5d7af63c
