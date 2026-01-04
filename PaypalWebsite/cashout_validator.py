@@ -1,4 +1,7 @@
-from PaypalWebsite.calculations import minimal_ad_count, CalculatePayoutSkill, CalculateGemsNeeded
+from PaypalWebsite.calculations import(
+    minimal_ad_count, 
+    CalculatePayoutSkill, 
+    CalculateGemsNeeded)
 
 def validate_cashout(user, gemCount):
     data = {
@@ -12,7 +15,7 @@ def validate_cashout(user, gemCount):
     }
 
     # 1. Must be logged in
-    if user.get("email", None) is None:
+    if user.get("email") is None:
         data["message"] = "To cashout, login or register with an email associated with a PayPal account."
         return data
 
@@ -57,10 +60,11 @@ def validate_cashout(user, gemCount):
         )
         return data
 
-    # 7. Minimum gemCount required
-    MIN_GEMS = 3000
-    if gemCount < MIN_GEMS:
-        data["message"] = f"Minimum cashout is {MIN_GEMS:,} gems."
+    
+    # 7. Dynamic minimum gems required
+    dynamic_min = CalculateGemsNeeded(user, 0)
+    if gemCount < dynamic_min:
+        data["message"] = f"Minimum cashout is {dynamic_min:,} gems at today's rate."
         return data
 
     # 8. Calculate payout
@@ -80,7 +84,7 @@ def validate_cashout(user, gemCount):
         gemsNeeded = CalculateGemsNeeded(user, gemCount)
         data["message"] = (
             f"Processing fees outweigh your cashout. "
-            f"You need {gemsNeeded} gems to cashout at today's rate."
+            f"You need {gemsNeeded:,} gems to cashout at today's rate."
         )
         data["payout"] = "$0.00"
         return data

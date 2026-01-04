@@ -3,10 +3,10 @@ from PaypalWebsite.cashout_validator import validate_cashout
 from PaypalWebsite.decorators import none_required
 import traceback
 
-print("Loaded routes_preview_cashout.py")
+#print("Loaded routes_preview_cashout.py")
 
 def register_preview_cashout_route(app):
-    print("Registering /PreviewCashout route")
+    #print("Registering /PreviewCashout route")
     @app.route('/PreviewCashout', methods=['POST'])
     @none_required
     def PreviewCashoutPost(user):

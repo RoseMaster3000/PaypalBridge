@@ -69,29 +69,30 @@ def CalculateGemsNeeded(user, gemCount):
     gemsNeeded = gemCount
     totalEarnings = CalulateEarnings(user, gemCount)
     entitledCut = 0
-    projectedGems = ""
     singleGemValue = MarketGemValue()
-    fakeGems = 0
+    fakeGemsUsed = 0
 
-    print(totalEarnings, gemsLeft, fakeGems)
-
-    while entitledCut < 0.01:    
-        # First use gems the user has already earned
+    while entitledCut < 0.01:
+        # Use real gems first
         if gemsLeft > 0:
             gemsNeeded += 1
             gemsLeft -= 1
-            totalEarnings = CalulateEarnings(user, gemCount)
-        # or use theoretical additional market rate gems
+            totalEarnings = CalulateEarnings(user, gemsNeeded)
+        # Use theoretical gems
         else:
             gemsNeeded += 1
-            fakeGems += 1
-            projectedGems = "~"
+            fakeGemsUsed += 1
             totalEarnings += singleGemValue
-        # Calculate new cut
+
         _, entitledCut, _ = CalculateCuts(totalEarnings)
 
-    print(totalEarnings, gemsLeft, fakeGems)
-    return f"{projectedGems}{gemsNeeded}"
+        # Safety cap to prevent infinite loop
+        if gemsNeeded > 999999:
+            print("WARNING: CalculateGemsNeeded exceeded safe bounds")
+            return 999999
+
+    print(f"Calculated minimum gems needed: {gemsNeeded} (includes {fakeGemsUsed} fake gems)")
+    return gemsNeeded
 
 
 
@@ -185,14 +186,15 @@ def redeem_gems(username, gemCount):
 
     #------------END OF CALCULATIONS------------------   
 
-#-------------restrictions to the calculation--/preview---------
-
-
     #---------------END RESTRICTIONS-------------------
 
     @app.route('/AddBonus', methods=['POST'])
     @none_required
     def AddBonus(user):
+
+        if not user:
+            return jsonify({"error": "Not logged in"}), 403
+
         user = fetch_user(user["username"])
 
         # Real S2S flag from Unity

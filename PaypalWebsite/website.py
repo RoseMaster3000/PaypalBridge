@@ -842,7 +842,7 @@ def get_script_status():
 if __name__ == '__main__':
     app.run(debug=True)
 
-@app.route("/Ping")
+'''@app.route("/Ping")
 def ping():
     return "SERVER VERSION 7"
 
@@ -853,4 +853,4 @@ def debug_identity():
         "session": dict(session),
         "session_username": session.get("username"),
         "user_exists": fetch_user(session.get("username")) is not None
-    }
+    }'''
