@@ -720,6 +720,7 @@ def WatchAd():
         return "1", 200
 
     except Exception as e:
+        print("S2S ERROR:", e)
         log("Requests", url=request.url, error=str(e))
         return "1", 200
 
