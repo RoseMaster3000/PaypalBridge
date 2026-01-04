@@ -463,7 +463,7 @@ def sync_gems(user):
 
 
 # watch bonus ad (rewarded ad) worth 50 gems
-@app.route('/GetBonus', methods=['POST'])
+'''@app.route('/GetBonus', methods=['POST'])
 @none_required
 def GetBonusGem(user):
     user["bonus"] += int(request.form["gems"])
@@ -480,7 +480,7 @@ def GetBonusGem(user):
     success = update_user(["username"], **user)
 
     # done!
-    return True, user
+    return True, user'''
 
 
 #----for paypal new add if not delete
@@ -664,6 +664,7 @@ def WatchFakeAdRound(user, count):
 @log_request
 @limiter.exempt
 def WatchAd():
+    print("=== dmitry1 REAL S2S ROUTE EXECUTED ===")
     print("S2S CALLBACK RECEIVED")
     print("PARAMETERS:", request.args)
     try:
