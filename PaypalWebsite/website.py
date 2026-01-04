@@ -663,42 +663,53 @@ def WatchFakeAdRound(user, count):
 @log_request
 @limiter.exempt
 def WatchAd():
+    print("S2S CALLBACK RECEIVED")
+    print("PARAMETERS:", request.args)
     try:
-        # Extract Parameters 
+        # Extract parameters
         parameters = request.args.to_dict()
 
-        # Verify Parameters
+        # Verify required parameters
         required_params = ['sid', 'oid', 'hmac']
         if not all(param in parameters for param in required_params):
             abort(400, "Missing required parameters")
+
+        # Verify signature
         if not verify_signature(parameters):
             abort(403, "Invalid Signature")
 
-        # Extract Parameters
-        oid = parameters["oid"]
-        delimitter = " " if " " in parameters["sid"] else "+"
-        userID = int(parameters["sid"].split(delimitter)[0])
-        adUnitID = parameters["sid"].split(delimitter)[1]
-        user = fetch_user(userID)
+        # Extract userId + adUnitId
+        sid = parameters["sid"]
+        delimiter = " " if " " in sid else "+"
+        userID = int(sid.split(delimiter)[0])
+        adUnitID = sid.split(delimiter)[1]
 
-        # Verify User
-        if user==None:
+        # Fetch user
+        user = fetch_user(userID)
+        if not user:
             abort(400, "Invalid user SID")
-        
-        # Store Ad in database (as unredeemed)
+
+        # Detect ad type
         if "Rewarded" in adUnitID:
             record_rewarded(user)
+            user["bonus"] += 50
         else:
             record_interstitial(user)
 
-        # Report Success (https://docs.unity.com/ads/en-us/manual/ImplementingS2SRedeemCallbacks#CallbackResponse)
-        return "1", 200
-    except Exception as e:
-        log(
-            "Requests",
-            url = request.url,
-            error = str(e)
+        # Save updated user
+        update_user(
+            user["username"],
+            rewarded=user["rewarded"],
+            interstitial=user["interstitial"],
+            bonus=user["bonus"],
+            earnings=user["earnings"]
         )
+
+        # Unity requires "1"
+        return "1", 200
+
+    except Exception as e:
+        log("Requests", url=request.url, error=str(e))
         return "1", 200
 
 

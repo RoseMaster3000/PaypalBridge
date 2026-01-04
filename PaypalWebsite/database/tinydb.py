@@ -312,51 +312,52 @@ def adopt_user(parent, child):
 
 # log 1 interstitial ad
 def record_rewarded(user, count=1):
-    user = fetch_user(user)
+    # user is already a Document
     rewarded_ecpm = get_recent_ecpm("rewarded")
+
     # increment ad count & earnings
     user['rewarded'] += count
     generated_revenue = rewarded_ecpm / 1000 * count
     user['earnings'] += generated_revenue
+
     # update database
     users.update({
         "rewarded": user["rewarded"],
         "earnings": user["earnings"]
     }, doc_ids=[user.doc_id])
-    # track our profits
-    print(generated_revenue* 0.30)
+
     increment_revenue_all(generated_revenue)
 
 
 # log 1 rewarded ad
 def record_interstitial(user, count=1):
-    user = fetch_user(user)
     interstitial_ecpm = get_recent_ecpm("interstitial")
-    # increment ad count & earnings
+
     user['interstitial'] += count
     generated_revenue = interstitial_ecpm / 1000 * count
     user['earnings'] += generated_revenue
-    # update database
+
     users.update({
         "interstitial": user["interstitial"],
         "earnings": user["earnings"]
     }, doc_ids=[user.doc_id])
-    # track out profits
+
     increment_revenue_all(generated_revenue)
 
 # log rewarded+interstitial ad(s) in database 
 def record_ad_round(user, count=1):
-    user = fetch_user(user)
     interstitial_ecpm = get_recent_ecpm("interstitial")
     rewarded_ecpm = get_recent_ecpm("rewarded")
+
     user['interstitial'] += count
     user['rewarded'] += count
+
     interstitial_revenue = interstitial_ecpm / 1000 * count
-    user['earnings'] += interstitial_revenue
     rewarded_revenue = rewarded_ecpm / 1000 * count
-    user['earnings'] += rewarded_revenue
+
+    user['earnings'] += interstitial_revenue + rewarded_revenue
     user['gems'] += 55 * count
-    # update database
+
     users.update({
         "interstitial": user["interstitial"],
         "rewarded": user["rewarded"],
@@ -364,7 +365,7 @@ def record_ad_round(user, count=1):
         "gems": user["gems"]
     }, doc_ids=[user.doc_id])
 
-    increment_revenue_all((interstitial_revenue+rewarded_revenue))
+    increment_revenue_all(interstitial_revenue + rewarded_revenue)
 
 
 def fetch_all(tableName):
@@ -456,6 +457,6 @@ def set_user_age(value: int):
 def get_user_age():
     result = db.table('user_age').get(Query().value.exists())
     return result['value'] if result else 18
-
+#----------- END of storage save FOR blueprint_UnityWalletButton.py--------
 
 
