@@ -635,6 +635,10 @@ def verify_signature(parameters):
         unhashed.encode(),
         hashlib.md5
     ).hexdigest()
+    # Debug print
+    print("UNHASHED STRING:", unhashed)
+    print("EXPECTED:", expected)
+    print("RECEIVED:", received)
 
     # Compare safely
     return hmac.compare_digest(received, expected)
