@@ -705,11 +705,15 @@ def WatchAd():
             abort(400, "Invalid user SID")
 
         # Detect ad type
-        if "Rewarded" in adUnitID:
+        if "Rewarded_Bonus" in adUnitID:
             record_rewarded(user)
             user["bonus"] += 50
-        else:
-            record_interstitial(user)
+
+        elif "Rewarded_Gameplay" in adUnitID:
+            record_rewarded(user)
+            # gameplay rewarded ads do NOT give bonus
+
+
 
         # Save updated user
         update_user(
@@ -727,6 +731,7 @@ def WatchAd():
         print("S2S ERROR:", e)
         log("Requests", url=request.url, error=str(e))
         return "1", 200
+#------------END OF /S2S---------
 
 @app.route('/AddBonus', methods=['POST'])
 @none_required
