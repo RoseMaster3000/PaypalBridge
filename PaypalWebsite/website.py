@@ -49,9 +49,13 @@ from PaypalWebsite.database.tinydb import (
     get_admin_interactable_status,
     purge_users,
     record_ad_round,
+    record_interstitial,
+    record_rewarded,
     get_age_restriction_enabled,
     get_minimum_age,
-    get_user_age  
+    get_user_age,  
+    
+
 )
 # initialize custom decorators
 from PaypalWebsite.decorators import (
