@@ -710,10 +710,10 @@ def WatchAd():
             user["bonus"] += 50
 
         elif "Rewarded_Gameplay" in adUnitID:
-            record_rewarded(user)
-            # gameplay rewarded ads do NOT give bonus
+            record_rewarded(user)# gameplay rewarded ads do NOT give bonus
 
-
+        elif "Interstitial" in adUnitID:
+            record_interstitial(user)
 
         # Save updated user
         update_user(
