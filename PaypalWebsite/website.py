@@ -334,7 +334,8 @@ def GetAllUsers(user):
 # Create a new account for Unity
 @app.route('/Register', methods=['POST'])
 @app.route('/CreateUser', methods=['POST'])
-def CreateUser():
+@none_required
+def CreateUser(user):
     # validate form
     if "" in request.form.values():
         return "Error: Please Fill All Fields!"
@@ -359,7 +360,7 @@ def CreateUser():
     if len(password) < 8:
         return "Error: Password must be at least 8 characters long"
 
-    # Normal registration
+    # Create the new real user
     new_user = create_user(
         username=username,
         email=email,
@@ -368,13 +369,34 @@ def CreateUser():
         bonus=0,
         rewarded=0,
         interstitial=0,
+        earnings=0,
         children=[]
     )
 
     if not new_user:
         return "Error: Could not create user"
 
+    # --- MERGE TEMP USER IF EXISTS ---
+    oldUser = user  # from @none_required
+
+    is_temp = oldUser is not None and oldUser.get("email", None) is None
+
+    has_activity = (
+        oldUser.get("gems", 0) > 0 or
+        oldUser.get("bonus", 0) > 0 or
+        oldUser.get("rewarded", 0) > 0 or
+        oldUser.get("interstitial", 0) > 0 or
+        oldUser.get("earnings", 0) > 0
+    ) if oldUser else False
+
+    if is_temp and has_activity:
+        adopt_user(parent=new_user, child=oldUser)
+        new_user = fetch_user(new_user["username"])  # refresh after merge
+
+    # log user in
     session["username"] = new_user["username"]
+    session["gems"] = new_user.get("gems", 0)
+
     return "User has been created!"
 
 #----claim temp user after registretion (after/createUser)
@@ -405,7 +427,7 @@ def ClaimTempAccount(user):
     if len(password) < 8:
         return "Error: Password must be at least 8 characters long"
 
-    # Update the temp user into a real user
+    # Convert temp user → real user
     success = update_user(
         user["username"],
         username=username,
@@ -416,7 +438,9 @@ def ClaimTempAccount(user):
     if not success:
         return "Error: Could not claim temp account"
 
+    # Log in as the new real user
     session["username"] = username
+
     return "Temp account claimed successfully!"
 
 
@@ -801,34 +825,38 @@ def login(user):
     newUser = fetch_user(request.form['username'])
 
     # verify user
-    if newUser == None:
+    if newUser is None:
         return "User Does not Exist"
     
     # verify password
     if not bcrypt.check_password_hash(newUser['password'], request.form['password']):
         return "Password is Incorrect"
 
-    # ADMIN-ONLY LOGIN CHECK (must be inside the function!)
+    # ADMIN-ONLY LOGIN CHECK
     if not isDeveloper(newUser["username"], False):
-        # massage your login route does this for non‑admins
-        # if registered non-admin tries to login
-        # "status": 403 admin required
         return "Access denied — access only for admins"
 
-    # if old user is TEMPORARY ACCOUNT with GEMS
-    oldGems = oldUser.get("gems",0) + oldUser.get("bonus",0)
-    if oldUser.get("email",None) == None and oldGems > 0:
+    # TEMP ACCOUNT TAKEOVER (merge temp → real user)
+    is_temp = oldUser is not None and oldUser.get("email", None) is None
+
+    has_activity = (
+        oldUser.get("gems", 0) > 0 or
+        oldUser.get("bonus", 0) > 0 or
+        oldUser.get("rewarded", 0) > 0 or
+        oldUser.get("interstitial", 0) > 0 or
+        oldUser.get("earnings", 0) > 0
+    ) if oldUser else False
+
+    if is_temp and has_activity:
         adopt_user(parent=newUser, child=oldUser)
+        newUser = fetch_user(newUser["username"])  # refresh after merge
 
     # log user in  
     session["username"] = newUser["username"]
-    session["gems"] = newUser["gems"]
+    session["gems"] = newUser.get("gems", 0)
 
-    # redirect admins to dashboard
-    if isDeveloper(newUser["username"], app.debug) and isBrowser(request):
-        return redirect("/Dashboard")
-    else:
-        return "Logged in Successfully"
+    # ⭐ THIS STAYS EXACTLY HERE
+    return redirect("/Dashboard")
 
   #----- /UnityLogin for unity----------------      
 @app.route('/UnityLogin', methods=['POST'])
@@ -838,21 +866,33 @@ def unity_login(user):
     newUser = fetch_user(request.form['username'])
 
     # verify user
-    if newUser == None:
+    if newUser is None:
         return "User Does not Exist"
     
     # verify password
     if not bcrypt.check_password_hash(newUser['password'], request.form['password']):
         return "Password is Incorrect"
 
-    # TEMP ACCOUNT TAKEOVER (same as old logic)
-    oldGems = oldUser.get("gems",0) + oldUser.get("bonus",0)
-    if oldUser.get("email",None) == None and oldGems > 0:
+    # TEMP ACCOUNT TAKEOVER (merge temp → real user)
+    is_temp = oldUser is not None and oldUser.get("email", None) is None
+
+    has_activity = (
+        oldUser.get("gems", 0) > 0 or
+        oldUser.get("bonus", 0) > 0 or
+        oldUser.get("rewarded", 0) > 0 or
+        oldUser.get("interstitial", 0) > 0 or
+        oldUser.get("earnings", 0) > 0
+    ) if oldUser else False
+
+    if is_temp and has_activity:
         adopt_user(parent=newUser, child=oldUser)
+
+        # refresh newUser from DB in case adopt_user updated it
+        newUser = fetch_user(newUser["username"])
 
     # log user in  
     session["username"] = newUser["username"]
-    session["gems"] = newUser["gems"]
+    session["gems"] = newUser.get("gems", 0)
 
     return "Logged in Successfully"
     #------END OF /UnityLogin-----------

@@ -286,27 +286,43 @@ def delete_user(username):
         return False
 
 def adopt_user(parent, child):
-    # add child to parent's child list
-    User = Query()
-    users.update(lambda doc:
-        doc['children'].append(child.doc_id),
-        doc_ids = [parent.doc_id]
+    # Add child to parent's children list
+    users.update(
+        lambda doc: doc['children'].append(child.doc_id),
+        doc_ids=[parent.doc_id]
     )
 
-    # parent takes all the child's gems 
+    # Merge ALL counters from child → parent
+    merged_gems = parent.get("gems", 0) + child.get("gems", 0)
+    merged_bonus = parent.get("bonus", 0) + child.get("bonus", 0)
+    merged_rewarded = parent.get("rewarded", 0) + child.get("rewarded", 0)
+    merged_interstitial = parent.get("interstitial", 0) + child.get("interstitial", 0)
+    merged_earnings = parent.get("earnings", 0) + child.get("earnings", 0)
+    merged_total_cashout = parent.get("total_cashout", 0) + child.get("total_cashout", 0)
+
+    # Save merged values to parent
+    # parent account is the 
+    # logged-in/registered user account that is claiming the child)
     update_user(
         parent["username"],
-        gems = parent["gems"] + child["gems"],
-        bonus = parent["bonus"] + child["bonus"]
+        gems=merged_gems,
+        bonus=merged_bonus,
+        rewarded=merged_rewarded,
+        interstitial=merged_interstitial,
+        earnings=merged_earnings,
+        total_cashout=merged_total_cashout
     )
 
-    # mark child ad owned by parent
-    # empty child's gems
+    # Zero-out child account (child it the temp user)
     update_user(
         child["username"],
-        parent = parent.doc_id,
-        gems = 0,
-        bonus = 0
+        parent=parent.doc_id,
+        gems=0,
+        bonus=0,
+        rewarded=0,
+        interstitial=0,
+        earnings=0,
+        total_cashout=0
     )
 
 
