@@ -35,6 +35,7 @@ from PaypalWebsite.database.tinydb import (
     adopt_user,
     create_user,
     fetch_user,
+    fetch_all,
     delete_user,
     fetch_users,
     fetch_user_email,
@@ -206,16 +207,19 @@ def identity():
     username = session.get("username")
     user = fetch_user(username) if username else None
 
-    # No session → create temp user
+    # No session OR user deleted → create temp user
     if user is None:
         generate_temp_user()
         username = session.get("username")
         print("NEW TEMP USER CREATED BY /Identity:", username)
         print("SESSION AFTER:", dict(session))
-        return username
+        user = fetch_user(username)
 
-    print("EXISTING USER:", username)
-    return user["username"]
+    # Now always return JSON
+    return jsonify({
+        "username": username,
+        "is_admin": isDeveloper(username) #check username in admins
+    })
 
 
 # ask server for SID (document ID)
@@ -696,7 +700,7 @@ def WatchFakeInterstitial(user, count):
 @app.route('/Fake/S2S/AdRound/<int:count>', methods=['GET'])
 @admin_required
 def WatchFakeAdRound(user, count):
-    record_ad_round(user.doc_id, count)
+    record_ad_round(user, count)
     return redirect("/")
 
 
@@ -816,7 +820,7 @@ def SeeAllAds(user):
 # see the ALL request logs (S2S logs)
 @app.route('/RequestLog')
 @admin_required
-def RequestLog(user):
+def RequestLog(user=None):
     return jsonify(fetch_all('Requests'))
 
 #----- /login for website----------------
