@@ -83,7 +83,8 @@ def create_admin():
         children = [],
         earnings = 0,
         cashouts = [],
-        created_at = time.time()
+        created_at = time.time(),
+        last_cashout_time=0
     )
     print("admin has been generated!")
 
@@ -130,12 +131,20 @@ def fetch_users():
 def create_user(**kwargs):
     if "username" not in kwargs:
         raise Exception("USER must have a username")
+
+    # Prevent duplicates
     if fetch_user(kwargs["username"]) != None:
         return None
+
+    # Add timestamps
     kwargs["created_at"] = now()
+
+    # --- ADD THIS LINE ---
+    kwargs.setdefault("last_cashout_time", 0)
+
+    # Insert into TinyDB
     doc_id = users.insert(kwargs)
     return users.get(doc_id=doc_id)
-
 
 
 # Record cashout in database

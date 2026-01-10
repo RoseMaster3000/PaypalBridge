@@ -143,10 +143,10 @@ def redeem_ads(username, gemCount):
         gems = gemCount
     )
 
-        # Not enough ads → fail
+        # Not enough ads  fail
     if rewarded_used is None:
         return False, user
-    # Enough ads → success
+    # Enough ads  success
     return True, user
 
 # decrment base gems (then bonus gems if necessary)

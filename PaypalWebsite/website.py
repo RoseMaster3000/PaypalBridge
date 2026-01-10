@@ -16,6 +16,7 @@ import magic
 from PaypalWebsite.paypal import create_payout
 from PaypalWebsite import SECRET
 from PaypalWebsite.ecpm import initialize_ecpm, get_recent_ecpm
+from PaypalWebsite.rate_limit import check_cashout_rate_limit
 from PaypalWebsite.calculations import (
     CalculatePayoutSkill,
     redeem_ads,
@@ -456,10 +457,6 @@ def PurgeTempUsers(user):
 # Increment Gems
 @app.route('/GetGem', methods=['POST'])
 @none_required
-@limiter.limit("2/second", exempt_when=lambda: isDeveloper(
-    session.get("username", None),
-    app.debug
-))
 def GetGem(user):
     user["gems"] += int(request.form["gems"])
     update_user(user["username"], gems=user["gems"])
@@ -533,6 +530,11 @@ def Cashout(user):
     try:
         # Parse gemCount safely
         gemCount = int(request.form["gems"])
+       
+        # --- RATE LIMIT CHECK ---
+        rate_limit_result = check_cashout_rate_limit(user)
+        if rate_limit_result:
+            return rate_limit_result  # Already a (json, status)
 
         # Validate first
         data = validate_cashout(user, gemCount)
@@ -568,6 +570,8 @@ def Cashout(user):
             EntitledCut,
             AdminCut
         )
+        # --- UPDATE LAST CASHOUT TIME ---
+        update_user(user["username"], last_cashout_time=int(time.time()))
 
         return jsonify({
             "success": True,
