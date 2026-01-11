@@ -1,54 +1,119 @@
-<!-- no need for html tasgs bcause flask app uses jinja synthax {{sid}}
- importing the tags under the hood. so its not raw HTML, its jinja-powered 
- templete (called from flasks render_templete(file.html))-->
-
+<style>
+  .metric-separator {
+    width: 30%;
+    margin: 0px 25px 0px 10px;
+    height: 1px;
+    background-color: rgb(207, 215, 219);
+    border: none;
+  }
+</style>
 
 <h2>Cashout History for {{ user.username }} (SID: {{ sid }})</h2>
 <a href="/">Go Back</a>
 
-<ul>
-  <li><strong>Gems:</strong> {{ user.gems }} (current + redeemed)</li> 
+<ul style="margin-bottom: 25px;">
+  <li><strong>Gems:</strong> {{ user.gems }} (current + redeemed)</li>
   <li><strong>Bonus Gems:</strong> {{ user.bonus }}</li>
   <li><strong>Total Redeemed:</strong> ${{ user.total_cashout }}</li>
   <li><strong>Rewarded Ads Watched:</strong> {{ user.rewarded }}</li>
   <li><strong>Interstitial Ads Watched:</strong> {{ user.interstitial }}</li>
-  </ul>
-  <h3>Ad Metrics</h3>
-<ul>
-  <li><strong>Rewarded eCPM:</strong> {{ rewardedECPM }}</li>
-  <li><strong>Interstitial eCPM:</strong> {{ interstitialECPM }}</li>
-  <li><strong>Total Ads Watched:</strong> {{ totalAds }}</li>
-  <li><strong>Total Ad Revenue (estimated):</strong> {{ totalAdRevenue }}</li>
-  <li><strong>Gem Value (USD):</strong> {{ gemValue }} per gem</li>
 </ul>
-{% if rewardedECPM == "$0.00" or interstitialECPM == "$0.00" %}
-  <p style="color:red;"><strong>Warning:</strong> eCPM values may not be available in local mode.</p>
+
+
+<h3>Ad Metrics</h3>
+
+<ul style="line-height: 1.9; margin-bottom: 25px;">
+  <li>
+    <strong>Rewarded eCPM:</strong> {{ rewardedECPM }}
+    <span style="color:#555;">(estimated revenue per 1000 rewarded ads)</span>
+  </li>
+        <hr class="metric-separator">
+  <li>
+    <strong>Interstitial eCPM:</strong> {{ interstitialECPM }}
+    <span style="color:#555;">(estimated revenue per 1000 interstitial ads)</span>
+  </li>
+        <hr class="metric-separator">
+  <li>
+    <strong>Rewarded Revenue:</strong> {{ rewardedRevenue }}
+    <span style="color:#555;">(total revenue from rewarded ads)</span>
+  </li>
+        <hr class="metric-separator">
+  <li>
+    <strong>Interstitial Revenue:</strong> {{ interstitialRevenue }}
+    <span style="color:#555;">(total revenue from interstitial ads)</span>
+  </li>
+        <hr class="metric-separator">
+  <li>
+    <strong>Revenue per Rewarded Ad:</strong> {{ rewardedPerAd }}
+    <span style="color:#555;">(value of one rewarded ad)</span>
+  </li>
+        <hr class="metric-separator">
+  <li>
+    <strong>Revenue per Interstitial Ad:</strong> {{ interstitialPerAd }}
+    <span style="color:#555;">(value of one interstitial ad)</span>
+  </li>
+        <hr class="metric-separator">
+  <li>
+    <strong>Total Ads Watched:</strong> {{ totalAds }}
+    <span style="color:#555;">(rewarded + interstitial)</span>
+  </li>
+        <hr class="metric-separator"> 
+  <li>
+    <strong>Total Ad Revenue:</strong> {{ totalAdRevenue }}
+    <span style="color:#555;">(estimated total revenue from all ads)</span>
+  </li>
+        <hr class="metric-separator">
+  <li>
+    <strong>Gem Value:</strong> {{ gemValue }} per gem
+    <span style="color:#555;">(USD value of one gem)</span>
+  </li>
+        <hr class="metric-separator"> 
+  <li>
+    <strong>Total Developer Profit:</strong> {{ totalProfit }}
+    <span style="color:#555;">(your profit after user payouts)</span>
+  </li>
+</ul>
+
+{% if totalAds == 0 and user.total_cashout > 0 %}
+  <p style="color:red;"><strong>Warning:</strong> User redeemed cashout without watching any ads.</p>
 {% endif %}
 
-<!-- filter by date-->
-<form method="get" action="">
+{% if totalAds < 5 and user.total_cashout > 0 %}
+  <p style="color:orange;"><strong>Note:</strong> Very low ad activity compared to redeemed payout.</p>
+{% endif %}
+
+
+<h3>Filter by Date</h3>
+<form method="get" action="" style="margin-bottom: 25px;">
   <label for="start">Start Date:</label>
   <input type="date" id="start" name="start" value="{{ request.args.get('start', '') }}">
 
-  <label for="end">End Date:</label>
+  <label for="end" style="margin-left: 10px;">End Date:</label>
   <input type="date" id="end" name="end" value="{{ request.args.get('end', '') }}">
 
-  <label for="exact">Or Specific Date:</label>
+  <label for="exact" style="margin-left: 10px;">Or Specific Date:</label>
   <input type="date" id="exact" name="exact" value="{{ request.args.get('exact', '') }}">
-  <button type="submit">Filter</button>
 
-<!-- Clear Filters Button -->
-  <button type="button" class="btn btn-primary" onclick="window.location.href='/CashoutHistoryView/{{ sid }}'" style="margin-left: 10px;">
+  <button type="submit" style="margin-left: 10px;">Filter</button>
+
+  <button type="button" onclick="window.location.href='/CashoutHistoryView/{{ sid }}'" style="margin-left: 10px;">
     Clear Filters
   </button>
 </form>
 
-<!-- cashout table-->
+
+
 <h3>Cashout Log</h3>
-<table border="1">
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; margin-bottom: 25px;">
   <tr>
-    <th>Time</th><th>Gems</th><th>User Payout</th><th>Admin Payout</th><th>Total Payout</th>
+    <th>Time</th>
+    <th>Gems</th>
+    <th>User Payout</th>
+    <th>Admin Payout</th>
+    <th>Total Payout</th>
+    <th>Developer Profit</th>
   </tr>
+
   {% for entry in user.cashouts %}
   <tr>
     <td>{{ entry.time }}</td>
@@ -56,6 +121,7 @@
     <td>${{ entry.UserPayout }}</td>
     <td>${{ entry.AdminPayout }}</td>
     <td>${{ entry.TotalPayout }}</td>
+    <td>${{ entry.profit }}</td>
   </tr>
   {% endfor %}
 </table>

@@ -20,7 +20,7 @@ def CashoutHistoryView(user, sid):
     if not targetUser:
         return f"User with SID {sid} not found", 404
 
-    # Parse query parameters
+    # Parse filters
     start_str = request.args.get("start")
     end_str = request.args.get("end")
     exact_str = request.args.get("exact")
@@ -36,18 +36,27 @@ def CashoutHistoryView(user, sid):
             t = datetime.strptime(c["time"], "%m/%d/%Y %H:%M:%S")
         except:
             continue
+
+        # Apply filters
         if exact_date:
-            if t.date() == exact_date.date():
-                filtered_cashouts.append(c)
-        elif (not start_date or t >= start_date) and (not end_date or t <= end_date):
-            filtered_cashouts.append(c)
+            if t.date() != exact_date.date():
+                continue
+        else:
+            if start_date and t < start_date:
+                continue
+            if end_date and t > end_date:
+                continue
+
+        # Developer profit per cashout
+        c["profit"] = round(c["TotalPayout"] - c["UserPayout"], 4)
+        filtered_cashouts.append(c)
 
     # Ad metrics
     interstitial_ecpm = get_recent_ecpm("interstitial")
     rewarded_ecpm = get_recent_ecpm("rewarded")
+
     interstitial_value = interstitial_ecpm / 1000
     rewarded_value = rewarded_ecpm / 1000
-    gem_value = (interstitial_value + rewarded_value) / 55
 
     total_interstitial = targetUser["interstitial"]
     total_rewarded = targetUser["rewarded"]
@@ -58,6 +67,8 @@ def CashoutHistoryView(user, sid):
     total_ad_revenue = interstitial_revenue + rewarded_revenue
 
     total_redeemed_gems = sum(c["gems"] for c in filtered_cashouts)
+    total_profit = sum(c["profit"] for c in filtered_cashouts)
+
     targetUser["cashouts"] = filtered_cashouts
 
     return render_template(
@@ -68,6 +79,11 @@ def CashoutHistoryView(user, sid):
         interstitialECPM=f"${interstitial_ecpm:,.2f}",
         rewardedECPM=f"${rewarded_ecpm:,.2f}",
         totalAds=total_ads,
-        gemValue=f"${gem_value:,.5f}",
-        totalAdRevenue=f"${total_ad_revenue:,.2f}"
+        gemValue=f"${(interstitial_value + rewarded_value) / 55:,.5f}",
+        totalAdRevenue=f"${total_ad_revenue:,.2f}",
+        rewardedRevenue=f"${rewarded_revenue:,.4f}",
+        interstitialRevenue=f"${interstitial_revenue:,.4f}",
+        rewardedPerAd=f"${rewarded_value:,.5f}",
+        interstitialPerAd=f"${interstitial_value:,.5f}",
+        totalProfit=f"${total_profit:,.2f}"
     )
