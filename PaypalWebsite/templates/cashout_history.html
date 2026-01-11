@@ -111,7 +111,8 @@
     <th>User Payout</th>
     <th>Admin Payout</th>
     <th>Total Payout</th>
-    <th>Developer Profit</th>
+    <th>PayPal Fee</th>
+    <th>Real Profit</th>
   </tr>
 
   {% for entry in user.cashouts %}
@@ -121,7 +122,8 @@
     <td>${{ entry.UserPayout }}</td>
     <td>${{ entry.AdminPayout }}</td>
     <td>${{ entry.TotalPayout }}</td>
-    <td>${{ entry.profit }}</td>
+    <td>${{ entry.PaypalFee }}</td>
+    <td>${{ entry.RealProfit }}</td>
   </tr>
   {% endfor %}
 </table>

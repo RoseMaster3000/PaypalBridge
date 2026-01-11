@@ -169,8 +169,8 @@ def create_user(**kwargs):
 
 
 # Record cashout in database
-def log_cashout(username, gemCount, TotalPayout, EntitledPayout, AdminPayout): 
-    
+def log_cashout(username, gemCount, TotalPayout, EntitledPayout, AdminPayout,
+                PaypalFee=None, RealProfit=None):
 
     # increment total cashout of user
     user = fetch_user(username)
@@ -182,7 +182,9 @@ def log_cashout(username, gemCount, TotalPayout, EntitledPayout, AdminPayout):
         "UserPayout": EntitledPayout,# how much recv by user (after paypal fee)
         "AdminPayout": AdminPayout,  # cut left behind for Admin (before paypal fees)
         "AdminCollected": False,     # [T/F] has the Admin collected their cut?
-        "time": now()
+        "time": now(),
+        "PaypalFee": PaypalFee,            # fee paid by player (from PlayerCut)
+        "RealProfit": RealProfit,          # your real profit (same as AdminPayout)
     })
     
     try:

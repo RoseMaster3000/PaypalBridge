@@ -48,7 +48,8 @@ def CashoutHistoryView(user, sid):
                 continue
 
         # Developer profit per cashout
-        c["profit"] = round(c["TotalPayout"] - c["UserPayout"], 4)
+        c["PaypalFee"] = round(c.get("PaypalFee", c["TotalPayout"] - c["UserPayout"]), 2)
+        c["RealProfit"] = round(c.get("RealProfit", c["AdminPayout"]), 2)
         filtered_cashouts.append(c)
 
     # Ad metrics
@@ -67,7 +68,7 @@ def CashoutHistoryView(user, sid):
     total_ad_revenue = interstitial_revenue + rewarded_revenue
 
     total_redeemed_gems = sum(c["gems"] for c in filtered_cashouts)
-    total_profit = sum(c["profit"] for c in filtered_cashouts)
+    total_profit = sum(c["RealProfit"] for c in filtered_cashouts)
 
     targetUser["cashouts"] = filtered_cashouts
 

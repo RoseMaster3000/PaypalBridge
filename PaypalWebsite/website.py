@@ -546,9 +546,15 @@ def Cashout(user):
         if not data["success"]:
             return jsonify(data)
 
+        # --- CALCULATE PAYOUTS ---
         # Otherwise continue with real cashout
         PlayerCut, EntitledCut, AdminCut = CalculatePayoutSkill(user, gemCount)
 
+        # --- CALCULATE PAYPAL FEE + REAL PROFIT ---
+        PaypalFee = round(PlayerCut - EntitledCut, 2)
+        RealProfit = round(AdminCut, 2)
+
+         # --- REDEEM ADS ---
         redeem_success, user = redeem_ads(user["username"], gemCount)
         if not redeem_success:
             return jsonify({
@@ -556,6 +562,7 @@ def Cashout(user):
                 "message": "Ad revenue is still processing, please try again in a few hours."
             })
 
+        # --- REDEEM GEMS ---
         redeem_success, user = redeem_gems(user["username"], gemCount)
         if not redeem_success:
             return jsonify({
@@ -563,6 +570,7 @@ def Cashout(user):
                 "message": "Insufficient gems? Gem count has de-synced?"
             })
 
+        # --- SEND PAYPAL PAYOUT ---
         paypal_mode = get_paypal_mode()
         create_payout(user["email"], EntitledCut, mode=paypal_mode)
 
@@ -571,8 +579,11 @@ def Cashout(user):
             gemCount,
             PlayerCut,
             EntitledCut,
-            AdminCut
+            AdminCut,
+            PaypalFee=PaypalFee,
+            RealProfit=RealProfit,
         )
+
         # --- UPDATE LAST CASHOUT TIME ---
         update_user(user["username"], last_cashout_time=int(time.time()))
 

@@ -46,19 +46,32 @@ def MarketGemValue():
     singleGemValue = (interstitialValue + rewardedValue) / 55
     return singleGemValue
 
-
+#TotalRevenue = totalEarnings
+# so  totalEarnings is split 70/30
 def CalculateCuts(TotalRevenue):
-    PlayerShare = 0.70 # percent the user gets
+    PlayerShare = 0.70  # percent the user gets
+    AdminCut = TotalRevenue * 0.30  # your 30% BEFORE fee
+
     PlayerCut = TotalRevenue * PlayerShare
+
+    # PayPal fee comes from the player's 70%
     if (PlayerCut * 0.02 > 0.25):
-        PaypalProcessingFee = PlayerCut * 0.02 # 2% processing (domestic)
+        PaypalProcessingFee = PlayerCut * 0.02  # 2% domestic
     else:
-        PaypalProcessingFee = 0.25 # 25¢ processing (international)
+        PaypalProcessingFee = 0.25  # 25¢ international
+
     EntitledCut = PlayerCut - PaypalProcessingFee
-    PlayerCut = int(PlayerCut*100)/100
-    EntitledCut = int(EntitledCut*100)/100
-    AdminCut = TotalRevenue - PaypalProcessingFee - EntitledCut
+
+    # rounding
+    PlayerCut = round(PlayerCut, 2)
+    EntitledCut = round(EntitledCut, 2)
+    AdminCut = round(AdminCut, 2)
+
+
+
     return PlayerCut, EntitledCut, AdminCut
+
+
 
 
 # Calculate # of gems needed to make at least 1 cent
