@@ -55,14 +55,13 @@ from PaypalWebsite.database.tinydb import (
     record_rewarded,
     get_age_restriction_enabled,
     get_minimum_age,
-    get_user_age,  
-    
-
+    get_user_age,
+    fetch_all_s2slogs,
 )
 # initialize custom decorators
 from PaypalWebsite.decorators import (
-none_required, admin_required,
-email_required, log_request, temp_required)
+s2slog_request, none_required, admin_required, 
+email_required, log_request, temp_required, )
  
 print("=== FLASK SERVER STARTED ===")
 
@@ -706,7 +705,7 @@ def WatchFakeAdRound(user, count):
 
 # UNITY S2S : Unity will use this route to tell us when users watch ads
 @app.route('/S2S', methods=['GET'])
-@log_request
+@s2slog_request
 @limiter.exempt
 def WatchAd():
     print("=== dmitry1 REAL S2S ROUTE EXECUTED ===")
@@ -761,7 +760,14 @@ def WatchAd():
 
     except Exception as e:
         print("S2S ERROR:", e)
-        log("Requests", url=request.url, error=str(e))
+        log_s2s(
+            url=request.url,
+            path=request.path,
+            error=str(e),
+            ip=request.remote_addr,
+            unity=(request.remote_addr in UNITY_IPS),
+            time=str(datetime.now())
+        )
         return "1", 200
 #------------END OF /S2S---------
 
@@ -817,11 +823,69 @@ def SeeAllAds(user):
     return jsonify(fetch_ads())
 
 
-# see the ALL request logs (S2S logs)
+# see the ALL request logs
 @app.route('/RequestLog')
 @admin_required
-def RequestLog(user=None):
-    return jsonify(fetch_all('Requests'))
+def RequestLog(user):
+    logs = fetch_all("Requests")
+    return jsonify(logs)
+
+#=========== S2S Log to HTML view ================
+#===== ability to filter S2S logs by username, date, IP ==========
+@app.route("/S2S_Log")
+@admin_required
+def S2S_Log(user):
+    # -------Read filters---------
+    filter_date = request.args.get("date", "")
+    filter_username = request.args.get("username", "")
+    filter_ip = request.args.get("ip", "")
+
+    # ------Pagination - add/sort by pages--------
+    page = int(request.args.get("page", 1))
+    per_page = 50  # ====you can change this======
+
+    logs = fetch_all_s2slogs()
+
+    # --------Apply filters------------
+    filtered = []
+    for log in logs:
+        log_time = log.get("time", "")
+        log_user = str(log.get("username", ""))
+        log_ip = str(log.get("ip", ""))
+
+        if filter_date and filter_date not in log_time:
+            continue
+        if filter_username and filter_username.lower() not in log_user.lower():
+            continue
+        if filter_ip and filter_ip not in log_ip:
+            continue
+
+        filtered.append(log)
+
+    # Sort newest to oldest
+    filtered = sorted(filtered, key=lambda x: x.get("created_at", 0), reverse=True)
+
+    # Pagination math
+    total = len(filtered)
+    start = (page - 1) * per_page
+    end = start + per_page
+    page_logs = filtered[start:end]
+
+    # Determine if next/prev pages exist
+    has_next = end < total
+    has_prev = start > 0
+
+    return render_template(
+        "S2S_Log.html",
+        logs=page_logs,
+        filter_date=filter_date,
+        filter_username=filter_username,
+        filter_ip=filter_ip,
+        page=page,
+        has_next=has_next,
+        has_prev=has_prev
+    )
+  #=========== END of S2S Log to view ================
 
 #----- /login for website----------------
 # take over temp_user account

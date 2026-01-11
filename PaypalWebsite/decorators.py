@@ -1,10 +1,11 @@
 from functools import wraps
 from flask import session, request, after_this_request, redirect
 from datetime import datetime
-from PaypalWebsite.database.tinydb import fetch_user, log
+from PaypalWebsite.database.tinydb import fetch_user, log, log_s2s
 #from PaypalWebsite.website import app
 from PaypalWebsite.isDevelopers import isDeveloper
 import os
+import time
 
 # prevents cookie from beeing created
 '''def no_SessionCookie(route_func):
@@ -92,7 +93,7 @@ UNITY_IPS = [
     "35.205.0.8"
 ]
 
-# record this request in the database
+# record this request in the tinydb.jason database
 def log_request(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -103,6 +104,22 @@ def log_request(f):
             time = str(datetime.now()),
             unity = (request.remote_addr in UNITY_IPS),
             ip = request.remote_addr
+        )
+        return f(*args, **kwargs)
+    return wrapper
+
+# record this request in the s2slogsdb.jason database
+def s2slog_request(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        log_s2s(
+            url = request.url,
+            path = request.path,
+            time = str(datetime.now()),
+            created_at=int(time.time()),
+            unity = (request.remote_addr in UNITY_IPS),
+            ip = request.remote_addr,
+            username=session.get("username")
         )
         return f(*args, **kwargs)
     return wrapper

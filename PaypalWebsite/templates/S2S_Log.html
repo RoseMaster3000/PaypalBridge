@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>S2S Logs</title>
+    <style>
+        body { font-family: Arial; background: #f5f5f5; padding: 20px; }
+        .log-entry {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .log-entry b { color: #333; }
+    </style>
+</head>
+<body>
+
+<h2>S2S Logs</h2>
+
+<form method="get" style="margin-bottom: 20px;">
+    <input type="text" name="date" placeholder="Date (YYYY-MM-DD)" value="{{ filter_date }}">
+    <input type="text" name="username" placeholder="Username" value="{{ filter_username }}">
+    <input type="text" name="ip" placeholder="IP" value="{{ filter_ip }}">
+    <button type="submit">Filter</button>
+</form>
+
+{% for log in logs %}
+<div class="log-entry">
+    <b>Time:</b> {{ log.time }} <br>
+    <b>URL:</b> {{ log.url }} <br>
+    <b>Path:</b> {{ log.path }} <br>
+    <b>IP:</b> {{ log.ip }} <br>
+    <b>Unity:</b> {{ log.unity }} <br>
+    <b>Username:</b> {{ log.username }} <br>
+</div>
+{% endfor %}
+<div style="margin-top: 20px;">
+    {% if has_prev %}
+        <a href="?page={{ page - 1 }}&date={{ filter_date }}&username={{ filter_username }}&ip={{ filter_ip }}">
+            ← Previous
+        </a>
+    {% endif %}
+
+    {% if has_next %}
+        <a href="?page={{ page + 1 }}&date={{ filter_date }}&username={{ filter_username }}&ip={{ filter_ip }}" style="margin-left: 20px;">
+            Next →
+        </a>
+    {% endif %}
+</div>
+</body>
+</html>

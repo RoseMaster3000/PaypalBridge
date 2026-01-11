@@ -56,16 +56,37 @@ def now():
 
 # initialize database
 def initialize_db(app):
-    global db, users, ads, REVENUE_FILE
+    global db, db_logs, users, ads, REVENUE_FILE
+    # create revenue.json + save
     REVENUE_FILE = os.path.join(app.config['DATABASE_FOLDER'], "revenue.json")
+    
+    #create tinydb.json + save
     dbPath = os.path.join(app.config['DATABASE_FOLDER'], 'tinydb.json')
     print("TinyDB is using:", dbPath)
     db = TinyDB(dbPath)
-    users = db.table('users')
+    users = db.table('users') # "users" table in tinydb.json
+
+    #create s2slogsdb.json + save
+    logsPath = os.path.join(app.config['DATABASE_FOLDER'], 's2slogsdb.json')
+    print("TinyDB is using:", logsPath)
+    db_logs = TinyDB(logsPath)
+
     backfix_users()
     purge_request_log()
     delete_old_tables()
     create_admin()
+
+#Write a log entry into the s2slogs table in TinyDB(s2slogsdb.json)
+def log_s2s(**kwargs):
+    global db_logs
+    table = db_logs.table("s2slogs")
+    table.insert(kwargs)
+
+#Read all S2S log entries from the s2slogs table in TinyDB
+def fetch_all_s2slogs():
+    global db_logs
+    table = db_logs.table("s2slogs")
+    return table.all()   
 
 # Create admin account (if missing)
 def create_admin():
@@ -398,7 +419,7 @@ def fetch_all(tableName):
     return table.all()
 
 
-# insert data into specified table
+# insert data into specified table in tinydb.py
 def log(tableName, **kwargs):
     kwargs['created_at'] = now()
     table = db.table(tableName)
