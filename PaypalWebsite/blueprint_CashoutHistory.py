@@ -73,7 +73,7 @@ def CashoutHistoryView(user, sid):
     total_paypal_fees = sum(c["PaypalFee"] for c in filtered_cashouts)
     total_admin_profit = sum(c["AdminPayout"] for c in filtered_cashouts)
 
-    total_profit = sum(c["RealProfit"] for c in filtered_cashouts)
+    total_profit = sum(c["AdminPayout"] for c in filtered_cashouts)
 
     targetUser["cashouts"] = filtered_cashouts
 
