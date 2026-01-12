@@ -102,28 +102,30 @@
 </form>
 
 
+<div style="display: flex; align-items: center; gap: 12px;">
+  <h3 style="margin: 0;">Cashout Log</h3>
+  {% include "cashout_history-description.html" %}
+</div>
 
-<h3>Cashout Log</h3>
 <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; margin-bottom: 25px;">
   <tr>
     <th>Time</th>
     <th>Gems</th>
-    <th>User Payout</th>
-    <th>Admin Payout</th>
     <th>Total Payout</th>
+    <th>User Payout</th>
     <th>PayPal Fee</th>
-    <th>Real Profit</th>
+    <th>Admin Profit</th>
   </tr>
 
   {% for entry in user.cashouts %}
   <tr>
     <td>{{ entry.time }}</td>
     <td>{{ entry.gems }}</td>
-    <td>${{ entry.UserPayout }}</td>
-    <td>${{ entry.AdminPayout }}</td>
     <td>${{ entry.TotalPayout }}</td>
+    <td>${{ entry.UserPayout }}</td>
     <td>${{ entry.PaypalFee }}</td>
-    <td>${{ entry.RealProfit }}</td>
+    <td>${{ entry.AdminPayout }}</td>
+  
   </tr>
   {% endfor %}
 </table>

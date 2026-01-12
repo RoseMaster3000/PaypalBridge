@@ -542,7 +542,7 @@ def Cashout(user):
         # Validate first
         data = validate_cashout(user, gemCount)
 
-        # If validation failed → return immediately
+        # If validation failed  return immediately
         if not data["success"]:
             return jsonify(data)
 
@@ -552,7 +552,6 @@ def Cashout(user):
 
         # --- CALCULATE PAYPAL FEE + REAL PROFIT ---
         PaypalFee = round(PlayerCut - EntitledCut, 2)
-        RealProfit = round(AdminCut, 2)
 
          # --- REDEEM ADS ---
         redeem_success, user = redeem_ads(user["username"], gemCount)
@@ -580,8 +579,7 @@ def Cashout(user):
             PlayerCut,
             EntitledCut,
             AdminCut,
-            PaypalFee=PaypalFee,
-            RealProfit=RealProfit,
+            PaypalFee=PaypalFee    
         )
 
         # --- UPDATE LAST CASHOUT TIME ---

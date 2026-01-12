@@ -1,0 +1,29 @@
+<div style="margin-bottom: 20px;">
+  <button onclick="toggleToolTeam()" style="background-color: #eef6ff; border: 1px solid #a0c4ff; padding: 6px 12px; cursor: pointer;">
+    Tool Team Explanation ▼
+  </button>
+
+  <div id="toolTeamBox" style="display: none; margin-top: 12px; padding: 12px; background-color: #f8fbff; border-left: 4px solid #a0c4ff;">
+    <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.7;">
+      <li><strong>70/30 Split System</strong> — Revenue is split before fees: 70% to the player, 30% to the developer.</li>
+      <li><strong>Time</strong> — When the cashout was created.</li>
+      <li><strong>Gems</strong> — Number of gems redeemed for this payout.</li>
+      <li><strong>Total Payout</strong> — Amount allocated to the player <strong>before PayPal fee</strong>.</li>
+      <li><strong>User Payout</strong> — Amount the player receives <strong>after PayPal fee</strong>.</li>
+      <li><strong>PayPal Fee</strong> — Fee deducted from the player’s share, not yours.</li>
+      <li><strong>Admin Profit</strong> — Your 30% share of total revenue (your real profit).</li>
+      
+      <li style="margin-top: 10px; color:#364a86;">
+        <span style="font-style: italic;">
+        Note: Real PayPal fees may vary slightly depending on country and currency.
+        </span></li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  function toggleToolTeam() {
+    const box = document.getElementById("toolTeamBox");
+    box.style.display = box.style.display === "none" ? "block" : "none";
+  }
+</script>
