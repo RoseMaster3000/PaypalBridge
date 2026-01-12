@@ -105,6 +105,11 @@
 <div style="display: flex; align-items: center; gap: 12px;">
   <h3 style="margin: 0;">Cashout Log</h3>
   {% include "cashout_history-description.html" %}
+  <div style="margin-bottom: 20px; padding: 10px; background: #f4faff; border-left: 4px solid #7ab8ff;">
+  <strong>Total User Cashout:</strong> {{ totalUserCashout }}<br>
+  <strong>Total PayPal Fees:</strong> {{ totalPaypalFees }}<br>
+  <strong>Total Admin Profit:</strong> {{ totalAdminProfit }}
+</div>
 </div>
 
 <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; margin-bottom: 25px;">
