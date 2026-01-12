@@ -156,10 +156,21 @@ def redeem_ads(username, gemCount):
         gems = gemCount
     )
 
-        # Not enough ads  fail
+    # Not enough ads  fail
     if rewarded_used is None:
         return False, user
-    # Enough ads  success
+
+    # Enough ads -> decrement and save
+    user["rewarded"] -= rewarded_used
+    user["interstitial"] -= interstitial_used
+
+    update_user(
+        user["username"],
+        rewarded=user["rewarded"],
+        interstitial=user["interstitial"]
+    )
+
+    # Enough ads success
     return True, user
 
 # decrment base gems (then bonus gems if necessary)
@@ -198,7 +209,5 @@ def redeem_gems(username, gemCount):
         return False, user
 
     #------------END OF CALCULATIONS------------------   
-
-    #---------------END RESTRICTIONS-------------------
 
     
