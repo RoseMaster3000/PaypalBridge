@@ -30,13 +30,13 @@ def validate_cashout(user, gemCount):
         return data
 
     # 4. gemCount must not exceed gemMaximum
-    gemMaximum = (user["interstitial"] * 5) + (user["rewarded"] * 50)
+    '''gemMaximum = (user["interstitial"] * 5) + (user["rewarded"] * 50)
     if gemCount > gemMaximum:
         data["message"] = (
             f"You cannot redeem {gemCount:,} gems because your ads only justify "
             f"{gemMaximum:,} gems. (GamerScore would exceed 1.0)"
         )
-        return data
+        return data'''
 
     # 5. User must have enough ads to justify gems
     rewarded_used, interstitial_used = minimal_ad_count(
@@ -54,17 +54,16 @@ def validate_cashout(user, gemCount):
     # 6. S2S earnings must be above minimum threshold
     MIN_EARNINGS = 0.50
     if user["earnings"] < MIN_EARNINGS:
-        data["message"] = (
-            f"Your Unity ad earnings (${user['earnings']:.2f}) are too low to cash out. "
-            f"Keep playing to increase your S2S revenue."
-        )
-        return data
+        # Do NOT return here — let Rule 7 handle it
+        pass
 
-    
     # 7. Dynamic minimum gems required
     dynamic_min = CalculateGemsNeeded(user, 0)
     if gemCount < dynamic_min:
-        data["message"] = f"Minimum cashout is {dynamic_min:,} gems at today's rate."
+        data["message"] = (
+            f"Not enough gems. "
+            f"Minimum cashout is {dynamic_min:,} gems at today's rate."
+        )
         return data
 
     # 8. Calculate payout
@@ -72,12 +71,12 @@ def validate_cashout(user, gemCount):
     data["payout"] = f"${EntitledCut:,.02f}"
 
     # 9. PlayerCut must exceed PayPal fee
-    if PlayerCut <= 0.25:
+    '''if PlayerCut <= 0.25:
         data["message"] = (
             f"Your payout (${PlayerCut:.2f}) is too small to cover PayPal's $0.25 fee."
         )
         data["payout"] = "$0.00"
-        return data
+        return data'''
 
     # 10. EntitledCut must be positive
     if EntitledCut <= 0:
