@@ -217,6 +217,7 @@ def identity():
     # Now always return JSON
     return jsonify({
         "username": username,
+        "email": user.get("email"),
         "is_admin": isDeveloper(username) #check username in admins
     })
 
