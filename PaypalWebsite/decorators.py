@@ -22,10 +22,31 @@ import time
 def none_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        username = session.get("username")
-        user = fetch_user(username) if username else None
-        kwargs["user"] = user
-        return f(*args, **kwargs)
+        try:
+            username = session.get("username")
+
+            # No username in session → treat as no user
+            if not username:
+                kwargs["user"] = None
+                return f(*args, **kwargs)
+
+            # Try to fetch user
+            user = fetch_user(username)
+
+            # If user not found → treat as no user
+            if not user:
+                kwargs["user"] = None
+                return f(*args, **kwargs)
+
+            # Valid user
+            kwargs["user"] = user
+            return f(*args, **kwargs)
+
+        except Exception as e:
+            print("none_required ERROR:", e)
+            kwargs["user"] = None
+            return f(*args, **kwargs)
+
     return wrapper
 
 

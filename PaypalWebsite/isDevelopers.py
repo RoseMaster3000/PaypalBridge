@@ -1,4 +1,4 @@
-ADMINS = ["admin"] # to add more ["admin, "dimad", "wertyr"]
+ADMINS = ["admin"] # to add more ["admin", "dimad", "wertyr"]
 
 def isDeveloper(username, debug=False):
     if debug:

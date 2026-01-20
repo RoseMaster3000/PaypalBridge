@@ -16,8 +16,13 @@ def cashout_status():
     adminInteractable = get_admin_interactable_status()
 
     # Determine if current user is admin
-    username = session.get("username", None)
-    is_admin = isDeveloper(username, debug=False)
+    username = session.get("username")
+
+    # If no username in session treat as non-admin
+    if not username:
+        is_admin = False
+    else:
+        is_admin = isDeveloper(username, debug=False)
 
     # Determine mode
     if not override:

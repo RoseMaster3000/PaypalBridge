@@ -175,6 +175,9 @@ def generate_temp_user():
 @app.route("/ResetAccount", methods=['GET'])
 @none_required
 def ResetAccount(user):
+    if not user:
+        return "Not logged in", 401
+
     session["gems"] = 0
     user["gems"] = 0
     user["bonus"] = 0
@@ -197,9 +200,10 @@ def TempUser():
 
 
 # ask server for username
-@app.route("/Identity", methods=['POST'])
+@app.route("/Identity", methods=['GET', 'POST'])
 def identity():
     print("=== /Identity CALLED ===")
+    print("METHOD:", request.method)
     print("COOKIES:", request.cookies)
     print("SESSION BEFORE:", dict(session))
 
@@ -226,15 +230,29 @@ def identity():
 @app.route("/SID")
 @none_required
 def SID(user):
-    print("=== /SID CALLED ===")
-    print("REQUEST HEADERS:", dict(request.headers))
-    print("SESSION:", dict(session))
-    print("USER:", user)
-    print("COOKIES:", request.cookies)
-    print("SECRET KEY:", app.secret_key)
-    if not user:
+    try:
+        print("=== /SID CALLED ===")
+        '''
+        print("REQUEST HEADERS:", dict(request.headers))
+        print("SESSION:", dict(session))
+        print("USER:", user)
+        print("COOKIES:", request.cookies)
+        print("SECRET KEY:", app.secret_key)'''
+        # If decorator failed to resolve user
+        if not user:
+            return "-1"
+
+        # If user object is missing doc_id or corrupted
+        if not hasattr(user, "doc_id"):
+            return "-1"
+    
+        return str(user.doc_id)
+
+    except Exception as e:
+        print("SID ERROR:", e)
         return "-1"
-    return str(user.doc_id)
+
+
 
 
 # debugger view (veiw/create users)
@@ -462,6 +480,9 @@ def PurgeTempUsers(user):
 @app.route('/GetGem', methods=['POST'])
 @none_required
 def GetGem(user):
+    if not user:
+        return "-1"
+
     user["gems"] += int(request.form["gems"])
     update_user(user["username"], gems=user["gems"])
     session["gems"] = user["gems"]
@@ -607,6 +628,9 @@ def Cashout(user):
 @app.route("/CashoutHistory/")
 @none_required
 def CashoutHistorySelf(user):
+    if not user:
+        return "Not logged in", 401
+
     return CashoutHistory(user["username"])
 
 @app.route("/CashoutHistory/<username>")
@@ -616,15 +640,22 @@ def CashoutHistoryOther(user, username):
 
 def CashoutHistory(username):
     targetUser = fetch_user(username)
-    for c in targetUser["cashouts"]:
+    if not targetUser:
+        return jsonify([])  # or jsonify({"error": "User not found"}), 404
+
+    for c in targetUser.get("cashouts", []):
         c["time"] = convert_epoch(c["time"])
-    return jsonify(targetUser["cashouts"])
+
+    return jsonify(targetUser.get("cashouts", []))
 
 
 # Return all data on User
 @app.route("/GetUserEarnings")
 @none_required
 def GetUserInfo(user):
+    if not user:
+        return "0.00"
+
     if "total_cashout" in user:
         return f"{user['total_cashout']:.02f}"
     else:
@@ -823,6 +854,9 @@ def AddBonus(user):
 @admin_required
 def SeeMyAds(user, username):
     targetUser = fetch_user(username)
+    if not targetUser:
+        return jsonify({"error": "User not found"}), 404
+
     return jsonify(fetch_ads(targetUser.doc_id))
 
 
@@ -993,7 +1027,8 @@ def isBrowser(request):
 
 # delete multiple users 
 @app.route('/DeleteUsers', methods=['POST'])
-def delete_users():
+@admin_required
+def delete_users(user):
     usernames = request.form.getlist('usernames') 
     for username in usernames: 
         delete_user(username) 
@@ -1002,7 +1037,8 @@ def delete_users():
 
 # **New route to delete a user**
 @app.route('/DeleteUser', methods=['POST'])
-def delete_user_route():
+@admin_required
+def delete_user_route(user):
     username = request.form['username']
     delete_user(username)
     return f"User [{username}] has been deleted<br><a href='/'>Go Back<a>"
